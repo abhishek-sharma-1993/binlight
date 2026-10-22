@@ -9,13 +9,13 @@ results is enough to prove the gate.
 
 ## Tasks
 
-- [ ] **1. Repo scaffold.** npm workspaces, TypeScript strict:
+- [x] **1. Repo scaffold.** npm workspaces, TypeScript strict:
       `apps/server` (Node), `apps/web` (React + Vite), `packages/shared` (types).
       Lint, format and a test runner. A README with how to run it.
-- [ ] **2. REA MCP client.** Spawn `rea --mcp` over stdio with an explicit env
+- [x] **2. REA MCP client.** Spawn `rea --mcp` over stdio with an explicit env
       (`GHIDRA_INSTALL_DIR`, `REA_GHIDRA_STARTUP_TIMEOUT_MS`). Initialise, list
       tools, call tools, handle REA's structured errors. Pin the REA version.
-- [ ] **3. Contract tests.** For each tool Binlight calls, record the real
+- [x] **3. Contract tests.** For each tool Binlight calls, record the real
       response shape from REA and assert it in tests, so a REA upgrade that
       changes a shape fails loudly.
 - [ ] **4. Preflight ("zero-setup").** Before analysis: - detect file type and architectures; thin universal Mach-O (handle

@@ -3,3 +3,4 @@ node_modules
 reference
 package-lock.json
 *.tsbuildinfo
+apps/server/test/contracts

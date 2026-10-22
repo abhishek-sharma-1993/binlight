@@ -50,6 +50,20 @@ npm run rea:tools              # summary
 npm run rea:tools -- --json    # full list
 ```
 
+## REA contract tests
+
+Binlight parses REA's responses with the schemas in `apps/server/src/rea/schemas.ts`
+and keeps a recording of every response shape it relies on, per REA version and
+deep provider, in `apps/server/test/contracts/`. The target is a tiny Go program
+in `apps/server/test/fixtures/hello-go`, built on each run (needs Go).
+
+```bash
+npm run test:contract       # live: run REA, fail on any shape or argument change
+npm run contracts:record    # after a deliberate REA upgrade; review the git diff
+```
+
+`npm test` checks the recordings offline against the schemas.
+
 ## Check
 
 ```bash

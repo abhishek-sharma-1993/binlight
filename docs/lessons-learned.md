@@ -52,6 +52,26 @@ executable_missing`. Building it from the release's Makefile fails: its
   `/tmp/rea-*` runtime dir and an open document. Detect demo mode and steer users
   to Ghidra.
 
+## Provider selection on Apple Silicon (REA 6.7.0, Oct 22 2026)
+
+- With no native decompiler, REA **rejects the Ghidra provider outright** for
+  `open_binary` (`provider_unavailable`, rejection `executable_missing`), not just
+  decompilation. `details.rejections[]` lists each candidate and why.
+- `open_binary` with no `provider_id` picked **Hopper** on the owner's Mac, and it
+  worked unattended: a 2.7 MB Go binary opened in 1 s, `binary_overview` 12 s,
+  `list_strings` / `list_procedures` in milliseconds. No demo dialog blocked it.
+- REA **leaves Hopper running** after `close_binary` and after `rea --mcp` exits.
+  The runner must account for this (task 4/6).
+- Hopper's `list_strings` sees only typed string objects: **15 strings** for the Go
+  fixture, missing its URL literal, which is in the file. Do not base the
+  phone-home recipe on Hopper's `list_strings` for Go binaries.
+- `list_strings` and `list_procedures` take no paging arguments; kubectl-sized
+  binaries return everything in one response.
+- `inspect_go_binary` needs no deep provider (13 ms) and reports Go version,
+  main module and dependencies (Ollama: go1.27.2, 51 dependencies, matches below).
+- Homebrew's kubectl here is 1.37.1, not the `/usr/local/bin` copy in the
+  reference table; expect different counts at the gate run.
+
 ## Reading findings from strings
 
 - **Go packs string literals end to end with no separators.** URLs are glued to

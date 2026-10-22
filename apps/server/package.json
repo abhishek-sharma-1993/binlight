@@ -7,11 +7,14 @@
     "dev": "tsx watch --conditions=@binlight/source src/main.ts",
     "build": "tsc -b",
     "start": "node dist/main.js",
-    "rea:tools": "tsx --conditions=@binlight/source src/cli/rea-tools.ts"
+    "rea:tools": "tsx --conditions=@binlight/source src/cli/rea-tools.ts",
+    "contracts:record": "tsx --conditions=@binlight/source src/contracts/record.ts",
+    "test:contract": "vitest run --config vitest.contract.config.ts"
   },
   "dependencies": {
     "@binlight/shared": "*",
     "@modelcontextprotocol/client": "2.3.1",
-    "rea-agents": "6.7.0"
+    "rea-agents": "6.7.0",
+    "zod": "^4.6.7"
   }
 }
