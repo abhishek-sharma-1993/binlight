@@ -20,7 +20,8 @@ Status: phase 0 (foundations). See `docs/phase-0-plan.md`.
 ## Prerequisites
 
 - Node.js 22+ (developed on 26)
-- REA: `npm install -g rea-agents` (pinned version: see `apps/server`)
+- REA is installed by `npm install`: `rea-agents` is pinned exactly in
+  `apps/server/package.json`, and Binlight refuses to run any other version.
 - Ghidra 12.1.x + JDK 21 for deep analysis (see `docs/lessons-learned.md`)
 
 ## Run
@@ -29,6 +30,24 @@ Status: phase 0 (foundations). See `docs/phase-0-plan.md`.
 npm install
 npm run dev:server   # http://127.0.0.1:8787
 npm run dev:web      # http://127.0.0.1:5173 (proxies /api to the server)
+```
+
+## REA
+
+The server spawns the pinned `rea --mcp` itself with an explicit environment.
+Set these in the server's environment:
+
+| Variable                        | Purpose                                                              |
+| ------------------------------- | -------------------------------------------------------------------- |
+| `GHIDRA_INSTALL_DIR`            | Ghidra 12.1.x root (the folder with `Ghidra/application.properties`) |
+| `JAVA_HOME`                     | JDK 21                                                               |
+| `REA_GHIDRA_STARTUP_TIMEOUT_MS` | Initial-analysis budget; default 45 min                              |
+
+List REA's tools through Binlight's MCP client:
+
+```bash
+npm run rea:tools              # summary
+npm run rea:tools -- --json    # full list
 ```
 
 ## Check

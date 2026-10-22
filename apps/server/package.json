@@ -6,9 +6,12 @@
   "scripts": {
     "dev": "tsx watch --conditions=@binlight/source src/main.ts",
     "build": "tsc -b",
-    "start": "node dist/main.js"
+    "start": "node dist/main.js",
+    "rea:tools": "tsx --conditions=@binlight/source src/cli/rea-tools.ts"
   },
   "dependencies": {
-    "@binlight/shared": "*"
+    "@binlight/shared": "*",
+    "@modelcontextprotocol/client": "2.3.1",
+    "rea-agents": "6.7.0"
   }
 }

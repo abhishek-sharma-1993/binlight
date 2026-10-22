@@ -6,25 +6,38 @@
 /** A tool advertised by REA's MCP server (`tools/list`). */
 export interface ReaToolInfo {
   name: string;
+  title?: string;
   description?: string;
 }
 
 /**
- * REA's structured error. REA reports failures as JSON with a code, a message
- * and a remediation; Binlight shows all three to the user.
+ * REA's structured tool error, as returned by REA 6.7.0 inside a failed
+ * `tools/call` result: `{ "error": { code, category, message, retryable, remediation, details } }`.
+ * Binlight shows the message and remediation to the user verbatim.
  */
 export interface ReaError {
   code: string;
   message: string;
-  remediation?: string;
+  category?: string;
+  retryable?: boolean;
+  remediation?: { action: string };
+  details?: Record<string, unknown>;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 export function isReaError(value: unknown): value is ReaError {
-  if (typeof value !== "object" || value === null) return false;
-  const v = value as Record<string, unknown>;
+  if (!isRecord(value)) return false;
+  const { code, message, category, retryable, remediation, details } = value;
   return (
-    typeof v["code"] === "string" &&
-    typeof v["message"] === "string" &&
-    (v["remediation"] === undefined || typeof v["remediation"] === "string")
+    typeof code === "string" &&
+    typeof message === "string" &&
+    (category === undefined || typeof category === "string") &&
+    (retryable === undefined || typeof retryable === "boolean") &&
+    (remediation === undefined ||
+      (isRecord(remediation) && typeof remediation["action"] === "string")) &&
+    (details === undefined || isRecord(details))
   );
 }
