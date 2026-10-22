@@ -1,0 +1,14 @@
+{
+  "name": "@binlight/server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --conditions=@binlight/source src/main.ts",
+    "build": "tsc -b",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "@binlight/shared": "*"
+  }
+}
