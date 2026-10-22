@@ -50,6 +50,18 @@ npm run rea:tools              # summary
 npm run rea:tools -- --json    # full list
 ```
 
+## Preflight
+
+Before any analysis the server checks the target and this machine: file type and
+architectures, `.app` bundle executables, universal Mach-O thinning (cached in
+`~/.binlight/cache/thin`), and which deep-analysis route works (native Ghidra,
+licensed Hopper, or the Docker Ghidra runner). Every problem comes back with
+its real reason.
+
+```bash
+npm run preflight -- /path/to/binary [--json]
+```
+
 ## REA contract tests
 
 Binlight parses REA's responses with the schemas in `apps/server/src/rea/schemas.ts`

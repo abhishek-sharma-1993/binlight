@@ -58,8 +58,17 @@ executable_missing`. Building it from the release's Makefile fails: its
   `open_binary` (`provider_unavailable`, rejection `executable_missing`), not just
   decompilation. `details.rejections[]` lists each candidate and why.
 - `open_binary` with no `provider_id` picked **Hopper** on the owner's Mac, and it
-  worked unattended: a 2.7 MB Go binary opened in 1 s, `binary_overview` 12 s,
-  `list_strings` / `list_procedures` in milliseconds. No demo dialog blocked it.
+  worked unattended on a 2.7 MB Go binary (open 1 s, `binary_overview` 12 s).
+  But that Hopper is the **demo build** (`CFBundleShortVersionString` =
+  `6.6.0-demo`), so preflight avoids it as the plan requires. REA's doctor does
+  not report licence state; read the app's `Info.plist`.
+- `rea doctor --format json` exits 1 whenever anything is unhealthy (IDA, client
+  registrations), so ignore the exit code. Read `providerInspections[]` for
+  Ghidra (`available` + failing `checks`). Hopper is **not** in
+  `providerInspections`; use the `hopper` entry in `scope_checks` and `hopperPath`.
+- Extracting a universal slice by its fat-header offset and size gives a file
+  byte-identical to `lipo -thin` (checked on `/bin/ls` arm64e), so thinning
+  needs no `lipo` and works on Linux.
 - REA **leaves Hopper running** after `close_binary` and after `rea --mcp` exits.
   The runner must account for this (task 4/6).
 - Hopper's `list_strings` sees only typed string objects: **15 strings** for the Go

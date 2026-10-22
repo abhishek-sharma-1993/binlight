@@ -18,7 +18,7 @@ results is enough to prove the gate.
 - [x] **3. Contract tests.** For each tool Binlight calls, record the real
       response shape from REA and assert it in tests, so a REA upgrade that
       changes a shape fails loudly.
-- [ ] **4. Preflight ("zero-setup").** Before analysis: - detect file type and architectures; thin universal Mach-O (handle
+- [x] **4. Preflight ("zero-setup").** Before analysis: - detect file type and architectures; thin universal Mach-O (handle
       `arm64e`); - run `rea doctor --format json` and choose a working provider; - on Apple Silicon with no native decompiler, route deep analysis to the
       `linux/amd64` Docker runner; - detect Hopper demo mode and avoid it; - report anything that can't be analysed before starting.
 - [ ] **5. Docker runner.** An image with REA + Ghidra 12.1.4 (checksum-verified) + JDK 21 for `linux/amd64`. The server talks MCP to `rea --mcp` inside it.

@@ -22,7 +22,8 @@
     "check": "npm run typecheck && npm run lint && npm run format:check && npm test",
     "rea:tools": "npm run rea:tools -w @binlight/server --",
     "contracts:record": "npm run contracts:record -w @binlight/server --",
-    "test:contract": "npm run test:contract -w @binlight/server"
+    "test:contract": "npm run test:contract -w @binlight/server",
+    "preflight": "npm run -s preflight -w @binlight/server --"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

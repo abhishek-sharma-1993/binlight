@@ -9,7 +9,8 @@
     "start": "node dist/main.js",
     "rea:tools": "tsx --conditions=@binlight/source src/cli/rea-tools.ts",
     "contracts:record": "tsx --conditions=@binlight/source src/contracts/record.ts",
-    "test:contract": "vitest run --config vitest.contract.config.ts"
+    "test:contract": "vitest run --config vitest.contract.config.ts",
+    "preflight": "tsx --conditions=@binlight/source src/cli/preflight.ts"
   },
   "dependencies": {
     "@binlight/shared": "*",
