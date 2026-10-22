@@ -1,0 +1,1158 @@
+{
+  "reaVersion": "6.7.0",
+  "provider": "ghidra",
+  "recordedOn": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "goVersion": "go1.27.3",
+    "runner": "docker"
+  },
+  "inputSchemas": {
+    "list_procedures": {
+      "type": "object",
+      "properties": {
+        "document": {
+          "description": "The active target's provider document name; use open_binary to switch targets",
+          "type": "string"
+        }
+      },
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "examples": [
+        {}
+      ]
+    },
+    "list_strings": {
+      "type": "object",
+      "properties": {
+        "document": {
+          "description": "The active target's provider document name; use open_binary to switch targets",
+          "type": "string"
+        },
+        "address": {
+          "type": "string",
+          "description": "A provider-normalized address; default memory uses 0x-prefixed hexadecimal"
+        }
+      },
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "examples": [
+        {}
+      ]
+    },
+    "binary_overview": {
+      "type": "object",
+      "properties": {},
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "examples": [
+        {}
+      ]
+    },
+    "inspect_go_binary": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\x00]*$",
+          "description": "Absolute filesystem path to the selected executable or library"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "examples": [
+        {
+          "path": "/artifacts/application"
+        }
+      ]
+    },
+    "open_binary": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\x00]*$",
+          "description": "Absolute local filesystem path for the analysis target; relative paths are rejected."
+        },
+        "format": {
+          "description": "Explicit headerless interpretation: dos-com or raw-binary. Omission preserves header-based detection.",
+          "type": "string",
+          "enum": [
+            "dos-com",
+            "raw-binary"
+          ]
+        },
+        "architecture": {
+          "description": "Caller-supplied CPU family. Required with format=raw-binary; rejected otherwise.",
+          "type": "string",
+          "enum": [
+            "6502",
+            "x86",
+            "x86_64",
+            "arm",
+            "arm64",
+            "m68k"
+          ]
+        },
+        "entry_point": {
+          "description": "Caller-supplied load and entry address (0xhex). File offset 0 is mapped here. Required with format=raw-binary; rejected otherwise.",
+          "type": "string",
+          "pattern": "^0x[0-9A-Fa-f]{1,16}$"
+        },
+        "provider_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "const": "auto"
+            },
+            {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[a-z][a-z0-9\\x2d]*$"
+            }
+          ],
+          "description": "Exact deep-analysis provider ID, or automatic selection when omitted."
+        },
+        "snapshot_path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\x00]*$",
+          "description": "Absolute local filesystem path for the analysis snapshot; relative paths are rejected."
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "examples": [
+        {
+          "path": "/tmp/fixture"
+        }
+      ]
+    },
+    "close_binary": {
+      "type": "object",
+      "properties": {
+        "snapshot_path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\x00]*$",
+          "description": "Absolute local filesystem path for the analysis snapshot; relative paths are rejected."
+        },
+        "overwrite": {
+          "default": false,
+          "type": "boolean",
+          "description": "Whether an existing destination may be replaced."
+        }
+      },
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "examples": [
+        {
+          "overwrite": false
+        }
+      ]
+    }
+  },
+  "steps": [
+    {
+      "tool": "inspect_go_binary",
+      "args": {
+        "path": "$FIXTURE"
+      },
+      "shape": {
+        "$": "object",
+        "analysis_profile": "null",
+        "authority": "string",
+        "confidence": "string",
+        "environment": "null",
+        "evidence_id": "string",
+        "evidence_links": "array",
+        "limitations": "array",
+        "limitations[]": "string",
+        "locations": "array",
+        "locations[]": "object",
+        "locations[].end": "absent|number",
+        "locations[].kind": "string",
+        "locations[].path": "absent|string",
+        "locations[].start": "absent|number",
+        "normalized_result": "object",
+        "normalized_result.architecture": "string",
+        "normalized_result.artifact": "object",
+        "normalized_result.artifact.bytes": "number",
+        "normalized_result.artifact.path": "string",
+        "normalized_result.artifact.sha256": "string",
+        "normalized_result.bits": "number",
+        "normalized_result.build_info": "object",
+        "normalized_result.build_info.encoding": "string",
+        "normalized_result.build_info.go_version": "string",
+        "normalized_result.build_info.go_version_bytes_base64": "string",
+        "normalized_result.build_info.header_offset": "number",
+        "normalized_result.build_info.module": "object",
+        "normalized_result.build_info.module.complete": "boolean",
+        "normalized_result.build_info.module.dependencies": "array",
+        "normalized_result.build_info.module.main": "object",
+        "normalized_result.build_info.module.main.path": "string",
+        "normalized_result.build_info.module.main.replacement": "null",
+        "normalized_result.build_info.module.main.sum": "string",
+        "normalized_result.build_info.module.main.version": "string",
+        "normalized_result.build_info.module.path": "string",
+        "normalized_result.build_info.module.settings": "array",
+        "normalized_result.build_info.module.settings[]": "object",
+        "normalized_result.build_info.module.settings[].key": "string",
+        "normalized_result.build_info.module.settings[].value": "string",
+        "normalized_result.build_info.module.unparsed_line_bytes_base64": "array",
+        "normalized_result.build_info.module.unparsed_lines": "array",
+        "normalized_result.build_info.module_bytes_base64": "string",
+        "normalized_result.build_info.module_location": "object",
+        "normalized_result.build_info.module_location.bytes": "number",
+        "normalized_result.build_info.module_location.offset": "number",
+        "normalized_result.build_info.module_text": "string",
+        "normalized_result.build_info.version_location": "object",
+        "normalized_result.build_info.version_location.bytes": "number",
+        "normalized_result.build_info.version_location.offset": "number",
+        "normalized_result.byte_order": "string",
+        "normalized_result.format": "string",
+        "normalized_result.limitations": "array",
+        "normalized_result.limitations[]": "string",
+        "operation": "string",
+        "parameters": "object",
+        "parameters.path": "string",
+        "predicate_type": "string",
+        "provider": "object",
+        "provider.id": "string",
+        "provider.name": "string",
+        "provider.version": "string",
+        "raw_result": "null",
+        "relationship_coverage": "null",
+        "subject": "object",
+        "subject.architecture": "string",
+        "subject.digest": "object",
+        "subject.digest.sha256": "string",
+        "subject.format": "string",
+        "subject.local_path": "string",
+        "subject.name": "string"
+      },
+      "sample": {
+        "evidence_id": "ev_c41a646024045cafae57c9e0a8cfd73c421312e6db6ca343b4982fb9b2f680a9",
+        "subject": {
+          "name": "hello-go",
+          "digest": {
+            "sha256": "ccc7b51f764f14a50059510204a1b7f1c46ea4a6e77fc2b31e0dc82561647ad2"
+          },
+          "local_path": "$FIXTURE",
+          "format": "mach-o",
+          "architecture": "arm64"
+        },
+        "provider": {
+          "id": "go-build-info",
+          "name": "REA Go build-information reader",
+          "version": "1"
+        },
+        "analysis_profile": null,
+        "predicate_type": "rea.analysis",
+        "operation": "inspect_go_binary",
+        "parameters": {
+          "path": "$FIXTURE"
+        },
+        "raw_result": null,
+        "normalized_result": {
+          "artifact": {
+            "path": "$FIXTURE",
+            "sha256": "ccc7b51f764f14a50059510204a1b7f1c46ea4a6e77fc2b31e0dc82561647ad2",
+            "bytes": 2718850
+          },
+          "format": "macho",
+          "architecture": "arm64",
+          "bits": 64,
+          "byte_order": "little",
+          "build_info": {
+            "header_offset": 1671168,
+            "encoding": "inline",
+            "go_version": "go1.27.3",
+            "go_version_bytes_base64": "Z28xLjI3LjM=",
+            "module_text": "path\tbinlight.invalid/hello\nmod\tbinlight.invalid/hello\t(devel)\t\nbuild\t-buildmode=exe\nbuild\t-compiler=gc\nbuild\t-trimpath=true\nbuild\tDefaultGODEBUG=containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,httpcookiemaxnum=0,httpservecontentkeepheaders=1,httpservecontentmaxranges=1,multipathtcp=0,randseednop=0,rsa1024min=0,tlsmlkem=0,tlssecpmlkem=0,tlssha1=1,tracebacklabels=0,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509sslcertoverrideplatform=0,x509usepolicies=0\nbuild\tCGO_ENABLED=0\nbuild\tGOARCH=arm64\nbuild\tGOOS=darwin\nbuild\tGOARM64=v8.0\n",
+            "module_bytes_base64": "MHevDJJ0CAJB4cEH5tYY5nBhdGgJYmlubGlnaHQuaW52YWxpZC9oZWxsbwptb2QJYmlubGlnaHQuaW52YWxpZC9oZWxsbwkoZGV2ZWwpCQpidWlsZAktYnVpbGRtb2RlPWV4ZQpidWlsZAktY29tcGlsZXI9Z2MKYnVpbGQJLXRyaW1wYXRoPXRydWUKYnVpbGQJRGVmYXVsdEdPREVCVUc9Y29udGFpbmVybWF4cHJvY3M9MCxjcnlwdG9jdXN0b21yYW5kPTEsZGVjb3JhdGVtYXBwaW5ncz0wLGdvdGVzdGpzb25idWlsZHRleHQ9MSxodHRwY29va2llbWF4bnVtPTAsaHR0cHNlcnZlY29udGVudGtlZXBoZWFkZXJzPTEsaHR0cHNlcnZlY29udGVudG1heHJhbmdlcz0xLG11bHRpcGF0aHRjcD0wLHJhbmRzZWVkbm9wPTAscnNhMTAyNG1pbj0wLHRsc21sa2VtPTAsdGxzc2VjcG1sa2VtPTAsdGxzc2hhMT0xLHRyYWNlYmFja2xhYmVscz0wLHVwZGF0ZW1heHByb2NzPTAsdXJsbWF4cXVlcnlwYXJhbXM9MCx1cmxzdHJpY3Rjb2xvbnM9MCx3aW5yZWFkbGlua3ZvbHVtZT0wLHdpbnN5bWxpbms9MCx4NTA5bmVnYXRpdmVzZXJpYWw9MSx4NTA5cnNhY3J0PTAseDUwOXNoYTI1NnNraWQ9MCx4NTA5c3NsY2VydG92ZXJyaWRlcGxhdGZvcm09MCx4NTA5dXNlcG9saWNpZXM9MApidWlsZAlDR09fRU5BQkxFRD0wCmJ1aWxkCUdPQVJDSD1hcm02NApidWlsZAlHT09TPWRhcndpbgpidWlsZAlHT0FSTTY0PXY4LjAK+TJDMYYYIHIAgkIQQRbY8g==",
+            "version_location": {
+              "offset": 1671201,
+              "bytes": 8
+            },
+            "module_location": {
+              "offset": 1671211,
+              "bytes": 694
+            },
+            "module": {
+              "path": "binlight.invalid/hello",
+              "main": {
+                "path": "binlight.invalid/hello",
+                "version": "(devel)",
+                "sum": "",
+                "replacement": null
+              },
+              "dependencies": [],
+              "settings": [
+                {
+                  "key": "-buildmode",
+                  "value": "exe"
+                },
+                {
+                  "key": "-compiler",
+                  "value": "gc"
+                },
+                {
+                  "key": "-trimpath",
+                  "value": "true"
+                },
+                {
+                  "key": "DefaultGODEBUG",
+                  "value": "containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,httpcookiemaxnum=0,httpservecontentkeepheaders=1,httpservecontentmaxranges=1,multipathtcp=0,randseednop=0,rsa1024min=0,tlsmlkem=0,tlssecpmlkem=0,tlssha1=1,tracebacklabels=0,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509sslcertoverrideplatform=0,x509usepolicies=0"
+                },
+                {
+                  "key": "CGO_ENABLED",
+                  "value": "0"
+                }
+              ],
+              "unparsed_lines": [],
+              "unparsed_line_bytes_base64": [],
+              "complete": true
+            }
+          },
+          "limitations": [
+            "Embedded build metadata is observed file content, not proof of compiler identity, dependency authenticity or runtime behavior.",
+            "Only Go build information is inspected; function names, source mappings, type metadata and decompiled code are not recovered.",
+            "Resource guards bound stable artifact reads and cumulative header searches to 256 MiB each, aggregate embedded strings to 1 MiB, structural table decoding to 16 MiB and complete metadata payloads to 8 MiB; these are not operating-system memory or CPU limits."
+          ]
+        },
+        "confidence": "observed",
+        "authority": "shipped-artifact",
+        "environment": null,
+        "limitations": [
+          "Embedded build metadata is observed file content, not proof of compiler identity, dependency authenticity or runtime behavior.",
+          "Only Go build information is inspected; function names, source mappings, type metadata and decompiled code are not recovered.",
+          "Resource guards bound stable artifact reads and cumulative header searches to 256 MiB each, aggregate embedded strings to 1 MiB, structural table decoding to 16 MiB and complete metadata payloads to 8 MiB; these are not operating-system memory or CPU limits."
+        ],
+        "relationship_coverage": null,
+        "locations": [
+          {
+            "kind": "artifact-path",
+            "path": "$FIXTURE"
+          },
+          {
+            "kind": "file-offset-range",
+            "start": 1671168,
+            "end": 1671200
+          }
+        ],
+        "evidence_links": []
+      }
+    },
+    {
+      "tool": "open_binary",
+      "args": {
+        "path": "$FIXTURE",
+        "provider_id": "ghidra"
+      },
+      "shape": {
+        "$": "object",
+        "result": "object",
+        "result.architecture": "string",
+        "result.format": "string",
+        "result.kind": "string",
+        "result.path": "string",
+        "result.sha256": "string"
+      },
+      "sample": {
+        "result": {
+          "path": "$FIXTURE",
+          "format": "mach-o",
+          "kind": "executable",
+          "sha256": "ccc7b51f764f14a50059510204a1b7f1c46ea4a6e77fc2b31e0dc82561647ad2",
+          "architecture": "arm64"
+        }
+      }
+    },
+    {
+      "tool": "binary_overview",
+      "args": {},
+      "shape": {
+        "$": "object",
+        "analysis_profile": "object",
+        "analysis_profile.digest": "string",
+        "analysis_profile.parameters": "object",
+        "analysis_profile.parameters.source_limitations": "string",
+        "analysis_profile.parameters.upstream_analysis_profile": "object",
+        "analysis_profile.parameters.upstream_analysis_profile.digest": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters": "object",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.analyzer_preset": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.annotation_policy": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.architecture": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.available_architectures": "array",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.available_architectures[]": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.call_relationship_coverage": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.compiler_spec_id": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.decompiler_jump_loads": "boolean",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.function_body_evidence": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.function_boundary_observations": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.function_dossier_coverage": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.function_references": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.import_mode": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.instruction_flow_evidence": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.instruction_references": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.jump_table_evidence": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.language_id": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.load_image_observations": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.loader": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.location_resolution": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.no_return_repair": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.procedure_file_offset_resolution": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.process_launch": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.string_inventory_evidence": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.target_format": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.parameters.target_kind": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.provider": "object",
+        "analysis_profile.parameters.upstream_analysis_profile.provider.id": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.provider.name": "string",
+        "analysis_profile.parameters.upstream_analysis_profile.provider.version": "string",
+        "analysis_profile.parameters.workflow_revision": "number",
+        "analysis_profile.provider": "object",
+        "analysis_profile.provider.id": "string",
+        "analysis_profile.provider.name": "string",
+        "analysis_profile.provider.version": "string",
+        "authority": "string",
+        "confidence": "string",
+        "environment": "null",
+        "evidence_id": "string",
+        "evidence_links": "array",
+        "limitations": "array",
+        "limitations[]": "string",
+        "locations": "array",
+        "normalized_result": "object",
+        "normalized_result.document": "string",
+        "normalized_result.image_base": "string",
+        "normalized_result.procedure_count": "number",
+        "normalized_result.segment_count": "number",
+        "normalized_result.segments": "array",
+        "normalized_result.segments[]": "object",
+        "normalized_result.segments[].address_space": "string",
+        "normalized_result.segments[].end": "string",
+        "normalized_result.segments[].image_base": "string",
+        "normalized_result.segments[].length": "number",
+        "normalized_result.segments[].name": "string",
+        "normalized_result.segments[].start": "string",
+        "normalized_result.string_count": "number",
+        "operation": "string",
+        "parameters": "object",
+        "predicate_type": "string",
+        "provider": "object",
+        "provider.id": "string",
+        "provider.name": "string",
+        "provider.version": "string",
+        "raw_result": "null",
+        "relationship_coverage": "null",
+        "subject": "object",
+        "subject.architecture": "string",
+        "subject.digest": "object",
+        "subject.digest.sha256": "string",
+        "subject.format": "string",
+        "subject.local_path": "string",
+        "subject.name": "string"
+      },
+      "sample": {
+        "evidence_id": "ev_a5db4360f7db500f6e5a122c86031c2d4fcf4d7cd1e2517102e84a9585c31ee1",
+        "subject": {
+          "name": "hello-go",
+          "digest": {
+            "sha256": "ccc7b51f764f14a50059510204a1b7f1c46ea4a6e77fc2b31e0dc82561647ad2"
+          },
+          "local_path": "$FIXTURE",
+          "format": "mach-o",
+          "architecture": "arm64"
+        },
+        "provider": {
+          "id": "rea-workflow",
+          "name": "REA composed investigation workflow",
+          "version": "1"
+        },
+        "analysis_profile": {
+          "provider": {
+            "id": "rea-workflow",
+            "name": "REA composed investigation workflow",
+            "version": "1"
+          },
+          "parameters": {
+            "upstream_analysis_profile": {
+              "provider": {
+                "id": "ghidra",
+                "name": "Ghidra",
+                "version": "12.1.4"
+              },
+              "parameters": {
+                "target_kind": "executable",
+                "target_format": "mach-o",
+                "architecture": "arm64",
+                "available_architectures": [
+                  "arm64"
+                ],
+                "import_mode": "ephemeral-source-immutable",
+                "annotation_policy": "atomic-function-entry-metadata-v1",
+                "load_image_observations": "source-mappings-entry-context-v2",
+                "function_body_evidence": "complete-inclusive-ranges-v1",
+                "function_references": "complete-body-and-entry-reference-manager-v2",
+                "call_relationship_coverage": "function-body-call-coverage-v5",
+                "function_dossier_coverage": "observed-facets-and-call-relationships-v1",
+                "string_inventory_evidence": "defined-data-coverage-v1",
+                "location_resolution": "explicit-address-exact-entry-symbol-first-v3",
+                "procedure_file_offset_resolution": "address-first-unique-target-source-mapping-v2",
+                "instruction_flow_evidence": "decoded-return-pcode-v1",
+                "instruction_references": "exact-address-incoming-without-synthetic-entry-v2",
+                "function_boundary_observations": "ghidra-function-boundary-limitations-v4",
+                "no_return_repair": "returning-imports-decoded-return-v2",
+                "process_launch": "inspected-jvm-launch-support-v1",
+                "jump_table_evidence": "typed-case-default-blocks-v1",
+                "decompiler_jump_loads": true,
+                "loader": "auto-from-header",
+                "language_id": "auto-from-header",
+                "compiler_spec_id": "auto-default",
+                "analyzer_preset": "ghidra-default"
+              },
+              "digest": "3fc72c9b4b78498fb992b938f8f3389dc670244a293c1d40abf5e1d10162ed3b"
+            },
+            "source_limitations": "provider-operation-caveats-v1",
+            "workflow_revision": 4
+          },
+          "digest": "2716b5c5fe7f147eb3160e61f6b491a21aa527277b9914c8cd73f1d15513182c"
+        },
+        "predicate_type": "rea.analysis",
+        "operation": "binary_overview",
+        "parameters": {},
+        "raw_result": null,
+        "normalized_result": {
+          "document": "target-ccc7b51f764f.bin",
+          "image_base": "0x100000000",
+          "segments": [
+            {
+              "name": "__TEXT",
+              "start": "0x100000000",
+              "end": "0x100001000",
+              "length": 4096,
+              "image_base": "0x100000000",
+              "address_space": "ram"
+            },
+            {
+              "name": "__text",
+              "start": "0x100001000",
+              "end": "0x1000aca00",
+              "length": 702976,
+              "image_base": "0x100000000",
+              "address_space": "ram"
+            },
+            {
+              "name": "__symbol_stub1",
+              "start": "0x1000aca00",
+              "end": "0x1000accc0",
+              "length": 704,
+              "image_base": "0x100000000",
+              "address_space": "ram"
+            },
+            {
+              "name": "__rodata",
+              "start": "0x1000accc0",
+              "end": "0x1000b8208",
+              "length": 46408,
+              "image_base": "0x100000000",
+              "address_space": "ram"
+            },
+            {
+              "name": "__gopclntab",
+              "start": "0x1000b8208",
+              "end": "0x100168000",
+              "length": 720376,
+              "image_base": "0x100000000",
+              "address_space": "ram"
+            }
+          ],
+          "segment_count": 26,
+          "procedure_count": 2264,
+          "string_count": 7553
+        },
+        "confidence": "derived",
+        "authority": "shipped-artifact",
+        "environment": null,
+        "limitations": [
+          "Derived by an REA composed workflow.",
+          "Ghidra (ghidra 12.1.4) read_binary_inventory_summary: Cancelling an active Ghidra request terminates its ephemeral database and discards session annotations. The selected target remains open; the next provider query imports the original artifact again.",
+          "Ghidra (ghidra 12.1.4) read_binary_inventory_summary: Counts use the complete defined-string inventory and the same local/external function inventory as list_strings and list_procedures. They do not establish discovery of undefined strings or unidentified functions.",
+          "Ghidra (ghidra 12.1.4) read_binary_inventory_summary: Default-space addresses use lowercase 0x-prefixed hexadecimal; other address spaces use <percent-encoded-space>:0x<hex>.",
+          "Ghidra (ghidra 12.1.4) read_binary_inventory_summary: Memory-block end addresses are exclusive; segment lengths use those observed address coordinates."
+        ],
+        "relationship_coverage": null,
+        "locations": [],
+        "evidence_links": []
+      }
+    },
+    {
+      "tool": "list_strings",
+      "args": {},
+      "shape": {
+        "$": "object",
+        "analysis_profile": "object",
+        "analysis_profile.digest": "string",
+        "analysis_profile.parameters": "object",
+        "analysis_profile.parameters.analyzer_preset": "string",
+        "analysis_profile.parameters.annotation_policy": "string",
+        "analysis_profile.parameters.architecture": "string",
+        "analysis_profile.parameters.available_architectures": "array",
+        "analysis_profile.parameters.available_architectures[]": "string",
+        "analysis_profile.parameters.call_relationship_coverage": "string",
+        "analysis_profile.parameters.compiler_spec_id": "string",
+        "analysis_profile.parameters.decompiler_jump_loads": "boolean",
+        "analysis_profile.parameters.function_body_evidence": "string",
+        "analysis_profile.parameters.function_boundary_observations": "string",
+        "analysis_profile.parameters.function_dossier_coverage": "string",
+        "analysis_profile.parameters.function_references": "string",
+        "analysis_profile.parameters.import_mode": "string",
+        "analysis_profile.parameters.instruction_flow_evidence": "string",
+        "analysis_profile.parameters.instruction_references": "string",
+        "analysis_profile.parameters.jump_table_evidence": "string",
+        "analysis_profile.parameters.language_id": "string",
+        "analysis_profile.parameters.load_image_observations": "string",
+        "analysis_profile.parameters.loader": "string",
+        "analysis_profile.parameters.location_resolution": "string",
+        "analysis_profile.parameters.no_return_repair": "string",
+        "analysis_profile.parameters.procedure_file_offset_resolution": "string",
+        "analysis_profile.parameters.process_launch": "string",
+        "analysis_profile.parameters.string_inventory_evidence": "string",
+        "analysis_profile.parameters.target_format": "string",
+        "analysis_profile.parameters.target_kind": "string",
+        "analysis_profile.provider": "object",
+        "analysis_profile.provider.id": "string",
+        "analysis_profile.provider.name": "string",
+        "analysis_profile.provider.version": "string",
+        "authority": "string",
+        "confidence": "string",
+        "environment": "null",
+        "evidence_id": "string",
+        "evidence_links": "array",
+        "limitations": "array",
+        "limitations[]": "string",
+        "locations": "array",
+        "normalized_result": "array",
+        "normalized_result[]": "object",
+        "normalized_result[].address": "string",
+        "normalized_result[].string": "object",
+        "normalized_result[].string.byte_length": "number",
+        "normalized_result[].string.encoding": "string",
+        "normalized_result[].string.termination": "string",
+        "normalized_result[].value": "string",
+        "operation": "string",
+        "parameters": "object",
+        "predicate_type": "string",
+        "provider": "object",
+        "provider.id": "string",
+        "provider.name": "string",
+        "provider.version": "string",
+        "raw_result": "array",
+        "raw_result[]": "object",
+        "raw_result[].address": "string",
+        "raw_result[].string": "object",
+        "raw_result[].string.byte_length": "number",
+        "raw_result[].string.encoding": "string",
+        "raw_result[].string.termination": "string",
+        "raw_result[].value": "string",
+        "relationship_coverage": "null",
+        "subject": "object",
+        "subject.architecture": "string",
+        "subject.digest": "object",
+        "subject.digest.sha256": "string",
+        "subject.format": "string",
+        "subject.local_path": "string",
+        "subject.name": "string"
+      },
+      "sample": {
+        "evidence_id": "ev_1f2dfe6dcfdb3ce62049eeff328565aabfeb1a8672838a3b496a3eaca9a6eda7",
+        "subject": {
+          "name": "hello-go",
+          "digest": {
+            "sha256": "ccc7b51f764f14a50059510204a1b7f1c46ea4a6e77fc2b31e0dc82561647ad2"
+          },
+          "local_path": "$FIXTURE",
+          "format": "mach-o",
+          "architecture": "arm64"
+        },
+        "provider": {
+          "id": "ghidra",
+          "name": "Ghidra",
+          "version": "12.1.4"
+        },
+        "analysis_profile": {
+          "provider": {
+            "id": "ghidra",
+            "name": "Ghidra",
+            "version": "12.1.4"
+          },
+          "parameters": {
+            "target_kind": "executable",
+            "target_format": "mach-o",
+            "architecture": "arm64",
+            "available_architectures": [
+              "arm64"
+            ],
+            "import_mode": "ephemeral-source-immutable",
+            "annotation_policy": "atomic-function-entry-metadata-v1",
+            "load_image_observations": "source-mappings-entry-context-v2",
+            "function_body_evidence": "complete-inclusive-ranges-v1",
+            "function_references": "complete-body-and-entry-reference-manager-v2",
+            "call_relationship_coverage": "function-body-call-coverage-v5",
+            "function_dossier_coverage": "observed-facets-and-call-relationships-v1",
+            "string_inventory_evidence": "defined-data-coverage-v1",
+            "location_resolution": "explicit-address-exact-entry-symbol-first-v3",
+            "procedure_file_offset_resolution": "address-first-unique-target-source-mapping-v2",
+            "instruction_flow_evidence": "decoded-return-pcode-v1",
+            "instruction_references": "exact-address-incoming-without-synthetic-entry-v2",
+            "function_boundary_observations": "ghidra-function-boundary-limitations-v4",
+            "no_return_repair": "returning-imports-decoded-return-v2",
+            "process_launch": "inspected-jvm-launch-support-v1",
+            "jump_table_evidence": "typed-case-default-blocks-v1",
+            "decompiler_jump_loads": true,
+            "loader": "auto-from-header",
+            "language_id": "auto-from-header",
+            "compiler_spec_id": "auto-default",
+            "analyzer_preset": "ghidra-default"
+          },
+          "digest": "3fc72c9b4b78498fb992b938f8f3389dc670244a293c1d40abf5e1d10162ed3b"
+        },
+        "predicate_type": "rea.analysis",
+        "operation": "list_strings",
+        "parameters": {},
+        "raw_result": [
+          {
+            "address": "0x100000984",
+            "value": "/usr/lib/dyld",
+            "string": {
+              "encoding": "US-ASCII",
+              "termination": "present_or_not_required",
+              "byte_length": 20
+            }
+          },
+          {
+            "address": "0x1000009b0",
+            "value": "/usr/lib/libSystem.B.dylib",
+            "string": {
+              "encoding": "US-ASCII",
+              "termination": "present_or_not_required",
+              "byte_length": 32
+            }
+          },
+          {
+            "address": "0x1000009e8",
+            "value": "/usr/lib/libresolv.9.dylib",
+            "string": {
+              "encoding": "US-ASCII",
+              "termination": "present_or_not_required",
+              "byte_length": 32
+            }
+          },
+          {
+            "address": "0x1000af743",
+            "value": "mstartm not found in allmstopm holding lockssemaRoot rotateLeftbad notifyList sizeruntime: preempt g0runtime: pcdata is bad file descriptortoo many open filesoperation timed outdirectory not emptydisc quota exceededRPC prog. not availdevice power is offattribute not foundno STREAM resourcesprevious owner died/usr/lib/locale/TZ/embedfollowsymlinksgotestjsonbuildtextmultipartmaxheadersfile already existsfile does not existfile already closedmissing IPv6 addressunexpected character37252902984619140625floating point errorGC sweep terminationResetDebugLog (test)chan send (nil chan)flushing proc cachesSIGALRM: alarm clockSIGTERM: terminationclose of nil channelinconsistent lockedmnotetsleep not on g0bad system page size to unallocated span/gc/scan/stack:bytes/gc/scan/total:bytes/gc/heap/frees:bytes/gc/gomemlimit:bytesp mcache not flushed markroot jobs done\npacer: assist ratio=workbuf is not emptybad use of bucket.mpbad use of bucket.bpruntime: double waitpreempt off reason: \" set to old value \"forcegc: phase errorgopark: bad g statusgo of nil func valuesemaRoot rotateRighttrace: out of memorywirep: already in goauthentication errorEMULTIHOP (Reserved)STREAM ioctl timeoutkern.maxfilesperproc/usr/share/zoneinfo/httplaxcontentlengthx509usefallbackrootsreflect.Value.Complexunsupported operationbad type in compare:  of unexported methodunexpected value stepreflect.Value.PointerIPv4 address too long186264514923095703125931322574615478515625negative shift amountdataindependenttimingsystem goroutine wait/gc/heap/allocs:bytesruntime: work.nwait=  previous allocCount=, levelBits[level] = runtime: searchIdx = profiler hash bucketsdefer on system stackpanic on system stackasync stack too large_cgo_unsetenv missingstartm: m is spinningstartlockedm: m has pfindRunnable: wrong ppreempt at unknown pcreleasep: invalid argcheckdead: runnable gruntime: newstack at runtime: newstack sp=runtime: confused by timer data corruptiondevice not configuredblock device requiredread-only file systemstale NFS file handleprogram version wrongmalformed Mach-o fileillegal byte sequencestate not recoverableconcurrent map writesunexpected method stepIPv4 address too shortmultiple :: in address4656612873077392578125integer divide by zeroCountPagesInUse (test)ReadMetricsSlow (test)trace reader (blocked)trace goroutine statusGC weak to strong waitchan receive (durable)SIGTSTP: keyboard stopsend on closed channelcall not at safe pointgetenv before env initinterface conversion: freeIndex is not valids.freeindex > s.nelemsbad sweepgen in refillspan has no free spaceruntime: out of memory/gc/scan/globals:bytes/gc/heap/frees:objectsruntime:scanstack: gp=scanstack - bad statusheadTailIndex overflowruntime: kevent on fd runtime: kevent failedruntime.main not on m0set_crosscall2 missingbad g->status in readywirep: invalid p state received during fork\nstack not a power of 2minpc or maxpc invalidnon-Go function at pc=argument list too longcannot allocate memoryprotocol not availableprotocol not supportedaddress already in usenetwork is unreachable/lib/time/zoneinfo.zipexit hook invoked exit<invalid reflect.Value>missing protocol schemeinvalid URI for requestreflect.Value.Interfacereflect.Value.NumMethod23283064365386962890625index out of range [%x]ReadMemStatsSlow (test)chan receive (nil chan)garbage collection scanSIGSYS: bad system callSIGIO: i/o now possiblemakechan: bad alignmentclose of closed channelunlock of unlocked lock) must be a power of 2\nsystem huge page size (runtime: s.allocCount= s.allocCount > s.nelems/gc/heap/allocs:objectsruntime: internal errorwork.nwait > work.nprocleft over markroot jobsgcDrain phase incorrectMB during sweep; swept bad profile stack countruntime: netpoll failedpanic during preemptoffnanotime returning zeroschedule: holding locksprocresize: invalid argmisuse of profBuf.writeunexpected signal valuespan has no free stacksstack growth after forkshrinkstack at bad timeoperation not permittedinterrupted system callno space left on deviceoperation not supportedsocket is not connectedpattern bits too long: \", missing CPU support\nexit hook invoked panicaddress string too short116415321826934814453125582076609134674072265625tracecheckstackownershipwaiting for cgo callbackhash of unhashable type cannot open standard fdsspan has no free objectsruntime: found obj at *(/cgo/go-to-c-calls:calls/gc/heap/objects:objects/sched/latencies:secondsqueuefinalizer during GCcheckfinalizers: queue: update during transitionruntime: markroot index can't scan our own stackgcDrainN phase incorrectpageAlloc: out of memoryruntime: p.searchAddr = range partially overlaps [recovered, repanicked]stack trace unavailable\nruntime: mp.lockedInt = runqsteal: runq overflowgoroutine stack (system)unexpected syncgroup setdouble traceGCSweepStartconnection reset by peerfunction not implemented/usr/share/lib/zoneinfo/invalid pattern syntax: htmlmetacontenturlescapehw.optional.armv8_crc32",
+            "string": {
+              "encoding": "US-ASCII",
+              "termination": "present_or_not_required",
+              "byte_length": 4920
+            }
+          },
+          {
+            "address": "0x1000b0a7b",
+            "value": "hw.optional.arm.FEAT_SB",
+            "string": {
+              "encoding": "US-ASCII",
+              "termination": "present_or_not_required",
+              "byte_length": 24
+            }
+          }
+        ],
+        "normalized_result": [
+          {
+            "address": "0x100000984",
+            "value": "/usr/lib/dyld",
+            "string": {
+              "encoding": "US-ASCII",
+              "termination": "present_or_not_required",
+              "byte_length": 20
+            }
+          },
+          {
+            "address": "0x1000009b0",
+            "value": "/usr/lib/libSystem.B.dylib",
+            "string": {
+              "encoding": "US-ASCII",
+              "termination": "present_or_not_required",
+              "byte_length": 32
+            }
+          },
+          {
+            "address": "0x1000009e8",
+            "value": "/usr/lib/libresolv.9.dylib",
+            "string": {
+              "encoding": "US-ASCII",
+              "termination": "present_or_not_required",
+              "byte_length": 32
+            }
+          },
+          {
+            "address": "0x1000af743",
+            "value": "mstartm not found in allmstopm holding lockssemaRoot rotateLeftbad notifyList sizeruntime: preempt g0runtime: pcdata is bad file descriptortoo many open filesoperation timed outdirectory not emptydisc quota exceededRPC prog. not availdevice power is offattribute not foundno STREAM resourcesprevious owner died/usr/lib/locale/TZ/embedfollowsymlinksgotestjsonbuildtextmultipartmaxheadersfile already existsfile does not existfile already closedmissing IPv6 addressunexpected character37252902984619140625floating point errorGC sweep terminationResetDebugLog (test)chan send (nil chan)flushing proc cachesSIGALRM: alarm clockSIGTERM: terminationclose of nil channelinconsistent lockedmnotetsleep not on g0bad system page size to unallocated span/gc/scan/stack:bytes/gc/scan/total:bytes/gc/heap/frees:bytes/gc/gomemlimit:bytesp mcache not flushed markroot jobs done\npacer: assist ratio=workbuf is not emptybad use of bucket.mpbad use of bucket.bpruntime: double waitpreempt off reason: \" set to old value \"forcegc: phase errorgopark: bad g statusgo of nil func valuesemaRoot rotateRighttrace: out of memorywirep: already in goauthentication errorEMULTIHOP (Reserved)STREAM ioctl timeoutkern.maxfilesperproc/usr/share/zoneinfo/httplaxcontentlengthx509usefallbackrootsreflect.Value.Complexunsupported operationbad type in compare:  of unexported methodunexpected value stepreflect.Value.PointerIPv4 address too long186264514923095703125931322574615478515625negative shift amountdataindependenttimingsystem goroutine wait/gc/heap/allocs:bytesruntime: work.nwait=  previous allocCount=, levelBits[level] = runtime: searchIdx = profiler hash bucketsdefer on system stackpanic on system stackasync stack too large_cgo_unsetenv missingstartm: m is spinningstartlockedm: m has pfindRunnable: wrong ppreempt at unknown pcreleasep: invalid argcheckdead: runnable gruntime: newstack at runtime: newstack sp=runtime: confused by timer data corruptiondevice not configuredblock device requiredread-only file systemstale NFS file handleprogram version wrongmalformed Mach-o fileillegal byte sequencestate not recoverableconcurrent map writesunexpected method stepIPv4 address too shortmultiple :: in address4656612873077392578125integer divide by zeroCountPagesInUse (test)ReadMetricsSlow (test)trace reader (blocked)trace goroutine statusGC weak to strong waitchan receive (durable)SIGTSTP: keyboard stopsend on closed channelcall not at safe pointgetenv before env initinterface conversion: freeIndex is not valids.freeindex > s.nelemsbad sweepgen in refillspan has no free spaceruntime: out of memory/gc/scan/globals:bytes/gc/heap/frees:objectsruntime:scanstack: gp=scanstack - bad statusheadTailIndex overflowruntime: kevent on fd runtime: kevent failedruntime.main not on m0set_crosscall2 missingbad g->status in readywirep: invalid p state received during fork\nstack not a power of 2minpc or maxpc invalidnon-Go function at pc=argument list too longcannot allocate memoryprotocol not availableprotocol not supportedaddress already in usenetwork is unreachable/lib/time/zoneinfo.zipexit hook invoked exit<invalid reflect.Value>missing protocol schemeinvalid URI for requestreflect.Value.Interfacereflect.Value.NumMethod23283064365386962890625index out of range [%x]ReadMemStatsSlow (test)chan receive (nil chan)garbage collection scanSIGSYS: bad system callSIGIO: i/o now possiblemakechan: bad alignmentclose of closed channelunlock of unlocked lock) must be a power of 2\nsystem huge page size (runtime: s.allocCount= s.allocCount > s.nelems/gc/heap/allocs:objectsruntime: internal errorwork.nwait > work.nprocleft over markroot jobsgcDrain phase incorrectMB during sweep; swept bad profile stack countruntime: netpoll failedpanic during preemptoffnanotime returning zeroschedule: holding locksprocresize: invalid argmisuse of profBuf.writeunexpected signal valuespan has no free stacksstack growth after forkshrinkstack at bad timeoperation not permittedinterrupted system callno space left on deviceoperation not supportedsocket is not connectedpattern bits too long: \", missing CPU support\nexit hook invoked panicaddress string too short116415321826934814453125582076609134674072265625tracecheckstackownershipwaiting for cgo callbackhash of unhashable type cannot open standard fdsspan has no free objectsruntime: found obj at *(/cgo/go-to-c-calls:calls/gc/heap/objects:objects/sched/latencies:secondsqueuefinalizer during GCcheckfinalizers: queue: update during transitionruntime: markroot index can't scan our own stackgcDrainN phase incorrectpageAlloc: out of memoryruntime: p.searchAddr = range partially overlaps [recovered, repanicked]stack trace unavailable\nruntime: mp.lockedInt = runqsteal: runq overflowgoroutine stack (system)unexpected syncgroup setdouble traceGCSweepStartconnection reset by peerfunction not implemented/usr/share/lib/zoneinfo/invalid pattern syntax: htmlmetacontenturlescapehw.optional.armv8_crc32",
+            "string": {
+              "encoding": "US-ASCII",
+              "termination": "present_or_not_required",
+              "byte_length": 4920
+            }
+          },
+          {
+            "address": "0x1000b0a7b",
+            "value": "hw.optional.arm.FEAT_SB",
+            "string": {
+              "encoding": "US-ASCII",
+              "termination": "present_or_not_required",
+              "byte_length": 24
+            }
+          }
+        ],
+        "confidence": "observed",
+        "authority": "shipped-artifact",
+        "environment": null,
+        "limitations": [
+          "The session serves operations only after Ghidra reports default auto-analysis complete; incomplete analysis does not expose partial results.",
+          "The imported Program and temporary project are ephemeral and deleted on close. Annotation operations edit session database metadata; original executable bytes are never written.",
+          "Cancelling an active Ghidra request terminates its ephemeral database and discards session annotations. The selected target remains open; the next provider query imports the original artifact again.",
+          "Default-space addresses use lowercase 0x-prefixed hexadecimal; other address spaces use <percent-encoded-space>:0x<hex>.",
+          "Only Ghidra-defined string Data is observed; packed or undefined string bytes may be absent. Completeness applies to that inventory, and an empty search does not establish that text is absent from the artifact. If an address is known, use read_bytes and xrefs to inspect bytes and references."
+        ],
+        "relationship_coverage": null,
+        "locations": [],
+        "evidence_links": []
+      }
+    },
+    {
+      "tool": "list_procedures",
+      "args": {},
+      "shape": {
+        "$": "object",
+        "analysis_profile": "object",
+        "analysis_profile.digest": "string",
+        "analysis_profile.parameters": "object",
+        "analysis_profile.parameters.analyzer_preset": "string",
+        "analysis_profile.parameters.annotation_policy": "string",
+        "analysis_profile.parameters.architecture": "string",
+        "analysis_profile.parameters.available_architectures": "array",
+        "analysis_profile.parameters.available_architectures[]": "string",
+        "analysis_profile.parameters.call_relationship_coverage": "string",
+        "analysis_profile.parameters.compiler_spec_id": "string",
+        "analysis_profile.parameters.decompiler_jump_loads": "boolean",
+        "analysis_profile.parameters.function_body_evidence": "string",
+        "analysis_profile.parameters.function_boundary_observations": "string",
+        "analysis_profile.parameters.function_dossier_coverage": "string",
+        "analysis_profile.parameters.function_references": "string",
+        "analysis_profile.parameters.import_mode": "string",
+        "analysis_profile.parameters.instruction_flow_evidence": "string",
+        "analysis_profile.parameters.instruction_references": "string",
+        "analysis_profile.parameters.jump_table_evidence": "string",
+        "analysis_profile.parameters.language_id": "string",
+        "analysis_profile.parameters.load_image_observations": "string",
+        "analysis_profile.parameters.loader": "string",
+        "analysis_profile.parameters.location_resolution": "string",
+        "analysis_profile.parameters.no_return_repair": "string",
+        "analysis_profile.parameters.procedure_file_offset_resolution": "string",
+        "analysis_profile.parameters.process_launch": "string",
+        "analysis_profile.parameters.string_inventory_evidence": "string",
+        "analysis_profile.parameters.target_format": "string",
+        "analysis_profile.parameters.target_kind": "string",
+        "analysis_profile.provider": "object",
+        "analysis_profile.provider.id": "string",
+        "analysis_profile.provider.name": "string",
+        "analysis_profile.provider.version": "string",
+        "authority": "string",
+        "confidence": "string",
+        "environment": "null",
+        "evidence_id": "string",
+        "evidence_links": "array",
+        "limitations": "array",
+        "limitations[]": "string",
+        "locations": "array",
+        "normalized_result": "array",
+        "normalized_result[]": "object",
+        "normalized_result[].address": "string",
+        "normalized_result[].procedure": "object",
+        "normalized_result[].procedure.external": "boolean",
+        "normalized_result[].procedure.thunk": "boolean",
+        "normalized_result[].procedure.thunk_target": "null|string",
+        "normalized_result[].value": "string",
+        "operation": "string",
+        "parameters": "object",
+        "predicate_type": "string",
+        "provider": "object",
+        "provider.id": "string",
+        "provider.name": "string",
+        "provider.version": "string",
+        "raw_result": "array",
+        "raw_result[]": "object",
+        "raw_result[].address": "string",
+        "raw_result[].procedure": "object",
+        "raw_result[].procedure.external": "boolean",
+        "raw_result[].procedure.thunk": "boolean",
+        "raw_result[].procedure.thunk_target": "null|string",
+        "raw_result[].value": "string",
+        "relationship_coverage": "null",
+        "subject": "object",
+        "subject.architecture": "string",
+        "subject.digest": "object",
+        "subject.digest.sha256": "string",
+        "subject.format": "string",
+        "subject.local_path": "string",
+        "subject.name": "string"
+      },
+      "sample": {
+        "evidence_id": "ev_9884c1640ad02b8adde657df69beeb6e2ceec7888c99d8385c364e1606e38cdd",
+        "subject": {
+          "name": "hello-go",
+          "digest": {
+            "sha256": "ccc7b51f764f14a50059510204a1b7f1c46ea4a6e77fc2b31e0dc82561647ad2"
+          },
+          "local_path": "$FIXTURE",
+          "format": "mach-o",
+          "architecture": "arm64"
+        },
+        "provider": {
+          "id": "ghidra",
+          "name": "Ghidra",
+          "version": "12.1.4"
+        },
+        "analysis_profile": {
+          "provider": {
+            "id": "ghidra",
+            "name": "Ghidra",
+            "version": "12.1.4"
+          },
+          "parameters": {
+            "target_kind": "executable",
+            "target_format": "mach-o",
+            "architecture": "arm64",
+            "available_architectures": [
+              "arm64"
+            ],
+            "import_mode": "ephemeral-source-immutable",
+            "annotation_policy": "atomic-function-entry-metadata-v1",
+            "load_image_observations": "source-mappings-entry-context-v2",
+            "function_body_evidence": "complete-inclusive-ranges-v1",
+            "function_references": "complete-body-and-entry-reference-manager-v2",
+            "call_relationship_coverage": "function-body-call-coverage-v5",
+            "function_dossier_coverage": "observed-facets-and-call-relationships-v1",
+            "string_inventory_evidence": "defined-data-coverage-v1",
+            "location_resolution": "explicit-address-exact-entry-symbol-first-v3",
+            "procedure_file_offset_resolution": "address-first-unique-target-source-mapping-v2",
+            "instruction_flow_evidence": "decoded-return-pcode-v1",
+            "instruction_references": "exact-address-incoming-without-synthetic-entry-v2",
+            "function_boundary_observations": "ghidra-function-boundary-limitations-v4",
+            "no_return_repair": "returning-imports-decoded-return-v2",
+            "process_launch": "inspected-jvm-launch-support-v1",
+            "jump_table_evidence": "typed-case-default-blocks-v1",
+            "decompiler_jump_loads": true,
+            "loader": "auto-from-header",
+            "language_id": "auto-from-header",
+            "compiler_spec_id": "auto-default",
+            "analyzer_preset": "ghidra-default"
+          },
+          "digest": "3fc72c9b4b78498fb992b938f8f3389dc670244a293c1d40abf5e1d10162ed3b"
+        },
+        "predicate_type": "rea.analysis",
+        "operation": "list_procedures",
+        "parameters": {},
+        "raw_result": [
+          {
+            "address": "EXTERNAL:0x1",
+            "value": "/usr/lib/libSystem.B.dylib::_open",
+            "procedure": {
+              "external": true,
+              "thunk": false,
+              "thunk_target": null
+            }
+          },
+          {
+            "address": "EXTERNAL:0x2",
+            "value": "/usr/lib/libSystem.B.dylib::_write",
+            "procedure": {
+              "external": true,
+              "thunk": false,
+              "thunk_target": null
+            }
+          },
+          {
+            "address": "EXTERNAL:0x3",
+            "value": "/usr/lib/libSystem.B.dylib::___error",
+            "procedure": {
+              "external": true,
+              "thunk": false,
+              "thunk_target": null
+            }
+          },
+          {
+            "address": "EXTERNAL:0x4",
+            "value": "/usr/lib/libSystem.B.dylib::__exit",
+            "procedure": {
+              "external": true,
+              "thunk": false,
+              "thunk_target": null
+            }
+          },
+          {
+            "address": "EXTERNAL:0x5",
+            "value": "/usr/lib/libSystem.B.dylib::_getpid",
+            "procedure": {
+              "external": true,
+              "thunk": false,
+              "thunk_target": null
+            }
+          }
+        ],
+        "normalized_result": [
+          {
+            "address": "EXTERNAL:0x1",
+            "value": "/usr/lib/libSystem.B.dylib::_open",
+            "procedure": {
+              "external": true,
+              "thunk": false,
+              "thunk_target": null
+            }
+          },
+          {
+            "address": "EXTERNAL:0x2",
+            "value": "/usr/lib/libSystem.B.dylib::_write",
+            "procedure": {
+              "external": true,
+              "thunk": false,
+              "thunk_target": null
+            }
+          },
+          {
+            "address": "EXTERNAL:0x3",
+            "value": "/usr/lib/libSystem.B.dylib::___error",
+            "procedure": {
+              "external": true,
+              "thunk": false,
+              "thunk_target": null
+            }
+          },
+          {
+            "address": "EXTERNAL:0x4",
+            "value": "/usr/lib/libSystem.B.dylib::__exit",
+            "procedure": {
+              "external": true,
+              "thunk": false,
+              "thunk_target": null
+            }
+          },
+          {
+            "address": "EXTERNAL:0x5",
+            "value": "/usr/lib/libSystem.B.dylib::_getpid",
+            "procedure": {
+              "external": true,
+              "thunk": false,
+              "thunk_target": null
+            }
+          }
+        ],
+        "confidence": "observed",
+        "authority": "shipped-artifact",
+        "environment": null,
+        "limitations": [
+          "The session serves operations only after Ghidra reports default auto-analysis complete; incomplete analysis does not expose partial results.",
+          "The imported Program and temporary project are ephemeral and deleted on close. Annotation operations edit session database metadata; original executable bytes are never written.",
+          "Cancelling an active Ghidra request terminates its ephemeral database and discards session annotations. The selected target remains open; the next provider query imports the original artifact again.",
+          "Default-space addresses use lowercase 0x-prefixed hexadecimal; other address spaces use <percent-encoded-space>:0x<hex>.",
+          "External functions and local thunks are distinct; procedure metadata identifies both and preserves a thunk target when Ghidra resolves one."
+        ],
+        "relationship_coverage": null,
+        "locations": [],
+        "evidence_links": []
+      }
+    },
+    {
+      "tool": "close_binary",
+      "args": {},
+      "shape": {
+        "$": "object",
+        "result": "null"
+      },
+      "sample": {
+        "result": null
+      }
+    }
+  ],
+  "errors": [
+    {
+      "name": "missing file",
+      "tool": "open_binary",
+      "code": "target_unavailable",
+      "shape": {
+        "$": "object",
+        "error": "object",
+        "error.category": "string",
+        "error.code": "string",
+        "error.details": "object",
+        "error.details.path": "string",
+        "error.details.reason": "string",
+        "error.message": "string",
+        "error.remediation": "object",
+        "error.remediation.action": "string",
+        "error.retryable": "boolean"
+      },
+      "sample": {
+        "error": {
+          "code": "target_unavailable",
+          "category": "unavailable",
+          "message": "Cannot open artifact: target does not exist or a path component is not a directory: ENOENT: no such file or directory, access '/nonexistent/binlight-contract-target'. Check that the path exists, is readable, and points to a supported file.",
+          "retryable": false,
+          "remediation": {
+            "action": "Cannot open artifact: target does not exist or a path component is not a directory: ENOENT: no such file or directory, access '/nonexistent/binlight-contract-target'. Check that the path exists, is readable, and points to a supported file."
+          },
+          "details": {
+            "path": "/nonexistent/binlight-contract-target",
+            "reason": "target does not exist or a path component is not a directory: ENOENT: no such file or directory, access '/nonexistent/binlight-contract-target'"
+          }
+        }
+      }
+    },
+    {
+      "name": "nothing open",
+      "tool": "binary_overview",
+      "code": "target_unavailable",
+      "shape": {
+        "$": "object",
+        "error": "object",
+        "error.category": "string",
+        "error.code": "string",
+        "error.message": "string",
+        "error.remediation": "object",
+        "error.remediation.action": "string",
+        "error.retryable": "boolean"
+      },
+      "sample": {
+        "error": {
+          "code": "target_unavailable",
+          "category": "unavailable",
+          "message": "No app is open. Ask the user which app to investigate, then call open_binary with its local path.",
+          "retryable": false,
+          "remediation": {
+            "action": "No app is open. Ask the user which app to investigate, then call open_binary with its local path."
+          }
+        }
+      }
+    }
+  ]
+}

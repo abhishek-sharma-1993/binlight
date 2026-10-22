@@ -7,6 +7,7 @@ import { ReaClient } from "../rea/client.js";
 import { reaEnvOptionsFromProcess } from "../rea/env.js";
 import { ReaToolError } from "../rea/errors.js";
 import { isContractTool, reaErrorSchema, toolSchemas } from "../rea/schemas.js";
+import { openReaSession } from "../runner/session.js";
 import { diffShapes, formatShapeDiff, shapeOf, type Shape } from "./shape.js";
 
 /**
@@ -66,7 +67,8 @@ export interface ContractRecording {
   reaVersion: string;
   /** The deep-analysis provider REA chose for open_binary. */
   provider: string;
-  recordedOn: { platform: string; arch: string; goVersion: string };
+  /** Host that ran the recording; `runner` says whether REA ran on it or in Docker. */
+  recordedOn: { platform: string; arch: string; goVersion: string; runner?: ContractRunner };
   inputSchemas: Record<string, unknown>;
   steps: StepRecord[];
   errors: ErrorRecord[];
@@ -75,11 +77,16 @@ export interface ContractRecording {
 export function buildGoFixture(): string {
   const out = join(mkdtempSync(join(tmpdir(), "binlight-contract-")), "hello-go");
   try {
-    execFileSync("go", ["build", "-trimpath", "-o", out, "."], {
-      cwd: fixtureSource,
-      env: { ...process.env, CGO_ENABLED: "0" },
-      stdio: "pipe",
-    });
+    // Reproducible build: same Go version, same bytes, so recordings don't churn.
+    execFileSync(
+      "go",
+      ["build", "-trimpath", "-buildvcs=false", "-ldflags=-buildid=", "-o", out, "."],
+      {
+        cwd: fixtureSource,
+        env: { ...process.env, CGO_ENABLED: "0" },
+        stdio: "pipe",
+      },
+    );
   } catch (err) {
     throw new Error(
       `Could not build the contract fixture with Go (needed for contract runs): ${String(err)}`,
@@ -261,6 +268,29 @@ export function compareRecordings(recorded: ContractRecording, live: ContractRec
   return problems;
 }
 
-export function connectForContracts(): Promise<ReaClient> {
-  return ReaClient.connect(reaEnvOptionsFromProcess());
+export type ContractRunner = "local" | "docker";
+
+export interface ContractSession {
+  rea: ReaClient;
+  /** The fixture path as REA sees it. */
+  target: string;
+  /** Deep provider to force, if the runner implies one. */
+  provider?: string;
+  close(): Promise<void>;
+}
+
+/**
+ * "local": the pinned REA on this machine, provider chosen by REA.
+ * "docker": REA + Ghidra in the runner image, the route used on Apple Silicon.
+ */
+export async function openContractSession(
+  runner: ContractRunner,
+  hostTarget: string,
+): Promise<ContractSession> {
+  if (runner === "docker") {
+    const session = await openReaSession("docker-ghidra", "ghidra", hostTarget);
+    return { rea: session.rea, target: session.target, provider: "ghidra", close: session.close };
+  }
+  const rea = await ReaClient.connect(reaEnvOptionsFromProcess());
+  return { rea, target: hostTarget, close: () => rea.close() };
 }

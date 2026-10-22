@@ -62,6 +62,22 @@ its real reason.
 npm run preflight -- /path/to/binary [--json]
 ```
 
+## Docker runner (deep analysis on Apple Silicon)
+
+Ghidra ships no arm64 macOS decompiler, so on Apple Silicon deep analysis runs
+in a `linux/amd64` image with REA, Ghidra 12.1.4 (checksum-verified) and JDK 21.
+Build it once (needs Docker; uses `~/Applications/ghidra.zip` if present,
+otherwise downloads the release):
+
+```bash
+npm run runner:build     # -> binlight-runner:rea-6.7.0
+```
+
+Each analysis runs `rea --mcp` in its own container: `--network none`, a
+non-root user, read-only root filesystem, no capabilities, the target mounted
+read-only, and only a per-session Docker volume writable (removed afterwards). Ghidra's heap defaults to 4G (`GHIDRA_HEADLESS_MAXMEM`). Preflight
+picks this route automatically when nothing faster works.
+
 ## REA contract tests
 
 Binlight parses REA's responses with the schemas in `apps/server/src/rea/schemas.ts`
@@ -70,8 +86,9 @@ deep provider, in `apps/server/test/contracts/`. The target is a tiny Go program
 in `apps/server/test/fixtures/hello-go`, built on each run (needs Go).
 
 ```bash
-npm run test:contract       # live: run REA, fail on any shape or argument change
-npm run contracts:record    # after a deliberate REA upgrade; review the git diff
+npm run test:contract                        # live: local REA, plus Docker if built
+npm run contracts:record                     # after a deliberate REA upgrade
+npm run contracts:record -- --runner docker  # Ghidra in the runner image
 ```
 
 `npm test` checks the recordings offline against the schemas.

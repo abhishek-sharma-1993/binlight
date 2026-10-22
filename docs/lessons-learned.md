@@ -45,6 +45,32 @@ executable_missing`. Building it from the release's Makefile fails: its
   server launched by a desktop app. Binlight must pass `GHIDRA_INSTALL_DIR` and
   the timeouts explicitly when it spawns `rea --mcp`.
 
+## Docker runner (verified Oct 22 2026, REA 6.7.0, M-series Mac, Docker Desktop 29.8.1)
+
+- Image `binlight-runner:rea-6.7.0` (linux/amd64, ~860 MB): first build ~6 min,
+  of which `apt-get` under emulation was 320 s.
+- **REA's Ghidra bridge creates a Unix socket in `$TMPDIR` and chmods it.** On a
+  macOS bind mount that chmod fails (`FileSystemException: bridge.sock: Invalid
+argument`) _after_ Ghidra's analysis succeeds, and every later call re-runs
+  the whole analysis and fails again. Keep REA's `$TMPDIR` on a Linux
+  filesystem: a per-session Docker named volume.
+- REA's Ghidra launcher **clears `JAVA_TOOL_OPTIONS`**, so `-Duser.name` can't be
+  injected. Give the image a real user (uid 10001 `binlight`), or Ghidra runs as
+  user `?`.
+- With `--network none`, Java's `getLocalHost` fails (`UnknownHostException`).
+  Set `--hostname` and `--add-host <hostname>:127.0.0.1`.
+- Ghidra heap is `GHIDRA_HEADLESS_MAXMEM` (REA default 2G; REA names it in its
+  heap-exhaustion remediation). The runner passes 4G; the Docker VM has 8 GB.
+- Timings for the 2.7 MB Go fixture under emulation: container + REA start
+  2–7 s, `open_binary` 0.6 s (analysis is lazy), `binary_overview` 69 s (the
+  Ghidra analysis), then `list_strings` 0.5 s (7,555 rows) and `list_procedures`
+  0.2 s (2,264 rows) reuse it.
+- Ghidra's `list_strings` also misses the fixture's URL literal (Go packs
+  literals). The phone-home recipe needs its own splitting on `https?://`.
+- `go build -trimpath -buildvcs=false -ldflags=-buildid=` makes the fixture
+  byte-reproducible. Hopper's composed `binary_overview` evidence ID still
+  differs between identical runs.
+
 ## Hopper (provider)
 
 - In demo mode, Hopper shows a license/demo dialog on launch that blocks REA's

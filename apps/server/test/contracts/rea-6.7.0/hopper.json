@@ -4,7 +4,8 @@
   "recordedOn": {
     "platform": "darwin",
     "arch": "arm64",
-    "goVersion": "go1.27.3"
+    "goVersion": "go1.27.3",
+    "runner": "local"
   },
   "inputSchemas": {
     "list_procedures": {
@@ -239,11 +240,11 @@
         "subject.name": "string"
       },
       "sample": {
-        "evidence_id": "ev_c1746374974b52f5695737472a34a2f69886a312972aae2349f76c8d14ef4913",
+        "evidence_id": "ev_5298ec1d476b01bf96664064ad5f390cf82be5c8c7a8a1e5c36e3f07a739e5dc",
         "subject": {
           "name": "hello-go",
           "digest": {
-            "sha256": "caf6eed1b07711a6f50b9f5f050d2dd4825ffc638515d931d8af66344937b737"
+            "sha256": "ccc7b51f764f14a50059510204a1b7f1c46ea4a6e77fc2b31e0dc82561647ad2"
           },
           "local_path": "$FIXTURE",
           "format": "mach-o",
@@ -264,8 +265,8 @@
         "normalized_result": {
           "artifact": {
             "path": "$FIXTURE",
-            "sha256": "caf6eed1b07711a6f50b9f5f050d2dd4825ffc638515d931d8af66344937b737",
-            "bytes": 2718882
+            "sha256": "ccc7b51f764f14a50059510204a1b7f1c46ea4a6e77fc2b31e0dc82561647ad2",
+            "bytes": 2718850
           },
           "format": "macho",
           "architecture": "arm64",
@@ -276,15 +277,15 @@
             "encoding": "inline",
             "go_version": "go1.27.3",
             "go_version_bytes_base64": "Z28xLjI3LjM=",
-            "module_text": "path\tbinlight.invalid/hello\nmod\tbinlight.invalid/hello\t(devel)\t\nbuild\t-buildmode=exe\nbuild\t-compiler=gc\nbuild\t-trimpath=true\nbuild\tDefaultGODEBUG=containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,httpcookiemaxnum=0,httpservecontentkeepheaders=1,httpservecontentmaxranges=1,multipathtcp=0,randseednop=0,rsa1024min=0,tlsmlkem=0,tlssecpmlkem=0,tlssha1=1,tracebacklabels=0,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509sslcertoverrideplatform=0,x509usepolicies=0\nbuild\tCGO_ENABLED=0\nbuild\tGOARCH=arm64\nbuild\tGOOS=darwin\nbuild\tGOARM64=v8.0\nbuild\tvcs=git\nbuild\tvcs.revision=c2f947fbb6369764e9ae66fd0f1c8dbf1f11e862\nbuild\tvcs.time=2026-10-22T10:42:33Z\nbuild\tvcs.modified=true\n",
-            "module_bytes_base64": "MHevDJJ0CAJB4cEH5tYY5nBhdGgJYmlubGlnaHQuaW52YWxpZC9oZWxsbwptb2QJYmlubGlnaHQuaW52YWxpZC9oZWxsbwkoZGV2ZWwpCQpidWlsZAktYnVpbGRtb2RlPWV4ZQpidWlsZAktY29tcGlsZXI9Z2MKYnVpbGQJLXRyaW1wYXRoPXRydWUKYnVpbGQJRGVmYXVsdEdPREVCVUc9Y29udGFpbmVybWF4cHJvY3M9MCxjcnlwdG9jdXN0b21yYW5kPTEsZGVjb3JhdGVtYXBwaW5ncz0wLGdvdGVzdGpzb25idWlsZHRleHQ9MSxodHRwY29va2llbWF4bnVtPTAsaHR0cHNlcnZlY29udGVudGtlZXBoZWFkZXJzPTEsaHR0cHNlcnZlY29udGVudG1heHJhbmdlcz0xLG11bHRpcGF0aHRjcD0wLHJhbmRzZWVkbm9wPTAscnNhMTAyNG1pbj0wLHRsc21sa2VtPTAsdGxzc2VjcG1sa2VtPTAsdGxzc2hhMT0xLHRyYWNlYmFja2xhYmVscz0wLHVwZGF0ZW1heHByb2NzPTAsdXJsbWF4cXVlcnlwYXJhbXM9MCx1cmxzdHJpY3Rjb2xvbnM9MCx3aW5yZWFkbGlua3ZvbHVtZT0wLHdpbnN5bWxpbms9MCx4NTA5bmVnYXRpdmVzZXJpYWw9MSx4NTA5cnNhY3J0PTAseDUwOXNoYTI1NnNraWQ9MCx4NTA5c3NsY2VydG92ZXJyaWRlcGxhdGZvcm09MCx4NTA5dXNlcG9saWNpZXM9MApidWlsZAlDR09fRU5BQkxFRD0wCmJ1aWxkCUdPQVJDSD1hcm02NApidWlsZAlHT09TPWRhcndpbgpidWlsZAlHT0FSTTY0PXY4LjAKYnVpbGQJdmNzPWdpdApidWlsZAl2Y3MucmV2aXNpb249YzJmOTQ3ZmJiNjM2OTc2NGU5YWU2NmZkMGYxYzhkYmYxZjExZTg2MgpidWlsZAl2Y3MudGltZT0yMDI2LTEwLTIyVDEwOjQyOjMzWgpidWlsZAl2Y3MubW9kaWZpZWQ9dHJ1ZQr5MkMxhhggcgCCQhBBFtjy",
+            "module_text": "path\tbinlight.invalid/hello\nmod\tbinlight.invalid/hello\t(devel)\t\nbuild\t-buildmode=exe\nbuild\t-compiler=gc\nbuild\t-trimpath=true\nbuild\tDefaultGODEBUG=containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,gotestjsonbuildtext=1,httpcookiemaxnum=0,httpservecontentkeepheaders=1,httpservecontentmaxranges=1,multipathtcp=0,randseednop=0,rsa1024min=0,tlsmlkem=0,tlssecpmlkem=0,tlssha1=1,tracebacklabels=0,updatemaxprocs=0,urlmaxqueryparams=0,urlstrictcolons=0,winreadlinkvolume=0,winsymlink=0,x509negativeserial=1,x509rsacrt=0,x509sha256skid=0,x509sslcertoverrideplatform=0,x509usepolicies=0\nbuild\tCGO_ENABLED=0\nbuild\tGOARCH=arm64\nbuild\tGOOS=darwin\nbuild\tGOARM64=v8.0\n",
+            "module_bytes_base64": "MHevDJJ0CAJB4cEH5tYY5nBhdGgJYmlubGlnaHQuaW52YWxpZC9oZWxsbwptb2QJYmlubGlnaHQuaW52YWxpZC9oZWxsbwkoZGV2ZWwpCQpidWlsZAktYnVpbGRtb2RlPWV4ZQpidWlsZAktY29tcGlsZXI9Z2MKYnVpbGQJLXRyaW1wYXRoPXRydWUKYnVpbGQJRGVmYXVsdEdPREVCVUc9Y29udGFpbmVybWF4cHJvY3M9MCxjcnlwdG9jdXN0b21yYW5kPTEsZGVjb3JhdGVtYXBwaW5ncz0wLGdvdGVzdGpzb25idWlsZHRleHQ9MSxodHRwY29va2llbWF4bnVtPTAsaHR0cHNlcnZlY29udGVudGtlZXBoZWFkZXJzPTEsaHR0cHNlcnZlY29udGVudG1heHJhbmdlcz0xLG11bHRpcGF0aHRjcD0wLHJhbmRzZWVkbm9wPTAscnNhMTAyNG1pbj0wLHRsc21sa2VtPTAsdGxzc2VjcG1sa2VtPTAsdGxzc2hhMT0xLHRyYWNlYmFja2xhYmVscz0wLHVwZGF0ZW1heHByb2NzPTAsdXJsbWF4cXVlcnlwYXJhbXM9MCx1cmxzdHJpY3Rjb2xvbnM9MCx3aW5yZWFkbGlua3ZvbHVtZT0wLHdpbnN5bWxpbms9MCx4NTA5bmVnYXRpdmVzZXJpYWw9MSx4NTA5cnNhY3J0PTAseDUwOXNoYTI1NnNraWQ9MCx4NTA5c3NsY2VydG92ZXJyaWRlcGxhdGZvcm09MCx4NTA5dXNlcG9saWNpZXM9MApidWlsZAlDR09fRU5BQkxFRD0wCmJ1aWxkCUdPQVJDSD1hcm02NApidWlsZAlHT09TPWRhcndpbgpidWlsZAlHT0FSTTY0PXY4LjAK+TJDMYYYIHIAgkIQQRbY8g==",
             "version_location": {
               "offset": 1671201,
               "bytes": 8
             },
             "module_location": {
               "offset": 1671211,
-              "bytes": 828
+              "bytes": 694
             },
             "module": {
               "path": "binlight.invalid/hello",
@@ -370,7 +371,7 @@
           "path": "/private$FIXTURE",
           "format": "mach-o",
           "kind": "executable",
-          "sha256": "caf6eed1b07711a6f50b9f5f050d2dd4825ffc638515d931d8af66344937b737",
+          "sha256": "ccc7b51f764f14a50059510204a1b7f1c46ea4a6e77fc2b31e0dc82561647ad2",
           "architecture": "arm64"
         }
       }
@@ -444,11 +445,11 @@
         "subject.name": "string"
       },
       "sample": {
-        "evidence_id": "ev_7fe6c755ebf3f17e2dc14baab02e76c7dc4605f5b40bf15707eb0131c8b60e94",
+        "evidence_id": "ev_92fd66bccf2b15372bb7f8837ed3250650f1d4f6e830593054601dd719000bc4",
         "subject": {
           "name": "hello-go",
           "digest": {
-            "sha256": "caf6eed1b07711a6f50b9f5f050d2dd4825ffc638515d931d8af66344937b737"
+            "sha256": "ccc7b51f764f14a50059510204a1b7f1c46ea4a6e77fc2b31e0dc82561647ad2"
           },
           "local_path": "/private$FIXTURE",
           "format": "mach-o",
@@ -519,14 +520,14 @@
             {
               "name": "__DATA",
               "start": "0x100198000",
-              "end": "0x1001cee98",
-              "length": 224920
+              "end": "0x1001cee18",
+              "length": 224792
             },
             {
               "name": "__LINKEDIT",
               "start": "0x1001d0000",
-              "end": "0x1001fbca2",
-              "length": 179362
+              "end": "0x1001fbc82",
+              "length": 179330
             },
             {
               "name": "External Symbols",
@@ -613,11 +614,11 @@
         "subject.name": "string"
       },
       "sample": {
-        "evidence_id": "ev_f3eb17152a28edbfe4bdb2e25a31ad0f1b90952bbdd3dd87e3e199c9cb497152",
+        "evidence_id": "ev_2df1df9e9caf8284d123727cbdd61c60b10bb3b1e258063242761af294cd9c1e",
         "subject": {
           "name": "hello-go",
           "digest": {
-            "sha256": "caf6eed1b07711a6f50b9f5f050d2dd4825ffc638515d931d8af66344937b737"
+            "sha256": "ccc7b51f764f14a50059510204a1b7f1c46ea4a6e77fc2b31e0dc82561647ad2"
           },
           "local_path": "/private$FIXTURE",
           "format": "mach-o",
@@ -660,7 +661,7 @@
         "raw_result": null,
         "normalized_result": [
           {
-            "address": "0x1000b0adb",
+            "address": "0x1000b0a7b",
             "value": "hw.optional.arm.FEAT_SB",
             "provider_value": "hw.optional.arm.FEAT_SB",
             "string": {
@@ -671,7 +672,7 @@
             }
           },
           {
-            "address": "0x1000b0edb",
+            "address": "0x1000b0e7b",
             "value": "hw.optional.arm.FEAT_DIT",
             "provider_value": "hw.optional.arm.FEAT_DIT",
             "string": {
@@ -682,7 +683,7 @@
             }
           },
           {
-            "address": "0x1000b6d34",
+            "address": "0x1000b6cd4",
             "value": "expected all size classes up to min size for malloc header to fit in one-page spansreflect.Value.Interface: cannot return value obtained from unexported field or methodcgocheck > 1 mode is no longer supported at runtime. Use GOEXPERIMENT=cgocheck2 at build",
             "provider_value": "expected all size classes up to min size for malloc header to fit in one-page spansreflect.Value.Interface: cannot return value obtained from unexported field or methodcgocheck > 1 mode is no longer supported at runtime. Use GOEXPERIMENT=cgocheck2 at build…",
             "string": {
@@ -693,7 +694,7 @@
             }
           },
           {
-            "address": "0x1000b6e34",
+            "address": "0x1000b6dd4",
             "value": " time instead.internal/sync.HashTrieMap: ran out of hash bits while inserting (incorrect use of unsafe or cgo, or data race?)00010203040506070809101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646",
             "provider_value": " time instead.internal/sync.HashTrieMap: ran out of hash bits while inserting (incorrect use of unsafe or cgo, or data race?)00010203040506070809101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646…",
             "string": {
@@ -704,7 +705,7 @@
             }
           },
           {
-            "address": "0x1000b6f34",
+            "address": "0x1000b6ed4",
             "value": "566676869707172737475767778798081828384858687888990919293949596979899",
             "provider_value": "566676869707172737475767778798081828384858687888990919293949596979899",
             "string": {
@@ -782,11 +783,11 @@
         "subject.name": "string"
       },
       "sample": {
-        "evidence_id": "ev_d2bab2fd9b5fdfcb8b37ef2162d9c0497d6e9a07267c9e87e1deb08343cbc759",
+        "evidence_id": "ev_48438104942bcb5fcfd74b97ba5619b9a861c4f2f8540ee0144537a5161ef276",
         "subject": {
           "name": "hello-go",
           "digest": {
-            "sha256": "caf6eed1b07711a6f50b9f5f050d2dd4825ffc638515d931d8af66344937b737"
+            "sha256": "ccc7b51f764f14a50059510204a1b7f1c46ea4a6e77fc2b31e0dc82561647ad2"
           },
           "local_path": "/private$FIXTURE",
           "format": "mach-o",
@@ -829,23 +830,23 @@
         "raw_result": null,
         "normalized_result": [
           {
-            "address": "0x100001070",
+            "address": "0x100001000",
             "value": "_internal/abi.BoundsDecode"
           },
           {
-            "address": "0x100001150",
+            "address": "0x1000010e0",
             "value": "_internal/abi.NoEscape"
           },
           {
-            "address": "0x1000011e0",
+            "address": "0x100001170",
             "value": "_internal/abi.TypeOf"
           },
           {
-            "address": "0x1000011f0",
+            "address": "0x100001180",
             "value": "_internal/abi.(*Type).ExportedMethods"
           },
           {
-            "address": "0x1000012b0",
+            "address": "0x100001240",
             "value": "_internal/abi.Name.IsBlank"
           }
         ],
