@@ -288,7 +288,10 @@ export async function openContractSession(
   hostTarget: string,
 ): Promise<ContractSession> {
   if (runner === "docker") {
-    const session = await openReaSession("docker-ghidra", "ghidra", hostTarget);
+    const session = await openReaSession(hostTarget, {
+      route: "docker-ghidra",
+      providerId: "ghidra",
+    });
     return { rea: session.rea, target: session.target, provider: "ghidra", close: session.close };
   }
   const rea = await ReaClient.connect(reaEnvOptionsFromProcess());

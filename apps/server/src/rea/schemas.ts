@@ -75,16 +75,19 @@ export const toolSchemas = {
     z.object({
       format: z.string(),
       architecture: z.string().nullable(),
-      build_info: z.object({
-        go_version: z.string(),
-        module: z.object({
-          path: z.string(),
-          main: GoModule,
-          dependencies: z.array(GoModule),
-          settings: z.array(z.object({ key: z.string(), value: z.string() })),
-          complete: z.boolean(),
-        }),
-      }),
+      // null for a binary that is not Go (REA still succeeds).
+      build_info: z
+        .object({
+          go_version: z.string(),
+          module: z.object({
+            path: z.string(),
+            main: GoModule,
+            dependencies: z.array(GoModule),
+            settings: z.array(z.object({ key: z.string(), value: z.string() })),
+            complete: z.boolean(),
+          }),
+        })
+        .nullable(),
     }),
   ),
 } as const;

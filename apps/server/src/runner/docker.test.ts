@@ -1,9 +1,11 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { RUNNER_IMAGE } from "../preflight/health.js";
 import { PINNED_REA_VERSION } from "../rea/version.js";
-import { disposeDockerSession, dockerReaCommand } from "./docker.js";
+import { disposeDockerSession, dockerReaCommand, stageTarget } from "./docker.js";
 
 const repo = new URL("../../../../", import.meta.url);
 
@@ -27,7 +29,10 @@ function volumeExists(name: string): boolean {
 
 describe.runIf(dockerAvailable())("dockerReaCommand", () => {
   it("isolates REA: no network, non-root image user, read-only root and target", async () => {
-    const cmd = await dockerReaCommand("/data/apps/kubectl");
+    const dir = mkdtempSync(join(tmpdir(), "binlight-cmd-"));
+    const target = join(dir, "kubectl");
+    writeFileSync(target, "binary bytes");
+    const cmd = await dockerReaCommand(target, { stageRoot: join(dir, "stage") });
     try {
       const args = cmd.args.join(" ");
       expect(cmd.command).toBe("docker");
@@ -37,7 +42,9 @@ describe.runIf(dockerAvailable())("dockerReaCommand", () => {
       expect(args).toContain("--security-opt no-new-privileges");
       expect(args).toContain("--platform linux/amd64");
       expect(args).not.toContain("--user");
-      expect(args).toContain("type=bind,source=/data/apps/kubectl,target=/target/kubectl,readonly");
+      // The staged copy (Docker can't mount every host folder) is what's mounted, read-only.
+      expect(cmd.staged).toMatch(/\/stage\/[a-f0-9]{64}\/kubectl$/);
+      expect(args).toContain(`type=bind,source=${cmd.staged},target=/target/kubectl,readonly`);
       expect(args).toContain(`type=volume,source=${cmd.volume},target=/work`);
       expect(cmd.args.slice(-2)).toEqual([RUNNER_IMAGE, "--mcp"]);
       expect(cmd.containerTarget).toBe("/target/kubectl");
@@ -45,6 +52,7 @@ describe.runIf(dockerAvailable())("dockerReaCommand", () => {
       expect(volumeExists(cmd.volume)).toBe(true);
     } finally {
       await disposeDockerSession(cmd);
+      rmSync(dir, { recursive: true, force: true });
     }
     expect(volumeExists(cmd.volume)).toBe(false);
   });
@@ -67,6 +75,22 @@ describe("runner image pins", () => {
       "docs/lessons-learned.md",
     ]) {
       expect(readFileSync(new URL(file, repo), "utf8"), file).toContain(sha);
+    }
+  });
+});
+
+describe("stageTarget", () => {
+  it("copies the target under its SHA-256, keeping its name, once", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "binlight-stage-"));
+    try {
+      const source = join(dir, "kubectl");
+      writeFileSync(source, "binary bytes");
+      const staged = await stageTarget(source, join(dir, "stage"));
+      expect(staged).toMatch(/\/stage\/[a-f0-9]{64}\/kubectl$/);
+      expect(readFileSync(staged, "utf8")).toBe("binary bytes");
+      expect(await stageTarget(source, join(dir, "stage"))).toBe(staged);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
     }
   });
 });

@@ -1,6 +1,9 @@
 import { execFile } from "node:child_process";
-import { randomUUID } from "node:crypto";
-import { basename } from "node:path";
+import { createHash, randomUUID } from "node:crypto";
+import { constants, createReadStream } from "node:fs";
+import { copyFile, mkdir, rename, stat } from "node:fs/promises";
+import { homedir } from "node:os";
+import { basename, join } from "node:path";
 import { promisify } from "node:util";
 import { RUNNER_IMAGE } from "../preflight/health.js";
 
@@ -8,6 +11,8 @@ const run = promisify(execFile);
 
 export interface DockerRunnerOptions {
   image?: string;
+  /** Where targets are staged before mounting; must be a folder Docker shares. */
+  stageRoot?: string;
   /** Ghidra headless heap; REA's own default is 2G. */
   ghidraMaxMem?: string;
   ghidraStartupTimeoutMs?: number;
@@ -21,6 +26,39 @@ export interface DockerReaCommand {
   containerName: string;
   /** Named volume holding this session's Ghidra project and REA runtime files. */
   volume: string;
+  /** The staged copy that is mounted. */
+  staged: string;
+}
+
+const defaultStageRoot = (): string => join(homedir(), ".binlight", "cache", "targets");
+
+async function sha256Of(path: string): Promise<string> {
+  const hash = createHash("sha256");
+  for await (const chunk of createReadStream(path)) hash.update(chunk as Buffer);
+  return hash.digest("hex");
+}
+
+/**
+ * Copies the target to `<stageRoot>/<sha256>/<name>` and returns that path.
+ * Docker Desktop only shares some host folders (/Users, /Volumes, /private,
+ * /tmp by default), so e.g. Homebrew's /opt/homebrew cannot be bind-mounted.
+ * Staging also pins the exact bytes analysed. On APFS the copy is a clone:
+ * instant, no extra space.
+ */
+export async function stageTarget(
+  hostTarget: string,
+  stageRoot = defaultStageRoot(),
+): Promise<string> {
+  const sha = await sha256Of(hostTarget);
+  const dir = join(stageRoot, sha);
+  const staged = join(dir, basename(hostTarget));
+  const existing = await stat(staged).catch(() => undefined);
+  if (existing?.isFile()) return staged;
+  await mkdir(dir, { recursive: true, mode: 0o700 });
+  const partial = `${staged}.partial-${process.pid}`;
+  await copyFile(hostTarget, partial, constants.COPYFILE_FICLONE);
+  await rename(partial, staged);
+  return staged;
 }
 
 /** Hostname the container resolves to itself; Java's getLocalHost needs it with no network. */
@@ -37,6 +75,7 @@ export async function dockerReaCommand(
   hostTarget: string,
   options: DockerRunnerOptions = {},
 ): Promise<DockerReaCommand> {
+  const staged = await stageTarget(hostTarget, options.stageRoot);
   const session = randomUUID();
   const volume = `binlight-work-${session}`;
   await run("docker", ["volume", "create", "--label", "dev.binlight.session", volume]);
@@ -72,12 +111,12 @@ export async function dockerReaCommand(
     "--mount",
     `type=volume,source=${volume},target=/work`,
     "--mount",
-    `type=bind,source=${hostTarget},target=${containerTarget},readonly`,
+    `type=bind,source=${staged},target=${containerTarget},readonly`,
     ...Object.entries(env).flatMap(([k, v]) => ["-e", `${k}=${v}`]),
     options.image ?? RUNNER_IMAGE,
     "--mcp",
   ];
-  return { command: "docker", args, containerTarget, containerName, volume };
+  return { command: "docker", args, containerTarget, containerName, volume, staged };
 }
 
 /** Removes the container if it is still around, then the session's volume. */

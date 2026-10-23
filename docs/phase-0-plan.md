@@ -23,7 +23,7 @@ results is enough to prove the gate.
       `linux/amd64` Docker runner; - detect Hopper demo mode and avoid it; - report anything that can't be analysed before starting.
 - [x] **5. Docker runner.** An image with REA + Ghidra 12.1.4 (checksum-verified) + JDK 21 for `linux/amd64`. The server talks MCP to `rea --mcp` inside it.
       Run it with `--network none`, non-root, the target mounted read-only.
-- [ ] **6. Job runner.** One job per investigation: open the binary once, run
+- [x] **6. Job runner.** One job per investigation: open the binary once, run
       steps, stream progress events (step, status, elapsed) to the browser. Jobs
       survive a page reload; cancel works.
 - [ ] **7. Evidence cache.** Key results by the binary's SHA-256 + REA version +

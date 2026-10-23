@@ -62,6 +62,23 @@ its real reason.
 npm run preflight -- /path/to/binary [--json]
 ```
 
+## Jobs API
+
+One job per investigation: preflight, start REA, open the binary once, then Go
+build info, overview, strings and procedures reuse that analysis. One deep job
+runs at a time; others queue. Jobs live in the server's memory, so a page
+reload reconnects to them (a server restart does not keep them yet).
+
+| Method | Path                               |                                                                        |
+| ------ | ---------------------------------- | ---------------------------------------------------------------------- |
+| `POST` | `/api/jobs`                        | `{"path": "/abs/path"}` (JSON only) → the new job                      |
+| `GET`  | `/api/jobs`, `/api/jobs/:id`       | jobs with each step's status, timing, summary or real error            |
+| `GET`  | `/api/jobs/:id/events`             | Server-Sent Events: a snapshot, then `step`, `job`, `heartbeat`, `log` |
+| `POST` | `/api/jobs/:id/cancel`             | aborts the running REA call and stops its process/container            |
+| `GET`  | `/api/jobs/:id/steps/:step/result` | the step's full REA result                                             |
+
+The server listens on 127.0.0.1 only and rejects non-local `Host` headers.
+
 ## Docker runner (deep analysis on Apple Silicon)
 
 Ghidra ships no arm64 macOS decompiler, so on Apple Silicon deep analysis runs
@@ -73,7 +90,9 @@ otherwise downloads the release):
 npm run runner:build     # -> binlight-runner:rea-6.7.0
 ```
 
-Each analysis runs `rea --mcp` in its own container: `--network none`, a
+The target is first staged to `~/.binlight/cache/targets/<sha256>/` (an APFS
+clone; Docker Desktop cannot mount folders such as `/opt/homebrew`). Each
+analysis runs `rea --mcp` in its own container: `--network none`, a
 non-root user, read-only root filesystem, no capabilities, the target mounted
 read-only, and only a per-session Docker volume writable (removed afterwards). Ghidra's heap defaults to 4G (`GHIDRA_HEADLESS_MAXMEM`). Preflight
 picks this route automatically when nothing faster works.

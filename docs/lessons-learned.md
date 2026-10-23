@@ -59,6 +59,14 @@ argument`) _after_ Ghidra's analysis succeeds, and every later call re-runs
   user `?`.
 - With `--network none`, Java's `getLocalHost` fails (`UnknownHostException`).
   Set `--hostname` and `--add-host <hostname>:127.0.0.1`.
+- **Docker Desktop only bind-mounts shared folders** (`/Users`, `/Volumes`,
+  `/private`, `/tmp` by default). Homebrew binaries under `/opt/homebrew` fail
+  with `bind source path does not exist`. Stage targets under
+  `~/.binlight/cache/targets/<sha256>/` first (APFS clone: instant).
+- `docker run` failures end with `Run 'docker run --help'`; show the line with
+  the error, not the last line.
+- Homebrew kubectl 1.37.1 is go1.26.8 with 88 dependencies (the reference table
+  row is a different kubectl build).
 - Ghidra heap is `GHIDRA_HEADLESS_MAXMEM` (REA default 2G; REA names it in its
   heap-exhaustion remediation). The runner passes 4G; the Docker VM has 8 GB.
 - Timings for the 2.7 MB Go fixture under emulation: container + REA start

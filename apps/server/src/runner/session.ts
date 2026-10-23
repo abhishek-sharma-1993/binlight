@@ -1,13 +1,12 @@
-import type { DeepRoute } from "@binlight/shared";
+import type { RouteDecision } from "@binlight/shared";
 import { ReaClient, type ReaClientOptions } from "../rea/client.js";
 import { reaEnvOptionsFromProcess, type ReaEnvOptions } from "../rea/env.js";
 import { disposeDockerSession, dockerReaCommand, type DockerRunnerOptions } from "./docker.js";
 
 export interface ReaSession {
   rea: ReaClient;
-  route: DeepRoute;
-  /** `provider_id` for open_binary. */
-  providerId: string;
+  /** The deep-analysis route, or undefined when only provider-free tools can run. */
+  deep?: Pick<RouteDecision, "route" | "providerId">;
   /** The target path as REA sees it (inside the container for docker-ghidra). */
   target: string;
   /** Closes REA and removes anything the route created. */
@@ -21,23 +20,24 @@ export interface SessionOptions {
 }
 
 /**
- * Starts REA for one target on the route preflight chose. One session per
- * binary: open_binary once, then reuse the analysis for every step.
+ * Starts REA for one target on the route preflight chose (local REA when there
+ * is no deep route). One session per binary: open_binary once, then reuse the
+ * analysis for every step.
  */
 export async function openReaSession(
-  route: DeepRoute,
-  providerId: string,
   hostTarget: string,
+  deep: Pick<RouteDecision, "route" | "providerId"> | undefined,
   options: SessionOptions = {},
 ): Promise<ReaSession> {
   const onStderr = options.onStderr ? { onStderr: options.onStderr } : {};
+  const route = deep ? { deep: { route: deep.route, providerId: deep.providerId } } : {};
 
-  if (route !== "docker-ghidra") {
+  if (deep?.route !== "docker-ghidra") {
     const rea = await ReaClient.connect({
       ...(options.env ?? reaEnvOptionsFromProcess()),
       ...onStderr,
     });
-    return { rea, route, providerId, target: hostTarget, close: () => rea.close() };
+    return { rea, ...route, target: hostTarget, close: () => rea.close() };
   }
 
   const cmd = await dockerReaCommand(hostTarget, options.docker);
@@ -55,8 +55,7 @@ export async function openReaSession(
   }
   return {
     rea,
-    route,
-    providerId,
+    ...route,
     target: cmd.containerTarget,
     close: async () => {
       await rea.close().catch(() => undefined);
