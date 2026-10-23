@@ -74,7 +74,7 @@ export interface Job {
 /** Server-Sent Events from /api/jobs/:id/events. Every connection starts with a snapshot. */
 export type JobEvent =
   | { type: "snapshot"; job: Job }
-  | { type: "job"; status: JobStatus; startedAt?: string; endedAt?: string }
+  | { type: "job"; status: JobStatus; startedAt?: string; endedAt?: string; reaVersion?: string }
   | { type: "step"; step: JobStep }
   | { type: "heartbeat"; at: string; runningStep?: StepId; elapsedMs?: number }
   | { type: "log"; line: string };

@@ -32,6 +32,13 @@ npm run dev:server   # http://127.0.0.1:8787
 npm run dev:web      # http://127.0.0.1:5173 (proxies /api to the server)
 ```
 
+Open http://127.0.0.1:5173, upload a binary or type a path (paths are the only
+way to analyse an `.app` bundle), and watch the job: each step's status and
+time, its summary and evidence ID, or the real error and fix; skipped steps
+say why; cached steps are labelled. The job is in the URL, so a reload
+reconnects. Raw REA results open per step. Uploads are stored under
+`~/.binlight/uploads/<sha256>/` (2 GiB limit).
+
 ## REA
 
 The server spawns the pinned `rea --mcp` itself with an explicit environment.

@@ -280,6 +280,7 @@ export class JobManager {
 
       if (!needsRea) {
         job.reaVersion = this.reaVersion;
+        this.setStatus(state, "running");
         this.skip(state, "start", fromCache);
       } else {
         const started = await this.step(state, "start", async () => {
@@ -288,6 +289,7 @@ export class JobManager {
           );
           state.session = session;
           job.reaVersion = session.rea.version;
+          this.setStatus(state, "running");
           return {
             summary: `REA ${session.rea.version}${session.deep ? ` (${session.deep.route})` : " (local, no deep provider)"}`,
           };
@@ -486,12 +488,13 @@ export class JobManager {
 
   private setStatus(state: JobState, status: JobStatus): void {
     state.job.status = status;
-    const { startedAt, endedAt } = state.job;
+    const { startedAt, endedAt, reaVersion } = state.job;
     this.emit(state, {
       type: "job",
       status,
       ...(startedAt && { startedAt }),
       ...(endedAt && { endedAt }),
+      ...(reaVersion && { reaVersion }),
     });
   }
 

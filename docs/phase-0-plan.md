@@ -28,7 +28,7 @@ results is enough to prove the gate.
       survive a page reload; cancel works.
 - [x] **7. Evidence cache.** Key results by the binary's SHA-256 + REA version +
       provider. A repeat run of the same binary returns instantly.
-- [ ] **8. Minimal web page.** Upload or choose a path, start a job, watch live
+- [x] **8. Minimal web page.** Upload or choose a path, start a job, watch live
       progress, see raw results and real error messages (never silent zeros).
 - [ ] **9. Gate run.** kubectl and Ollama end to end. Record timings and compare
       counts with `docs/lessons-learned.md` → reference results.

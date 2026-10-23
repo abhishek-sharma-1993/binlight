@@ -1,0 +1,335 @@
+:root {
+  --bg: #ffffff;
+  --panel: #f6f7f9;
+  --border: #d9dde3;
+  --text: #1c1f23;
+  --muted: #5f6772;
+  --accent: #2856d6;
+  --ok: #1f7a3f;
+  --warn: #8a5a00;
+  --error-bg: #fdecec;
+  --error-text: #a11b1b;
+  --running: #2856d6;
+  --cached: #6b3fb6;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15171b;
+    --panel: #1d2026;
+    --border: #2f343c;
+    --text: #e6e8eb;
+    --muted: #9aa3ad;
+    --accent: #7a9cff;
+    --ok: #5cc884;
+    --warn: #e0b04a;
+    --error-bg: #3a1d1f;
+    --error-text: #ff9a9a;
+    --running: #7a9cff;
+    --cached: #b694ff;
+    color-scheme: dark;
+  }
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font:
+    14px/1.45 system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+}
+code,
+pre {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+}
+/* Evidence ids, hashes and paths are long unbroken strings; let them wrap on narrow screens. */
+code,
+table.routes td {
+  overflow-wrap: anywhere;
+}
+.layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) 1fr;
+  grid-template-areas: "head head" "side main";
+  gap: 16px;
+  padding: 16px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+header {
+  grid-area: head;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+header h1 {
+  margin: 0;
+  font-size: 20px;
+}
+aside {
+  grid-area: side;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+main {
+  grid-area: main;
+  min-width: 0;
+}
+@media (max-width: 760px) {
+  .layout {
+    grid-template-columns: 1fr;
+    grid-template-areas: "head" "side" "main";
+  }
+}
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+h2 {
+  font-size: 15px;
+  margin: 0 0 8px;
+}
+h3 {
+  font-size: 14px;
+  margin: 0 0 8px;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+label.inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+input[type="text"] {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+}
+button {
+  font: inherit;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+button.link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  padding: 0;
+}
+header button.link {
+  color: var(--text);
+  font-weight: 700;
+}
+button.danger {
+  background: var(--error-text);
+  border-color: var(--error-text);
+}
+.muted {
+  color: var(--muted);
+}
+.small {
+  font-size: 12px;
+}
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+.error {
+  background: var(--error-bg);
+  color: var(--error-text);
+  border-radius: 6px;
+  padding: 6px 8px;
+  margin: 6px 0 0;
+}
+.error p {
+  margin: 0;
+}
+ul.jobs {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+button.job {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 1px solid transparent;
+  color: var(--text);
+  padding: 6px;
+}
+button.job.selected,
+button.job:hover {
+  border-color: var(--border);
+  background: var(--bg);
+}
+.target {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.badge {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+.badge.done {
+  color: var(--ok);
+}
+.badge.failed {
+  color: var(--error-text);
+}
+.badge.running,
+.badge.queued {
+  color: var(--running);
+}
+.badge.cancelled {
+  color: var(--muted);
+}
+.badge.cached {
+  color: var(--cached);
+}
+.job-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.target-path {
+  word-break: break-all;
+}
+.job-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.live {
+  color: var(--ok);
+  font-size: 12px;
+}
+.offline {
+  color: var(--warn);
+  font-size: 12px;
+}
+ol.steps {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 16px;
+}
+.step {
+  display: flex;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.step .icon {
+  width: 18px;
+  text-align: center;
+  font-size: 16px;
+}
+.step.done .icon {
+  color: var(--ok);
+}
+.step.failed .icon {
+  color: var(--error-text);
+}
+.step.running .icon {
+  color: var(--running);
+}
+.step.skipped .icon,
+.step.pending .icon,
+.step.cancelled .icon {
+  color: var(--muted);
+}
+.step-body {
+  flex: 1;
+  min-width: 0;
+}
+.step-body p {
+  margin: 2px 0;
+}
+.step-title {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+pre.log,
+pre.json {
+  max-height: 360px;
+  overflow: auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 12px;
+  margin: 0 0 10px;
+}
+.facts dt {
+  color: var(--muted);
+}
+.facts dd {
+  margin: 0;
+  word-break: break-all;
+}
+table.routes {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+table.routes th,
+table.routes td {
+  text-align: left;
+  border-top: 1px solid var(--border);
+  padding: 4px 6px;
+  vertical-align: top;
+}
+ul.issues {
+  padding-left: 18px;
+  margin: 0;
+}
+ul.issues li.blocker {
+  color: var(--error-text);
+}
+ul.issues li.limits {
+  color: var(--warn);
+}
+.job-view > section {
+  margin-bottom: 16px;
+}

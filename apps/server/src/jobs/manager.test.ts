@@ -59,7 +59,14 @@ describe("JobManager", () => {
       "start:running",
       "start:done",
     ]);
-    expect(events.at(-1)).toMatchObject({ type: "job", status: "done" });
+    expect(events.at(-1)).toMatchObject({ type: "job", status: "done", reaVersion: "6.7.0" });
+    // The REA version is announced live as soon as REA starts.
+    const firstWithVersion = events.findIndex((e) => e.type === "job" && e.reaVersion);
+    const startDone = events.findIndex(
+      (e) => e.type === "step" && e.step.id === "start" && e.step.status === "done",
+    );
+    expect(firstWithVersion).toBeGreaterThan(-1);
+    expect(firstWithVersion).toBeLessThan(startDone);
   });
 
   it("skips deep steps with the reason when no deep route works, and still reads Go info", async () => {

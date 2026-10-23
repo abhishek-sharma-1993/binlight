@@ -1,9 +1,13 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import { JOB_STEPS, type JobEvent, type StepId } from "@binlight/shared";
 import type { JobManager } from "./jobs/manager.js";
+import { saveUpload, UploadTooLarge } from "./uploads.js";
 
 export interface AppDeps {
   jobs: JobManager;
+  /** Where uploaded binaries are stored. */
+  uploadRoot?: string;
+  maxUploadBytes?: number;
 }
 
 const MAX_BODY_BYTES = 64 * 1024;
@@ -80,6 +84,26 @@ export function createApp(deps: AppDeps): Server {
       const method = req.method ?? "GET";
 
       if (method === "GET" && url.pathname === "/api/health") return send(res, 200, { ok: true });
+
+      if (method === "POST" && url.pathname === "/api/uploads") {
+        // octet-stream is not a CORS-safelisted type: a cross-site page can't send it.
+        if (req.headers["content-type"] !== "application/octet-stream") {
+          throw new HttpError(415, "Upload the file as application/octet-stream.");
+        }
+        const name = req.headers["x-binlight-filename"];
+        try {
+          const saved = await saveUpload(
+            req,
+            typeof name === "string" ? name : undefined,
+            deps.uploadRoot,
+            deps.maxUploadBytes,
+          );
+          return send(res, 201, saved);
+        } catch (err) {
+          if (err instanceof UploadTooLarge) throw new HttpError(413, err.message);
+          throw err;
+        }
+      }
 
       if (parts[0] === "api" && parts[1] === "jobs") {
         const id = parts[2];
