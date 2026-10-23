@@ -49,6 +49,7 @@ describe.runIf(dockerAvailable())("dockerReaCommand", () => {
       expect(cmd.args.slice(-2)).toEqual([RUNNER_IMAGE, "--mcp"]);
       expect(cmd.containerTarget).toBe("/target/kubectl");
       expect(args).toContain("GHIDRA_HEADLESS_MAXMEM=4G");
+      expect(args).toContain(`REA_MCP_MAX_RESPONSE_BYTES=${256 * 1024 * 1024}`);
       expect(volumeExists(cmd.volume)).toBe(true);
     } finally {
       await disposeDockerSession(cmd);

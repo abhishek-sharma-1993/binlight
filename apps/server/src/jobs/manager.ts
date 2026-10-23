@@ -78,14 +78,21 @@ const TOOLS: Partial<Record<StepId, string>> = {
   close: "close_binary",
 };
 
+/**
+ * REA analyses lazily: whichever deep step runs first after open_binary (the
+ * overview, or strings when the overview came from the cache) carries the
+ * whole Ghidra analysis, which takes many minutes to hours under emulation.
+ */
+const ANALYSIS_TIMEOUT = 12 * 60 * 60_000;
+
 const DEFAULT_TIMEOUTS: Record<StepId, number> = {
   preflight: 5 * 60_000,
   start: 5 * 60_000,
-  open: 30 * 60_000,
+  open: ANALYSIS_TIMEOUT,
   go: 10 * 60_000,
-  overview: 12 * 60 * 60_000,
-  strings: 60 * 60_000,
-  procedures: 60 * 60_000,
+  overview: ANALYSIS_TIMEOUT,
+  strings: ANALYSIS_TIMEOUT,
+  procedures: ANALYSIS_TIMEOUT,
   close: 10 * 60_000,
 };
 

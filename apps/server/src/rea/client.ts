@@ -1,7 +1,7 @@
 import type { ReaToolInfo } from "@binlight/shared";
 import { Client, type CallToolResult, type Tool } from "@modelcontextprotocol/client";
 import { StdioClientTransport } from "@modelcontextprotocol/client/stdio";
-import { buildReaEnv, type ReaEnvOptions } from "./env.js";
+import { buildReaEnv, REA_MAX_RESPONSE_BYTES, type ReaEnvOptions } from "./env.js";
 import { ReaProcessError, ReaToolError, reaErrorFromResult } from "./errors.js";
 import { installedRea, PINNED_REA_VERSION } from "./version.js";
 
@@ -55,6 +55,8 @@ export class ReaClient {
       args: command.args,
       env: buildReaEnv(options),
       stderr: "pipe",
+      // Must be at least REA's response budget, plus room for the JSON-RPC envelope.
+      maxBufferSize: REA_MAX_RESPONSE_BYTES + 1024 * 1024,
     });
     const client = new Client({ name: "binlight", version: "0.0.0" });
     const tail: string[] = [];

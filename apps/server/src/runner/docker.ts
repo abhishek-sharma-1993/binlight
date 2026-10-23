@@ -6,6 +6,7 @@ import { homedir } from "node:os";
 import { basename, join } from "node:path";
 import { promisify } from "node:util";
 import { RUNNER_IMAGE } from "../preflight/health.js";
+import { REA_MAX_RESPONSE_BYTES } from "../rea/env.js";
 
 const run = promisify(execFile);
 
@@ -84,6 +85,7 @@ export async function dockerReaCommand(
   const containerName = `binlight-rea-${session}`;
   const env: Record<string, string> = {
     GHIDRA_HEADLESS_MAXMEM: options.ghidraMaxMem ?? "4G",
+    REA_MCP_MAX_RESPONSE_BYTES: String(REA_MAX_RESPONSE_BYTES),
     // Big Go binaries take hours under emulation; initial analysis counts toward this.
     REA_GHIDRA_STARTUP_TIMEOUT_MS: String(options.ghidraStartupTimeoutMs ?? 12 * 60 * 60 * 1000),
   };

@@ -1,5 +1,12 @@
 import { getDefaultEnvironment } from "@modelcontextprotocol/client/stdio";
 
+/**
+ * Largest single MCP response REA may send, and Binlight's client will read.
+ * REA's default (10 MiB, the SDK's stdio buffer) is too small for big binaries:
+ * kubectl's 237,578 strings fail `list_strings` with `resource_constraint`.
+ */
+export const REA_MAX_RESPONSE_BYTES = 256 * 1024 * 1024;
+
 /** What REA's providers need to find. Unset values are left out, never guessed. */
 export interface ReaEnvOptions {
   ghidraInstallDir?: string | undefined;
@@ -25,6 +32,7 @@ export function buildReaEnv(
     env["REA_GHIDRA_STARTUP_TIMEOUT_MS"] = String(options.ghidraStartupTimeoutMs);
   }
   if (options.javaHome) env["JAVA_HOME"] = options.javaHome;
+  env["REA_MCP_MAX_RESPONSE_BYTES"] = String(REA_MAX_RESPONSE_BYTES);
   return { ...env, ...options.extra };
 }
 

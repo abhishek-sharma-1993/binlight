@@ -15,6 +15,10 @@ describe("buildReaEnv", () => {
     });
   });
 
+  it("raises REA's MCP response budget for big binaries", () => {
+    expect(buildReaEnv({}, {})["REA_MCP_MAX_RESPONSE_BYTES"]).toBe(String(256 * 1024 * 1024));
+  });
+
   it("leaves unset values out instead of guessing", () => {
     const env = buildReaEnv({}, { PATH: "/bin" });
     expect(env).not.toHaveProperty("GHIDRA_INSTALL_DIR");
