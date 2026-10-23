@@ -26,7 +26,7 @@ results is enough to prove the gate.
 - [x] **6. Job runner.** One job per investigation: open the binary once, run
       steps, stream progress events (step, status, elapsed) to the browser. Jobs
       survive a page reload; cancel works.
-- [ ] **7. Evidence cache.** Key results by the binary's SHA-256 + REA version +
+- [x] **7. Evidence cache.** Key results by the binary's SHA-256 + REA version +
       provider. A repeat run of the same binary returns instantly.
 - [ ] **8. Minimal web page.** Upload or choose a path, start a job, watch live
       progress, see raw results and real error messages (never silent zeros).

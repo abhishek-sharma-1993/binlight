@@ -86,11 +86,11 @@ export function createApp(deps: AppDeps): Server {
         if (!id) {
           if (method === "GET") return send(res, 200, jobs.list());
           if (method === "POST") {
-            const body = (await readJson(req)) as { path?: unknown };
+            const body = (await readJson(req)) as { path?: unknown; fresh?: unknown };
             if (typeof body.path !== "string" || body.path.trim() === "") {
               throw new HttpError(400, 'Give the target as {"path": "/absolute/path"}.');
             }
-            return send(res, 201, jobs.create(body.path.trim()));
+            return send(res, 201, jobs.create(body.path.trim(), { fresh: body.fresh === true }));
           }
         } else {
           const job = jobs.get(id);
@@ -107,7 +107,7 @@ export function createApp(deps: AppDeps): Server {
           if (action === "steps" && parts[5] === "result" && method === "GET") {
             const step = parts[4] ?? "";
             if (!STEP_IDS.has(step)) throw new HttpError(404, `No step ${step}.`);
-            const result = jobs.result(id, step as StepId);
+            const result = await jobs.result(id, step as StepId);
             if (result === undefined) throw new HttpError(404, `Step ${step} has no result.`);
             return send(res, 200, result);
           }

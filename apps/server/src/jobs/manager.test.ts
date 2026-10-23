@@ -35,7 +35,7 @@ describe("JobManager", () => {
     expect(s["strings"]?.summary).toBe("1 strings");
     expect(s["procedures"]?.counts).toEqual({ procedures: 2 });
     expect(job?.steps.every((step) => step.elapsedMs !== undefined)).toBe(true);
-    expect(jobs.result(job?.id ?? "", "procedures")).toMatchObject({
+    expect(await jobs.result(job?.id ?? "", "procedures")).toMatchObject({
       normalized_result: [{ value: "main" }, { value: "init" }],
     });
   });

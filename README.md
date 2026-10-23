@@ -67,7 +67,21 @@ npm run preflight -- /path/to/binary [--json]
 One job per investigation: preflight, start REA, open the binary once, then Go
 build info, overview, strings and procedures reuse that analysis. One deep job
 runs at a time; others queue. Jobs live in the server's memory, so a page
-reload reconnects to them (a server restart does not keep them yet).
+reload reconnects to them (a server restart keeps cached results, not the job
+list).
+
+### Evidence cache
+
+Every successful analysis step's REA result is saved under
+`~/.binlight/cache/evidence/<sha256>/rea-<version>/<provider>/<tool>.json`,
+keyed by the SHA-256 of the exact bytes analysed (the thinned slice for a
+universal binary), the REA version and the deep provider (`none` for Go build
+info). A repeat run of the same binary reuses every cached step, keeps the
+original evidence IDs, and does not start REA or Docker at all: about 2 s,
+mostly preflight's `rea doctor`. Only missing steps run after a partial run.
+Failed, skipped and cancelled steps are never cached; entries that fail the
+schema check are discarded. Send `{"path": ..., "fresh": true}` to re-analyse.
+Nothing is evicted yet; delete the folder to reclaim space.
 
 | Method | Path                               |                                                                        |
 | ------ | ---------------------------------- | ---------------------------------------------------------------------- |

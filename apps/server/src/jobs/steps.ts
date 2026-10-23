@@ -10,6 +10,8 @@ export interface StepOutcome {
   evidenceId?: string;
   /** Full REA result, served on request (never inlined in events). */
   result?: unknown;
+  /** Set when the outcome was rebuilt from the evidence cache. */
+  cachedAt?: string;
 }
 
 /** A failure Binlight itself detects (e.g. a preflight blocker), with the user-facing reason. */

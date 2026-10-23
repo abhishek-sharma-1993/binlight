@@ -2,7 +2,7 @@ import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import type { DetectedTarget, PreflightIssue, PreflightReport } from "@binlight/shared";
 import { reaEnvOptionsFromProcess, type ReaEnvOptions } from "../rea/env.js";
-import { detectTarget } from "./detect.js";
+import { detectTarget, sha256Of } from "./detect.js";
 import { gatherHealth, type DeepHealth } from "./health.js";
 import { decideRoutes } from "./routes.js";
 import { preferredSlice, thinUniversal } from "./thin.js";
@@ -83,8 +83,16 @@ export async function preflight(
     native = undefined;
   }
 
+  // Provider health doesn't depend on the target: start it now, alongside thinning.
+  const healthPromise = native
+    ? options.health
+      ? Promise.resolve(options.health)
+      : gatherHealth(options.env ?? reaEnvOptionsFromProcess())
+    : undefined;
+
   let analysisPath: string | undefined;
   let analysisArchitecture: string | undefined;
+  let analysisSha256: string | undefined;
   if (native?.format === "mach-o-universal") {
     const slice = preferredSlice(native.slices ?? [], options.hostArch);
     if (!slice || !native.sha256) {
@@ -102,6 +110,7 @@ export async function preflight(
           options.cacheDir ?? defaultCacheDir(),
         );
         analysisArchitecture = slice.architecture;
+        analysisSha256 = await sha256Of(analysisPath);
         issues.push({
           severity: "note",
           code: "thinned_universal",
@@ -118,12 +127,11 @@ export async function preflight(
   } else if (native) {
     analysisPath = native.path;
     analysisArchitecture = native.architectures[0];
+    analysisSha256 = native.sha256;
   }
 
   // Provider health only matters once there is something to analyse.
-  const health = analysisPath
-    ? (options.health ?? (await gatherHealth(options.env ?? reaEnvOptionsFromProcess())))
-    : undefined;
+  const health = analysisPath ? await healthPromise : undefined;
   const routes = health ? decideRoutes(health, native?.format ?? "unknown") : [];
   const deep = routes.find((r) => r.available);
   if (health && !deep) {
@@ -142,6 +150,7 @@ export async function preflight(
     target,
     ...(analysisPath !== undefined && { analysisPath }),
     ...(analysisArchitecture !== undefined && { analysisArchitecture }),
+    ...(analysisSha256 !== undefined && { analysisSha256 }),
     ...(deep && { deep }),
     routes,
     issues,

@@ -1,4 +1,5 @@
 import { createApp } from "./app.js";
+import { EvidenceCache } from "./cache/evidence.js";
 import { JobManager } from "./jobs/manager.js";
 import { preflight } from "./preflight/index.js";
 import { formatReaLog } from "./rea/log.js";
@@ -7,6 +8,7 @@ import { openReaSession } from "./runner/index.js";
 const port = Number(process.env["PORT"] ?? 8787);
 
 const jobs = new JobManager({
+  cache: new EvidenceCache(),
   preflight: (path) => preflight(path),
   openSession: (path, deep, onLog) =>
     openReaSession(path, deep, { onStderr: (line) => onLog(formatReaLog(line)) }),

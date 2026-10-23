@@ -49,6 +49,10 @@ export interface JobStep {
   error?: StepError;
   /** Whether a full result can be fetched from /api/jobs/:id/steps/:step/result. */
   hasResult?: boolean;
+  /** The result came from the evidence cache instead of a new REA call. */
+  cached?: boolean;
+  /** When the cached result was first produced. */
+  cachedAt?: string;
 }
 
 export interface Job {
@@ -61,8 +65,10 @@ export interface Job {
   endedAt?: string;
   preflight?: PreflightReport;
   steps: JobStep[];
-  /** REA version that ran the job. */
+  /** REA version that ran the job (or produced its cached results). */
   reaVersion?: string;
+  /** Ignore the evidence cache and analyse again. */
+  fresh?: boolean;
 }
 
 /** Server-Sent Events from /api/jobs/:id/events. Every connection starts with a snapshot. */

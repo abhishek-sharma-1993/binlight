@@ -9,8 +9,10 @@ import {
   type RouteDecision,
   type StepId,
 } from "@binlight/shared";
+import type { CacheKey, EvidenceCache } from "../cache/evidence.js";
 import type { CallOptions, ReaToolResult } from "../rea/client.js";
 import type { ToolOutput } from "../rea/schemas.js";
+import { PINNED_REA_VERSION } from "../rea/version.js";
 import {
   goOutcome,
   listOutcome,
@@ -49,7 +51,23 @@ export interface JobDeps {
   maxConcurrent?: number;
   /** Per-step REA call timeouts; the overview step is where the long analysis happens. */
   timeouts?: Partial<Record<StepId, number>>;
+  /** Evidence cache; without one every job analyses from scratch and results stay in memory. */
+  cache?: EvidenceCache;
+  /** REA version results are cached under (the client refuses any other). */
+  reaVersion?: string;
 }
+
+/** Steps whose REA results are cached, and how to rebuild their feed line from a result. */
+const ANALYSIS_STEPS = ["go", "overview", "strings", "procedures"] as const;
+type AnalysisStep = (typeof ANALYSIS_STEPS)[number];
+const DEEP_STEPS = ["overview", "strings", "procedures"] as const;
+
+const OUTCOMES: Record<AnalysisStep, (result: unknown) => StepOutcome> = {
+  go: (r) => goOutcome(r as ToolOutput<"inspect_go_binary">),
+  overview: (r) => overviewOutcome(r as ToolOutput<"binary_overview">),
+  strings: (r) => listOutcome("strings", r as ToolOutput<"list_strings">),
+  procedures: (r) => listOutcome("procedures", r as ToolOutput<"list_procedures">),
+};
 
 const TOOLS: Partial<Record<StepId, string>> = {
   open: "open_binary",
@@ -79,7 +97,10 @@ interface JobState {
   job: Job;
   abort: AbortController;
   listeners: Set<Listener>;
+  /** Step results kept in memory (preflight, or everything when there is no cache). */
   results: Map<StepId, unknown>;
+  /** Where cached step results live, so they are read from disk on request. */
+  cacheKeys: Map<StepId, CacheKey>;
   session?: JobSession;
   /** REA stopped mid-job; later steps cannot run. */
   halted?: boolean;
@@ -100,10 +121,11 @@ export class JobManager {
     this.timeouts = { ...DEFAULT_TIMEOUTS, ...deps.timeouts };
   }
 
-  create(target: string): Job {
+  create(target: string, options: { fresh?: boolean } = {}): Job {
     const job: Job = {
       id: randomUUID(),
       target,
+      ...(options.fresh && { fresh: true }),
       status: "queued",
       createdAt: new Date().toISOString(),
       steps: JOB_STEPS.map((s) => ({
@@ -118,6 +140,7 @@ export class JobManager {
       abort: new AbortController(),
       listeners: new Set(),
       results: new Map(),
+      cacheKeys: new Map(),
     });
     this.queue.push(job.id);
     // Start on the next tick, so the caller can subscribe before the first event.
@@ -137,8 +160,16 @@ export class JobManager {
   }
 
   /** The full REA result of a finished step, if it produced one. */
-  result(id: string, step: StepId): unknown {
-    return this.jobs.get(id)?.results.get(step);
+  async result(id: string, step: StepId): Promise<unknown> {
+    const state = this.jobs.get(id);
+    if (!state) return undefined;
+    const key = state.cacheKeys.get(step);
+    const tool = TOOLS[step];
+    if (key && tool && this.deps.cache) {
+      const read = await this.deps.cache.get(key, tool);
+      if (read.hit) return read.entry.result;
+    }
+    return state.results.get(step);
   }
 
   /** Sends a snapshot now, then every event. Returns the unsubscribe function. */
@@ -225,30 +256,57 @@ export class JobManager {
       if (!report.ok) return this.skipRemaining(state, "Preflight found a problem (see above).");
       const preflight = job.preflight as PreflightReport;
       const analysisPath = preflight.analysisPath as string;
+      const deep = preflight.deep;
+      const wanted: readonly AnalysisStep[] = deep ? ANALYSIS_STEPS : ["go"];
 
-      const started = await this.step(state, "start", async () => {
-        const session = await this.deps.openSession(analysisPath, preflight.deep, (line) =>
-          this.emit(state, { type: "log", line: line.slice(0, MAX_LOG_LINE) }),
-        );
-        state.session = session;
-        job.reaVersion = session.rea.version;
-        return {
-          summary: `REA ${session.rea.version}${session.deep ? ` (${session.deep.route})` : " (local, no deep provider)"}`,
-        };
-      });
-      if (!started.ok) return this.skipRemaining(state, "REA did not start.");
-      const session = state.session as JobSession;
+      // Cache first: each step is reused if this exact binary was analysed by the
+      // same REA version and provider. REA starts only if something is missing.
+      const cached = new Map<AnalysisStep, StepOutcome>();
+      for (const id of wanted) {
+        const key = this.cacheKey(preflight, id);
+        if (!key) continue;
+        state.cacheKeys.set(id, key);
+        if (job.fresh || !this.deps.cache) continue;
+        const read = await this.deps.cache.get(key, TOOLS[id] as string);
+        if (read.hit) {
+          cached.set(id, { ...OUTCOMES[id](read.entry.result), cachedAt: read.entry.cachedAt });
+        } else if (read.reason) {
+          this.emit(state, { type: "log", line: `cache ${id}: ${read.reason}` });
+        }
+      }
+      const needsRea = wanted.some((id) => !cached.has(id));
+      const needsOpen = deep !== undefined && DEEP_STEPS.some((id) => !cached.has(id));
+      const fromCache = "Not needed: every result came from the evidence cache.";
+
+      if (!needsRea) {
+        job.reaVersion = this.reaVersion;
+        this.skip(state, "start", fromCache);
+      } else {
+        const started = await this.step(state, "start", async () => {
+          const session = await this.deps.openSession(analysisPath, deep, (line) =>
+            this.emit(state, { type: "log", line: line.slice(0, MAX_LOG_LINE) }),
+          );
+          state.session = session;
+          job.reaVersion = session.rea.version;
+          return {
+            summary: `REA ${session.rea.version}${session.deep ? ` (${session.deep.route})` : " (local, no deep provider)"}`,
+          };
+        });
+        if (!started.ok) return this.skipRemaining(state, "REA did not start.");
+      }
+      const session = state.session;
 
       let opened = false;
-      if (!session.deep) {
+      if (!deep) {
         const reason =
           preflight.issues.find((i) => i.code === "no_deep_route")?.message ??
           "No deep-analysis route.";
         for (const id of ["open", "overview", "strings", "procedures", "close"] as const) {
           this.skip(state, id, reason);
         }
-      } else {
-        const deep = session.deep;
+      } else if (!needsOpen) {
+        this.skip(state, "open", "Not needed: the analysis results came from the evidence cache.");
+      } else if (session) {
         opened = (
           await this.step(state, "open", async () => {
             await this.call(state, "open", { path: session.target, provider_id: deep.providerId });
@@ -258,48 +316,35 @@ export class JobManager {
       }
       if (this.stopped(state)) return;
 
-      await this.step(state, "go", async () =>
-        goOutcome(
-          (await this.call(state, "go", {
-            path: session.target,
-          })) as ToolOutput<"inspect_go_binary">,
-        ),
-      );
+      await this.analysisStep(state, "go", cached, () => ({ path: session?.target }));
       if (this.stopped(state)) return;
 
-      if (session.deep) {
-        if (!opened) {
-          for (const id of ["overview", "strings", "procedures", "close"] as const) {
+      if (deep) {
+        let overviewOk = true;
+        for (const id of DEEP_STEPS) {
+          if (!cached.has(id) && !opened) {
             this.skip(state, id, "Opening the binary failed (see above).");
+            continue;
           }
-          return;
-        }
-        const overview = await this.step(state, "overview", async () =>
-          overviewOutcome(
-            (await this.call(state, "overview", {})) as ToolOutput<"binary_overview">,
-          ),
-        );
-        if (this.stopped(state)) return;
-        if (overview.ok) {
-          for (const [id, noun] of [
-            ["strings", "strings"],
-            ["procedures", "procedures"],
-          ] as const) {
-            await this.step(state, id, async () =>
-              listOutcome(noun, (await this.call(state, id, {})) as ToolOutput<"list_strings">),
-            );
-            if (this.stopped(state)) return;
-          }
-        } else {
-          // A failed analysis re-runs (and fails again) on every later call.
-          for (const id of ["strings", "procedures"] as const) {
+          if (!cached.has(id) && !overviewOk) {
+            // A failed analysis re-runs (and fails again) on every later call.
             this.skip(state, id, "Skipped: the analysis failed at the overview step.");
+            continue;
           }
+          const ok = await this.analysisStep(state, id, cached, () => ({}));
+          if (id === "overview") overviewOk = ok;
+          if (this.stopped(state)) return;
         }
-        await this.step(state, "close", async () => {
-          await this.call(state, "close", {});
-          return { summary: "Closed" };
-        });
+        if (opened) {
+          await this.step(state, "close", async () => {
+            await this.call(state, "close", {});
+            return { summary: "Closed" };
+          });
+        } else if (!needsOpen) {
+          this.skip(state, "close", "Not needed: nothing was opened.");
+        } else {
+          this.skip(state, "close", "Opening the binary failed (see above).");
+        }
       }
     } finally {
       clearInterval(heartbeat);
@@ -309,6 +354,42 @@ export class JobManager {
       job.endedAt = new Date().toISOString();
       this.setStatus(state, state.abort.signal.aborted ? "cancelled" : failed ? "failed" : "done");
     }
+  }
+
+  private get reaVersion(): string {
+    return this.deps.reaVersion ?? PINNED_REA_VERSION;
+  }
+
+  /** Go build info doesn't depend on the deep provider, so it is keyed under "none". */
+  private cacheKey(preflight: PreflightReport, id: AnalysisStep): CacheKey | undefined {
+    if (!preflight.analysisSha256) return undefined;
+    const provider = id === "go" ? "none" : preflight.deep?.providerId;
+    if (!provider) return undefined;
+    return { sha256: preflight.analysisSha256, reaVersion: this.reaVersion, provider };
+  }
+
+  /** Runs an analysis step from the cache, or live (then caches its result). */
+  private async analysisStep(
+    state: JobState,
+    id: AnalysisStep,
+    cached: Map<AnalysisStep, StepOutcome>,
+    args: () => Record<string, unknown>,
+  ): Promise<boolean> {
+    const hit = cached.get(id);
+    const { ok } = await this.step(state, id, async () => {
+      if (hit) return hit;
+      const outcome = OUTCOMES[id](await this.call(state, id, args()));
+      const key = state.cacheKeys.get(id);
+      if (key && this.deps.cache && outcome.result !== undefined) {
+        await this.deps.cache
+          .put(key, TOOLS[id] as string, outcome.result, state.job.id)
+          .catch((err: unknown) =>
+            this.emit(state, { type: "log", line: `cache ${id}: could not save: ${String(err)}` }),
+          );
+      }
+      return outcome;
+    });
+    return ok;
   }
 
   /** Calls the step's REA tool and checks the result against Binlight's schema. */
@@ -339,8 +420,13 @@ export class JobManager {
       step.summary = outcome.summary;
       if (outcome.counts) step.counts = outcome.counts;
       if (outcome.evidenceId) step.evidenceId = outcome.evidenceId;
+      if (outcome.cachedAt) {
+        step.cached = true;
+        step.cachedAt = outcome.cachedAt;
+      }
       if (outcome.result !== undefined) {
-        state.results.set(id, outcome.result);
+        // With a cache, analysis results are read back from disk on request.
+        if (!(this.deps.cache && state.cacheKeys.has(id))) state.results.set(id, outcome.result);
         step.hasResult = true;
       }
       return { ok: true };

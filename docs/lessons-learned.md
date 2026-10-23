@@ -79,6 +79,15 @@ argument`) _after_ Ghidra's analysis succeeds, and every later call re-runs
   byte-reproducible. Hopper's composed `binary_overview` evidence ID still
   differs between identical runs.
 
+## Evidence cache (Oct 23 2026)
+
+- Go fixture through Docker Ghidra: fresh job 75 s; repeat job 1.6–2.2 s with
+  no REA or container start, of which ~1.5 s is preflight (`rea doctor` plus
+  Docker checks). Cached results for this fixture: strings 483 KB, procedures
+  141 KB, overview 4.5 KB.
+- Measure job time from the job's own `createdAt`/`endedAt`: a `curl -N` on the
+  event stream stays open until the next keep-alive write after the job ends.
+
 ## Hopper (provider)
 
 - In demo mode, Hopper shows a license/demo dialog on launch that blocks REA's

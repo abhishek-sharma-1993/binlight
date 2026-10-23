@@ -57,6 +57,7 @@ describe("preflight", () => {
     const docker = await preflight(elf, { health: dockerWorks, cacheDir: dir });
     expect(docker.deep).toMatchObject({ route: "docker-ghidra", providerId: "ghidra" });
     expect(docker.analysisArchitecture).toBe("arm64");
+    expect(docker.analysisSha256).toBe(docker.target.sha256);
     expect(docker.issues).toEqual([]);
   });
 
@@ -70,6 +71,9 @@ describe("preflight", () => {
       });
       expect(report.analysisArchitecture).toBe("arm64e");
       expect(report.analysisPath).toMatch(/-arm64e$/);
+      // Keyed on the slice's own bytes, not the universal file's.
+      expect(report.analysisSha256).toMatch(/^[a-f0-9]{64}$/);
+      expect(report.analysisSha256).not.toBe(report.target.sha256);
       expect(report.issues.map((i) => i.code)).toEqual(["thinned_universal"]);
     },
   );
