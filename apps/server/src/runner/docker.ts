@@ -84,7 +84,8 @@ export async function dockerReaCommand(
   const containerName = `binlight-rea-${session}`;
   const env: Record<string, string> = {
     GHIDRA_HEADLESS_MAXMEM: options.ghidraMaxMem ?? "4G",
-    REA_GHIDRA_STARTUP_TIMEOUT_MS: String(options.ghidraStartupTimeoutMs ?? 6 * 60 * 60 * 1000),
+    // Big Go binaries take hours under emulation; initial analysis counts toward this.
+    REA_GHIDRA_STARTUP_TIMEOUT_MS: String(options.ghidraStartupTimeoutMs ?? 12 * 60 * 60 * 1000),
   };
 
   const args = [

@@ -83,7 +83,7 @@ const DEFAULT_TIMEOUTS: Record<StepId, number> = {
   start: 5 * 60_000,
   open: 30 * 60_000,
   go: 10 * 60_000,
-  overview: 8 * 60 * 60_000,
+  overview: 12 * 60 * 60_000,
   strings: 60 * 60_000,
   procedures: 60 * 60_000,
   close: 10 * 60_000,

@@ -24,7 +24,8 @@
     "contracts:record": "npm run contracts:record -w @binlight/server --",
     "test:contract": "npm run test:contract -w @binlight/server",
     "preflight": "npm run -s preflight -w @binlight/server --",
-    "runner:build": "docker/runner/build.sh"
+    "runner:build": "docker/runner/build.sh",
+    "serve": "npm run serve -w @binlight/server"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
