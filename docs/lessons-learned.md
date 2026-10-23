@@ -40,10 +40,27 @@ executable_missing`. Building it from the release's Makefile fails: its
 - Large binaries need a long startup budget: set `REA_GHIDRA_STARTUP_TIMEOUT_MS`
   (initial analysis counts toward it).
 - Timings: Ollama (25 MB Go binary) took 21 min with native Ghidra on Linux x86_64.
-  kubectl (57 MB) and Ollama took hours under Docker emulation on an M2.
+  The earlier prototype took hours under Docker emulation on an M2, but the
+  phase 0 gate run (REA 6.7.0, `binlight-runner`, 4G heap) analysed Ollama in
+  8.5 min and kubectl 1.37.1 (64 MB) in 16.3 min on the same M2. See
+  `docs/gate-run-phase-0.md`.
 - Environment variables set in a user's terminal are **not** seen by an MCP
   server launched by a desktop app. Binlight must pass `GHIDRA_INSTALL_DIR` and
   the timeouts explicitly when it spawns `rea --mcp`.
+
+## MCP response budget (gate run, Oct 23 2026)
+
+- REA refuses any single MCP response above **10 MiB** by default (the MCP SDK's
+  default stdio buffer) with `resource_constraint`, even though the analysis
+  succeeded and the result was retained. Ollama's and kubectl's
+  `list_strings`/`list_procedures` exceed it. Raise both sides:
+  `REA_MCP_MAX_RESPONSE_BYTES` (REA's minimum is 10 MiB) and the client
+  transport's `maxBufferSize`. Binlight uses 256 MiB.
+- kubectl's strings response is ~19 MB (text copy plus structured copy over
+  MCP) and takes ~79 s to transfer and parse.
+- REA analyses lazily on the first deep call after `open_binary`. With a cached
+  overview, that is `list_strings`: every deep step needs the long timeout.
+- Peak container memory during kubectl's analysis: 3.68 GiB with a 4G heap.
 
 ## Docker runner (verified Oct 22 2026, REA 6.7.0, M-series Mac, Docker Desktop 29.8.1)
 

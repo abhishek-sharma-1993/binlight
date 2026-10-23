@@ -1,5 +1,7 @@
 # Phase 0: Foundations
 
+**Gate: passed 23 Oct 2026** (see `docs/gate-run-phase-0.md`).
+
 **Gate:** Binlight analyses `kubectl` and `ollama` end to end (overview, strings,
 procedures, Go libraries) through one MCP session each, with progress shown and
 results cached, on the owner's Apple Silicon Mac.
@@ -30,7 +32,7 @@ results is enough to prove the gate.
       provider. A repeat run of the same binary returns instantly.
 - [x] **8. Minimal web page.** Upload or choose a path, start a job, watch live
       progress, see raw results and real error messages (never silent zeros).
-- [ ] **9. Gate run.** kubectl and Ollama end to end. Record timings and compare
+- [x] **9. Gate run.** kubectl and Ollama end to end. Record timings and compare
       counts with `docs/lessons-learned.md` → reference results.
 
 ## Out of scope for phase 0
