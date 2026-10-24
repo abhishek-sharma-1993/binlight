@@ -45,12 +45,12 @@ Browser UI ──HTTP + live events──► Binlight server ──MCP over stdi
 | 2 Explore     | code map by library, call graph, function explainer    | public launch with demo video          |
 | 3 Grow        | Electron recipe, community recipes, desktop app        | first community recipe merged          |
 
-**Current phase: 0, gate passed 23 Oct 2026** (`docs/gate-run-phase-0.md`). Phase 1 is next. Plan: `docs/phase-0-plan.md`.
+**Current phase: 0, gate passed 23 Oct 2026** (`docs/gate-run-phase-0.md`). Phase 1 is next: draft plan `docs/phase-1-plan.md` (decisions marked ❓ are open).
 
 ## Read before working
 
 - `docs/brief.md`: product brief (gaps, users, v1 flow, recipes, risks).
-- `docs/phase-0-plan.md`: the tasks for the current phase.
+- `docs/phase-0-plan.md`: phase 0 tasks (done); `docs/phase-1-plan.md`: phase 1 draft.
 - `docs/lessons-learned.md`: verified facts about REA, Ghidra and macOS from
   real runs. Read it before touching analysis code; it will save hours.
 - `reference/bindossier.py`: the earlier prototype. Reuse its tested logic for
