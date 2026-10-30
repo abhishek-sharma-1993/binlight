@@ -1,3 +1,4 @@
+import type { Finding, RuleRun, SuppressedMatch } from "./findings.js";
 import type { PreflightReport } from "./preflight.js";
 
 /**
@@ -21,6 +22,8 @@ export interface RecipeInfo {
   /** Whether any step needs a disassembler (a deep-analysis route). */
   needsDeep: boolean;
   steps: { id: string; label: string; why: string; tool: string; deep: boolean }[];
+  /** The rules that turn step results into findings. */
+  rules: { id: string; title: string }[];
 }
 
 /**
@@ -84,6 +87,10 @@ export interface Job {
   reaVersion?: string;
   /** Ignore the evidence cache and analyse again. */
   fresh?: boolean;
+  /** Set once the recipe's rules have run, after the last step. */
+  findings?: Finding[];
+  suppressed?: SuppressedMatch[];
+  rules?: RuleRun[];
 }
 
 /** Server-Sent Events from /api/jobs/:id/events. Every connection starts with a snapshot. */
@@ -98,5 +105,6 @@ export type JobEvent =
       preflights?: (PreflightReport | null)[];
     }
   | { type: "step"; step: JobStep }
+  | { type: "findings"; findings: Finding[]; suppressed: SuppressedMatch[]; rules: RuleRun[] }
   | { type: "heartbeat"; at: string; runningStep?: StepId; elapsedMs?: number }
   | { type: "log"; line: string };

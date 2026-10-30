@@ -37,6 +37,17 @@ export function applyEvent(view: JobView, event: JobEvent): JobView {
           steps: view.job.steps.map((s) => (s.id === event.step.id ? event.step : s)),
         },
       };
+    case "findings":
+      if (!view.job) return view;
+      return {
+        ...view,
+        job: {
+          ...view.job,
+          findings: event.findings,
+          suppressed: event.suppressed,
+          rules: event.rules,
+        },
+      };
     case "heartbeat":
       return { ...view, lastBeat: event.at };
     case "log":

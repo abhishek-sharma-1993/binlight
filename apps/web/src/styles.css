@@ -371,3 +371,45 @@ label.recipe > span {
 .target-input h3 {
   margin: 6px 0 4px;
 }
+.findings h4 {
+  margin: 12px 0 4px;
+  font-size: 13px;
+}
+.rule-group + .rule-group,
+.suppressed {
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+ul.finding-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+li.finding {
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--border);
+}
+li.finding p {
+  margin: 0;
+}
+ul.caveats,
+ul.evidence,
+ul.deps {
+  margin: 2px 0;
+  padding-left: 18px;
+}
+pre.snippet {
+  margin: 2px 0;
+  padding: 4px 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.badge.observed {
+  color: var(--ok);
+}
+.badge.inferred {
+  color: var(--warn);
+}

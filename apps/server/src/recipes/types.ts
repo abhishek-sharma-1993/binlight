@@ -1,5 +1,6 @@
 import type { RecipeInfo } from "@binlight/shared";
 import type { StepOutcome } from "../jobs/steps.js";
+import type { Rule } from "../rules/types.js";
 
 /** One REA call a recipe makes against one target. */
 export interface RecipeStep {
@@ -31,6 +32,8 @@ export interface Recipe {
   targets: 1 | 2;
   targetLabels: string[];
   steps: RecipeStep[];
+  /** Turn the steps' results into findings, after the last step. */
+  rules: Rule[];
 }
 
 export function recipeInfo(recipe: Recipe): RecipeInfo {
@@ -43,6 +46,7 @@ export function recipeInfo(recipe: Recipe): RecipeInfo {
     targetLabels: recipe.targetLabels,
     needsDeep: recipe.steps.some((s) => s.deep),
     steps: recipe.steps.map(({ id, label, why, tool, deep }) => ({ id, label, why, tool, deep })),
+    rules: recipe.rules.map(({ id, title }) => ({ id, title })),
   };
 }
 
@@ -69,5 +73,13 @@ export function validateRecipe(recipe: Recipe): void {
   }
   for (let t = 0; t < recipe.targets; t++) {
     if (stepsFor(recipe, t).length === 0) throw new Error(`${recipe.id}: target ${t} has no steps`);
+  }
+  const ruleIds = new Set<string>();
+  for (const rule of recipe.rules) {
+    if (ruleIds.has(rule.id)) throw new Error(`${recipe.id}: duplicate rule ${rule.id}`);
+    ruleIds.add(rule.id);
+    for (const need of rule.needs) {
+      if (!ids.has(need)) throw new Error(`${recipe.id}/${rule.id}: needs unknown step ${need}`);
+    }
   }
 }

@@ -49,11 +49,16 @@ beyond the written instructions.
       per target; cache entries keyed per argument set. The question box ships
       with task 4 (it needs the API key); the `rules` slot with task 2 (it needs
       the `Finding` type)._
-- [ ] **2. Findings model.** `Finding {id, kind, statement, evidence[],
+- [x] **2. Findings model.** `Finding {id, kind, statement, evidence[],
 confidence (observed | inferred), caveats}`. Each evidence reference is an
       REA evidence ID plus a locator (address, file offset or ±36-char snippet).
       Rules are pure functions with a test each, including the known false
       alarms from lessons-learned.
+      _Done 30 Oct: `Finding`, evidence refs with locators, rule runs
+      (ran / not-run with reason / failed) and visibly suppressed false alarms
+      (`packages/shared/src/findings.ts`); rules in `apps/server/src/rules/`
+      (Go build info, hard-coded hosts, credential values) on `raw-analysis`.
+      The runner rejects findings citing evidence the job doesn't hold._
 - [ ] **3. Verdict.** Always a rule-based verdict: a short answer, confidence
       and the findings that support it. With AI on, Claude rewrites it in plain
       English using structured output where every claim lists the finding IDs

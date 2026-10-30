@@ -21,6 +21,7 @@ const compare: Recipe = {
   description: "Test recipe.",
   targets: 2,
   targetLabels: ["Older", "Newer"],
+  rules: [],
   steps: [
     {
       id: "go",
@@ -59,6 +60,7 @@ const light: Recipe = {
   description: "Test recipe.",
   targets: 1,
   targetLabels: ["Binary"],
+  rules: [],
   steps: [compare.steps[0] as Recipe["steps"][number]],
 };
 

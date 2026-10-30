@@ -2,6 +2,7 @@ import type { JobStep, PreflightReport } from "@binlight/shared";
 import { useEffect, useReducer, useState } from "react";
 import { cancelJob, stepResult, watchJob } from "./api.js";
 import { formatDuration, JOB_STATUS_TEXT, STATUS_ICON, stepDetail, stepElapsed } from "./format.js";
+import { Findings } from "./Findings.js";
 import { applyEvent } from "./jobState.js";
 
 const RESULT_PREVIEW_CHARS = 200_000;
@@ -80,6 +81,8 @@ export function JobView({ jobId }: { jobId: string }) {
           <StepRow key={step.id} jobId={job.id} step={step} now={now} />
         ))}
       </ol>
+
+      {(job.rules || !active) && <Findings job={job} />}
 
       {job.preflights.map(
         (report, i) =>

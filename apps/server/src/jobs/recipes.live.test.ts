@@ -24,6 +24,7 @@ const pair: Recipe = {
   description: "Engine check.",
   targets: 2,
   targetLabels: ["Fixture", "Ollama"],
+  rules: [],
   steps: [
     {
       id: "go",

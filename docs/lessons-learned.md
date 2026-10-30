@@ -48,6 +48,24 @@ executable_missing`. Building it from the release's Makefile fails: its
   server launched by a desktop app. Binlight must pass `GHIDRA_INSTALL_DIR` and
   the timeouts explicitly when it spawns `rea --mcp`.
 
+## Findings on the reference targets (Oct 30 2026)
+
+- **The disassembler's string list misses most hard-coded URLs in Go
+  binaries.** Hostnames in `https?://` URLs, Ghidra's `list_strings` vs a raw
+  byte scan with the prototype's splitting: kubectl 1.37.1 **14 vs 36**, Ollama
+  0.40.6 **3 vs 42** (missing `ollama.com`, `api.openai.com`,
+  `huggingface.co`, …). Phone-home findings must come from the bytes (task 10).
+- In raw bytes the **hostname itself** swallows the next glued literal, not
+  only the path: `ollama.compulling`, `code.visualstudio.comclaude`. Keeping
+  "hostnames only" is not enough for a byte scan.
+- Credential false alarms found in Ollama's bytes, both fixed in the rule:
+  `--accept-risk--auth-choice--skip-health…` matched `sk-…` from "ri**sk**--"
+  (now a letter or digit must follow `sk-`), and
+  `sk-ecdsa-sha2-nistp256-cert-v01@openssh.com` (the SSH certificate variant)
+  is long enough to match (suppressed as an OpenSSH algorithm name).
+- Neither binary's string list nor bytes contain a strict credential pattern
+  hit after those fixes.
+
 ## Paths and error details (Oct 30 2026)
 
 - **REA refuses a symlinked target**: `inspect_go_binary` on

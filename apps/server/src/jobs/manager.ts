@@ -19,6 +19,8 @@ import {
   type Recipe,
   type RecipeStep,
 } from "../recipes/index.js";
+import { runRules } from "../rules/runner.js";
+import type { StepResult, TargetInput } from "../rules/types.js";
 import { parseResult, StepFailure, toStepError, type StepOutcome } from "./steps.js";
 
 /** What a job needs from a REA session (a real ReaSession, or a fake in tests). */
@@ -266,10 +268,13 @@ export class JobManager {
         }
         if (state.abort.signal.aborted) break;
       }
+      if (!state.abort.signal.aborted) await this.runFindings(state);
     } finally {
       clearInterval(heartbeat);
       if (state.abort.signal.aborted) this.cancelRemaining(state);
-      const failed = job.steps.some((s) => s.status === "failed");
+      const failed =
+        job.steps.some((s) => s.status === "failed") ||
+        (job.rules ?? []).some((r) => r.status === "failed");
       job.endedAt = new Date().toISOString();
       this.setStatus(state, state.abort.signal.aborted ? "cancelled" : failed ? "failed" : "done");
     }
@@ -427,6 +432,46 @@ export class JobManager {
         );
       }
     }
+  }
+
+  /** Runs the recipe's rules over the steps that succeeded, then publishes the findings. */
+  private async runFindings(state: JobState): Promise<void> {
+    const { job, recipe } = state;
+    if (recipe.rules.length === 0) return;
+    const n = job.targets.length;
+    const targets: TargetInput[] = [];
+    for (let t = 0; t < n; t++) {
+      const steps = new Map<string, StepResult>();
+      for (const rs of stepsFor(recipe, t)) {
+        const sid = stepId(rs.id, t, n);
+        const step = job.steps.find((s) => s.id === sid);
+        if (step?.status !== "done") continue;
+        const result = await this.result(job.id, sid);
+        if (result === undefined) continue;
+        steps.set(rs.id, {
+          step: sid,
+          result,
+          ...(step.evidenceId && { evidenceId: step.evidenceId }),
+        });
+      }
+      targets.push({
+        index: t,
+        label: recipe.targetLabels[t] ?? `Target ${t + 1}`,
+        preflight: job.preflights[t] ?? null,
+        steps,
+      });
+    }
+    const labels = new Map(recipe.steps.map((s) => [s.id, s.label]));
+    const out = runRules(recipe.rules, { targets }, labels);
+    job.findings = out.findings;
+    job.suppressed = out.suppressed;
+    job.rules = out.rules;
+    this.emit(state, {
+      type: "findings",
+      findings: structuredClone(out.findings),
+      suppressed: structuredClone(out.suppressed),
+      rules: structuredClone(out.rules),
+    });
   }
 
   private get reaVersion(): string {
