@@ -103,6 +103,28 @@ Nothing is evicted yet; delete the folder to reclaim space.
 
 The server listens on 127.0.0.1 only and rejects non-local `Host` headers.
 
+## Findings and verdict
+
+After a job's last step, the recipe's **rules** turn REA's results into
+findings, each citing REA evidence IDs (`apps/server/src/rules/`). A rule that
+lacked an input says "not run" with the reason. The **verdict** is then built
+from the findings: a short answer, claims that each cite findings, a confidence
+set by what actually ran, and the gaps.
+
+AI is **off by default** (local-only): the verdict comes from the rules alone.
+To have Claude rewrite it in plain English with your own key:
+
+```bash
+BINLIGHT_AI=on ANTHROPIC_API_KEY=... npm run serve   # optional BINLIGHT_AI_MODEL, default claude-opus-5-5
+```
+
+Claude receives finding statements and caveats only (never snippets, strings or
+binaries) and its version is shown only if it passes Binlight's validator:
+every claim cites findings of the job, states no number they don't contain, and
+avoids "only N servers", "talks to" and safety judgements. Otherwise the page
+shows the rule-based verdict with the reason. Key entry in the page and a
+preview of what is sent come with phase 1 task 4.
+
 ## Docker runner (deep analysis on Apple Silicon)
 
 Ghidra ships no arm64 macOS decompiler, so on Apple Silicon deep analysis runs

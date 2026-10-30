@@ -20,6 +20,7 @@ import {
   type RecipeStep,
 } from "../recipes/index.js";
 import { runRules } from "../rules/runner.js";
+import { aiRequest, assess, validateVerdict, type AiWriter } from "../verdict/index.js";
 import type { StepResult, TargetInput } from "../rules/types.js";
 import { parseResult, StepFailure, toStepError, type StepOutcome } from "./steps.js";
 
@@ -57,6 +58,8 @@ export interface JobDeps {
   cache?: EvidenceCache;
   /** REA version results are cached under (the client refuses any other). */
   reaVersion?: string;
+  /** Claude rewrites verdicts when set; otherwise local-only (rule-based verdicts). */
+  ai?: AiWriter;
 }
 
 export interface CreateJob {
@@ -269,6 +272,7 @@ export class JobManager {
         if (state.abort.signal.aborted) break;
       }
       if (!state.abort.signal.aborted) await this.runFindings(state);
+      if (!state.abort.signal.aborted) await this.runVerdict(state);
     } finally {
       clearInterval(heartbeat);
       if (state.abort.signal.aborted) this.cancelRemaining(state);
@@ -472,6 +476,55 @@ export class JobManager {
       suppressed: structuredClone(out.suppressed),
       rules: structuredClone(out.rules),
     });
+  }
+
+  /**
+   * The rule-based verdict first (always), then Claude's rewrite if AI is on.
+   * The rewrite is shown only if it passes the same validation; otherwise the
+   * rule-based verdict stays, with the reason.
+   */
+  private async runVerdict(state: JobState): Promise<void> {
+    const { job, recipe } = state;
+    if (!recipe.verdict || !job.findings || !job.rules) return;
+    const findings = job.findings;
+    const rules = recipe.verdict(findings);
+    const ai = this.deps.ai;
+    job.verdict = {
+      rules,
+      ...assess(job),
+      ai: ai
+        ? { status: "running", model: ai.model }
+        : {
+            status: "off",
+            reason: "AI is off (local-only mode): this verdict comes from Binlight's rules alone.",
+          },
+    };
+    this.emit(state, { type: "verdict", verdict: structuredClone(job.verdict) });
+    if (!ai) return;
+
+    const verdict = job.verdict;
+    try {
+      const body = await ai.write(
+        aiRequest(recipe.question, recipe.title, verdict, findings),
+        state.abort.signal,
+      );
+      const check = validateVerdict(body, findings);
+      verdict.ai = check.ok
+        ? { status: "used", model: ai.model, body }
+        : {
+            status: "rejected",
+            model: ai.model,
+            reason: `Claude's version did not pass Binlight's checks, so the rule-based verdict is shown: ${check.reasons.join(" ")}`,
+          };
+    } catch (err) {
+      if (state.abort.signal.aborted) return;
+      verdict.ai = {
+        status: "failed",
+        model: ai.model,
+        reason: `Claude could not write the verdict, so the rule-based verdict is shown: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
+    this.emit(state, { type: "verdict", verdict: structuredClone(verdict) });
   }
 
   private get reaVersion(): string {

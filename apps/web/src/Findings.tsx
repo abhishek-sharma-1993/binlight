@@ -55,8 +55,11 @@ function RuleGroup({
   targetLabels: string[];
   multi: boolean;
 }) {
-  const [all, setAll] = useState(false);
   const { rule, findings } = group;
+  // Open the whole group when a verdict citation points at a hidden finding.
+  const [all, setAll] = useState(() =>
+    findings.slice(SHOWN_PER_GROUP).some((f) => window.location.hash === `#finding-${f.id}`),
+  );
   const shown = all ? findings : findings.slice(0, SHOWN_PER_GROUP);
   return (
     <div className="rule-group">
@@ -95,7 +98,7 @@ function RuleGroup({
 function FindingRow({ finding, target }: { finding: Finding; target?: string | undefined }) {
   const deps = finding.data?.["dependencies"];
   return (
-    <li className="finding">
+    <li className="finding" id={`finding-${finding.id}`}>
       <p>
         {target && <span className="muted small">{target}: </span>}
         {finding.statement}{" "}

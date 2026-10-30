@@ -48,6 +48,9 @@ export function applyEvent(view: JobView, event: JobEvent): JobView {
           rules: event.rules,
         },
       };
+    case "verdict":
+      if (!view.job) return view;
+      return { ...view, job: { ...view.job, verdict: event.verdict } };
     case "heartbeat":
       return { ...view, lastBeat: event.at };
     case "log":

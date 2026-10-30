@@ -48,6 +48,7 @@ export const credentialValues: Rule = {
       const step = t.steps.get("strings");
       if (!step) continue;
       const seen = new Set<string>();
+      const suppressedBefore = suppressed.length;
       const suffix = targets.length > 1 ? `@${t.index + 1}` : "";
       for (const item of stringItems(step)) {
         for (const { label, pattern } of CREDENTIAL_PATTERNS) {
@@ -91,6 +92,29 @@ export const credentialValues: Rule = {
           }
         }
       }
+      // A summary, so "none found" is an observation a verdict can cite.
+      const found = seen.size;
+      const ignored = suppressed.length - suppressedBefore;
+      findings.push({
+        id: `credentials:summary${suffix}`,
+        rule: "credential-values",
+        kind: "credential-values-summary",
+        ...(targets.length > 1 && { target: t.index }),
+        statement:
+          (found === 0
+            ? "No credential-shaped values match the strict patterns in the string list"
+            : `${found} credential-shaped ${found === 1 ? "value matches" : "values match"} the strict patterns in the string list`) +
+          (ignored > 0
+            ? ` (${ignored} known false ${ignored === 1 ? "alarm" : "alarms"} ignored).`
+            : "."),
+        evidence: [ref(step, { field: "normalized_result" })],
+        confidence: "observed",
+        caveats: [
+          "Only well-known key formats are checked; a credential in another format would not match.",
+          ...STRING_LIST_CAVEATS,
+        ],
+        data: { found, ignored },
+      });
     }
     return { findings, suppressed };
   },

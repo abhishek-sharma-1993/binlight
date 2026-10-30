@@ -59,13 +59,19 @@ confidence (observed | inferred), caveats}`. Each evidence reference is an
       (`packages/shared/src/findings.ts`); rules in `apps/server/src/rules/`
       (Go build info, hard-coded hosts, credential values) on `raw-analysis`.
       The runner rejects findings citing evidence the job doesn't hold._
-- [ ] **3. Verdict.** Always a rule-based verdict: a short answer, confidence
+- [x] **3. Verdict.** Always a rule-based verdict: a short answer, confidence
       and the findings that support it. With AI on, Claude rewrites it in plain
       English using structured output where every claim lists the finding IDs
       it rests on. The validator rejects unknown IDs and numbers that aren't in
       the findings; on rejection or API failure the page shows the rule-based
       verdict and the real reason. Model configurable, chosen from the current
       Claude API docs when this task starts.
+      _Done 30 Oct: rule-based verdict per recipe, confidence and gaps from
+      what ran (`apps/server/src/verdict/`), validator, Claude rewrite
+      (`claude-opus-5-5`, effort medium, JSON-schema output, refusal
+      fallbacks), opt-in via `BINLIGHT_AI=on` until task 4. Verified locally:
+      AI off, and AI on without credentials (falls back with the reason). A
+      live Claude call is **not yet verified**: no API key on this machine._
 - [ ] **4. AI settings and privacy.** Enter the user's Claude API key ❓(where it
       is stored), local-only switch ❓(default), and before the first AI call in
       a job, a preview of exactly what will be sent: findings and short

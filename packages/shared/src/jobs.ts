@@ -1,5 +1,6 @@
 import type { Finding, RuleRun, SuppressedMatch } from "./findings.js";
 import type { PreflightReport } from "./preflight.js";
+import type { Verdict } from "./verdict.js";
 
 /**
  * Step ids are unique within a job. System steps are `preflight`, `start`,
@@ -91,6 +92,8 @@ export interface Job {
   findings?: Finding[];
   suppressed?: SuppressedMatch[];
   rules?: RuleRun[];
+  /** Set after the findings; its AI part may update once more. */
+  verdict?: Verdict;
 }
 
 /** Server-Sent Events from /api/jobs/:id/events. Every connection starts with a snapshot. */
@@ -106,5 +109,6 @@ export type JobEvent =
     }
   | { type: "step"; step: JobStep }
   | { type: "findings"; findings: Finding[]; suppressed: SuppressedMatch[]; rules: RuleRun[] }
+  | { type: "verdict"; verdict: Verdict }
   | { type: "heartbeat"; at: string; runningStep?: StepId; elapsedMs?: number }
   | { type: "log"; line: string };

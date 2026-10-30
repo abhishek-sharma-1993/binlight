@@ -3,6 +3,7 @@ import { useEffect, useReducer, useState } from "react";
 import { cancelJob, stepResult, watchJob } from "./api.js";
 import { formatDuration, JOB_STATUS_TEXT, STATUS_ICON, stepDetail, stepElapsed } from "./format.js";
 import { Findings } from "./Findings.js";
+import { Verdict } from "./Verdict.js";
 import { applyEvent } from "./jobState.js";
 
 const RESULT_PREVIEW_CHARS = 200_000;
@@ -75,6 +76,8 @@ export function JobView({ jobId }: { jobId: string }) {
         </div>
       </div>
       {cancelError && <p className="error">Cancel failed: {cancelError}</p>}
+
+      {job.verdict && <Verdict verdict={job.verdict} />}
 
       <ol className="steps">
         {job.steps.map((step) => (

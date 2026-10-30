@@ -1,4 +1,4 @@
-import type { RecipeInfo } from "@binlight/shared";
+import type { Finding, RecipeInfo, VerdictBody } from "@binlight/shared";
 import type { StepOutcome } from "../jobs/steps.js";
 import type { Rule } from "../rules/types.js";
 
@@ -34,6 +34,11 @@ export interface Recipe {
   steps: RecipeStep[];
   /** Turn the steps' results into findings, after the last step. */
   rules: Rule[];
+  /**
+   * The rule-based verdict: a short answer and claims that cite findings.
+   * Must use only what the findings state (the same validator checks it).
+   */
+  verdict?: (findings: Finding[]) => VerdictBody;
 }
 
 export function recipeInfo(recipe: Recipe): RecipeInfo {

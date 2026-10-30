@@ -413,3 +413,54 @@ pre.snippet {
 .badge.inferred {
   color: var(--warn);
 }
+section.verdict {
+  margin: 12px 0 16px;
+  border-width: 2px;
+}
+.verdict-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.verdict-head h3 {
+  margin: 0;
+}
+p.answer {
+  font-size: 16px;
+  margin: 8px 0;
+}
+ul.claims {
+  margin: 0 0 8px;
+  padding-left: 18px;
+}
+a.cite {
+  color: var(--accent);
+  text-decoration: none;
+  margin-right: 4px;
+  overflow-wrap: anywhere;
+}
+.gaps h4 {
+  margin: 8px 0 2px;
+  font-size: 13px;
+}
+.gaps ul {
+  margin: 0;
+  padding-left: 18px;
+}
+.ai-status.rejected,
+.ai-status.failed {
+  color: var(--warn);
+}
+.badge.confidence-high {
+  color: var(--ok);
+}
+.badge.confidence-medium {
+  color: var(--warn);
+}
+.badge.confidence-low {
+  color: var(--error-text);
+}
+li.finding:target {
+  background: var(--bg);
+  outline: 2px solid var(--accent);
+}

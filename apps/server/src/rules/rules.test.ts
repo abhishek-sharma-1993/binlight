@@ -186,13 +186,19 @@ describe("hardcoded-hosts", () => {
 });
 
 describe("credential-values", () => {
+  const values = (out: { findings: Finding[] }) =>
+    out.findings.filter((f) => f.kind === "credential-value");
+  const summary = (out: { findings: Finding[] }) =>
+    out.findings.find((f) => f.kind === "credential-values-summary");
+
   const key = "sk-ant-api03-" + "Q".repeat(40);
 
   it("reports a credential-shaped value truncated, and never reveals it in the snippet", () => {
-    const { findings } = credentialValues.run(
-      ctx(target({ strings: stringsStep([`token=${key};`]) })),
-    );
+    const out = credentialValues.run(ctx(target({ strings: stringsStep([`token=${key};`]) })));
+    const findings = values(out);
     expect(findings).toHaveLength(1);
+    // The whole value appears nowhere in the rule's output, summary included.
+    expect(JSON.stringify(out)).not.toContain(key);
     const f = findings[0] as Finding;
     expect(f.statement).toBe(
       "A value shaped like a OpenAI/Anthropic-style API key is embedded: sk-ant-api03…",
@@ -206,13 +212,27 @@ describe("credential-values", () => {
     const out = credentialValues.run(
       ctx(target({ strings: stringsStep(["aws_access_key_id = AKIAIOSFODNN7EXAMPLE"]) })),
     );
-    expect(out.findings).toEqual([]);
+    expect(values(out)).toEqual([]);
     expect(out.suppressed).toEqual([
       expect.objectContaining({
         text: "AKIAIOSFODNN…",
         reason: "AWS's documented example access key.",
       }),
     ]);
+  });
+
+  it("always adds a summary, so 'none found' is a citable observation", () => {
+    const none = credentialValues.run(ctx(target({ strings: stringsStep(["nothing here"]) })));
+    expect(summary(none)?.statement).toBe(
+      "No credential-shaped values match the strict patterns in the string list.",
+    );
+    const ignored = credentialValues.run(
+      ctx(target({ strings: stringsStep(["AKIAIOSFODNN7EXAMPLE", `ghp_${"c".repeat(36)}`]) })),
+    );
+    expect(summary(ignored)?.statement).toBe(
+      "1 credential-shaped value matches the strict patterns in the string list (1 known false alarm ignored).",
+    );
+    expect(summary(ignored)?.data).toEqual({ found: 1, ignored: 1 });
   });
 
   it("does not flag kubectl's sample password or the SSH algorithm name (lessons-learned)", () => {
@@ -226,13 +246,13 @@ describe("credential-values", () => {
         }),
       ),
     );
-    expect(out.findings).toEqual([]);
+    expect(values(out)).toEqual([]);
   });
 
   it("ignores glued CLI flags that look like 'sk-…' (real text from Ollama 0.40.6)", () => {
     const flags = "PI_CONFIG_DIR--accept-risk--auth-choice--skip-health--skip-skillsopenclaw.json";
     const out = credentialValues.run(ctx(target({ strings: stringsStep([flags]) })));
-    expect(out.findings).toEqual([]);
+    expect(values(out)).toEqual([]);
     expect(out.suppressed).toEqual([]);
   });
 
@@ -240,7 +260,7 @@ describe("credential-values", () => {
     const blob =
       "ctest timer accessed from outside bubblesk-ecdsa-sha2-nistp256-cert-v01@openssh.comssh: inv";
     const out = credentialValues.run(ctx(target({ strings: stringsStep([blob]) })));
-    expect(out.findings).toEqual([]);
+    expect(values(out)).toEqual([]);
     expect(out.suppressed).toEqual([
       expect.objectContaining({ reason: "An OpenSSH security-key algorithm name, not a key." }),
     ]);
@@ -252,18 +272,18 @@ describe("credential-values", () => {
         target({ strings: stringsStep(["APIKey", "POOLSIDE_API_KEY=ollama", "tls.secret.key"]) }),
       ),
     );
-    expect(out.findings).toEqual([]);
+    expect(values(out)).toEqual([]);
   });
 
   it("still finds a real key packed in the same string as a known sample", () => {
     const blob = `--password=uXFGweU9l35qcifghp_${"a".repeat(36)}`;
     const out = credentialValues.run(ctx(target({ strings: stringsStep([blob]) })));
-    expect(out.findings.map((f) => f.data?.["kind"])).toEqual(["GitHub token"]);
+    expect(values(out).map((f) => f.data?.["kind"])).toEqual(["GitHub token"]);
   });
 
   it("reports each distinct value once", () => {
     const out = credentialValues.run(ctx(target({ strings: stringsStep([key, key, `x${key}`]) })));
-    expect(out.findings).toHaveLength(1);
+    expect(values(out)).toHaveLength(1);
   });
 });
 
