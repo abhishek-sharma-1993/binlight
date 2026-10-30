@@ -41,9 +41,18 @@ export function parseResult(tool: string, value: unknown): unknown {
 export function toStepError(err: unknown): StepError {
   if (err instanceof StepFailure) return err.error;
   if (err instanceof ReaToolError) {
+    // REA's generic message ("Analysis input is invalid") often has the real
+    // reason in details.issues; show it.
+    const issues = Array.isArray(err.rea.details?.["issues"])
+      ? (err.rea.details["issues"] as unknown[])
+          .map((i) =>
+            i && typeof i === "object" ? (i as { message?: unknown }).message : undefined,
+          )
+          .filter((m): m is string => typeof m === "string" && m.length > 0)
+      : [];
     return {
       code: err.rea.code,
-      message: err.rea.message,
+      message: issues.length > 0 ? `${err.rea.message} ${issues.join("; ")}` : err.rea.message,
       ...(err.rea.remediation && { remediation: err.rea.remediation.action }),
     };
   }

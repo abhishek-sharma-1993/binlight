@@ -71,8 +71,11 @@ npm run preflight -- /path/to/binary [--json]
 
 ## Jobs API
 
-One job per investigation: preflight, start REA, open the binary once, then Go
-build info, overview, strings and procedures reuse that analysis. One deep job
+One job per investigation, running a **recipe**: a fixed list of REA steps
+(`apps/server/src/recipes/`). Per target: preflight, start REA (local REA when
+no step needs a disassembler), open the binary once, then the recipe's steps
+reuse that analysis. Recipes may take two targets (comparisons); each target
+gets its own REA session. Phase 0's analysis is the `raw-analysis` recipe. One deep job
 runs at a time; others queue. Jobs live in the server's memory, so a page
 reload reconnects to them (a server restart keeps cached results, not the job
 list).

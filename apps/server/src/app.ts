@@ -1,10 +1,13 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
-import { JOB_STEPS, type JobEvent, type StepId } from "@binlight/shared";
-import type { JobManager } from "./jobs/manager.js";
+import type { JobEvent } from "@binlight/shared";
+import { JobRequestError, type JobManager } from "./jobs/manager.js";
+import { recipeInfo, RECIPES, type Recipe } from "./recipes/index.js";
 import { saveUpload, UploadTooLarge } from "./uploads.js";
 
 export interface AppDeps {
   jobs: JobManager;
+  /** Recipes listed by /api/recipes. Default: the server's recipe list. */
+  recipes?: Recipe[];
   /** Where uploaded binaries are stored. */
   uploadRoot?: string;
   maxUploadBytes?: number;
@@ -12,7 +15,6 @@ export interface AppDeps {
 
 const MAX_BODY_BYTES = 64 * 1024;
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
-const STEP_IDS = new Set<string>(JOB_STEPS.map((s) => s.id));
 
 class HttpError extends Error {
   constructor(
@@ -85,6 +87,10 @@ export function createApp(deps: AppDeps): Server {
 
       if (method === "GET" && url.pathname === "/api/health") return send(res, 200, { ok: true });
 
+      if (method === "GET" && url.pathname === "/api/recipes") {
+        return send(res, 200, (deps.recipes ?? RECIPES).map(recipeInfo));
+      }
+
       if (method === "POST" && url.pathname === "/api/uploads") {
         // octet-stream is not a CORS-safelisted type: a cross-site page can't send it.
         if (req.headers["content-type"] !== "application/octet-stream") {
@@ -110,11 +116,37 @@ export function createApp(deps: AppDeps): Server {
         if (!id) {
           if (method === "GET") return send(res, 200, jobs.list());
           if (method === "POST") {
-            const body = (await readJson(req)) as { path?: unknown; fresh?: unknown };
-            if (typeof body.path !== "string" || body.path.trim() === "") {
-              throw new HttpError(400, 'Give the target as {"path": "/absolute/path"}.');
+            const body = (await readJson(req)) as {
+              recipe?: unknown;
+              targets?: unknown;
+              path?: unknown;
+              fresh?: unknown;
+            };
+            // {path} is the phase 0 form: one target, the default recipe.
+            const targets = body.targets ?? (body.path === undefined ? undefined : [body.path]);
+            if (!Array.isArray(targets) || !targets.every((t) => typeof t === "string")) {
+              throw new HttpError(
+                400,
+                'Give the targets as {"recipe": "<id>", "targets": ["/absolute/path"]}.',
+              );
             }
-            return send(res, 201, jobs.create(body.path.trim(), { fresh: body.fresh === true }));
+            if (body.recipe !== undefined && typeof body.recipe !== "string") {
+              throw new HttpError(400, "recipe must be a recipe id string.");
+            }
+            try {
+              return send(
+                res,
+                201,
+                jobs.create({
+                  ...(body.recipe !== undefined && { recipe: body.recipe }),
+                  targets,
+                  fresh: body.fresh === true,
+                }),
+              );
+            } catch (err) {
+              if (err instanceof JobRequestError) throw new HttpError(400, err.message);
+              throw err;
+            }
           }
         } else {
           const job = jobs.get(id);
@@ -129,9 +161,9 @@ export function createApp(deps: AppDeps): Server {
               : send(res, 409, { error: `Job is already ${job.status}.` });
           }
           if (action === "steps" && parts[5] === "result" && method === "GET") {
-            const step = parts[4] ?? "";
-            if (!STEP_IDS.has(step)) throw new HttpError(404, `No step ${step}.`);
-            const result = await jobs.result(id, step as StepId);
+            const step = decodeURIComponent(parts[4] ?? "");
+            if (!job.steps.some((s) => s.id === step)) throw new HttpError(404, `No step ${step}.`);
+            const result = await jobs.result(id, step);
             if (result === undefined) throw new HttpError(404, `Step ${step} has no result.`);
             return send(res, 200, result);
           }

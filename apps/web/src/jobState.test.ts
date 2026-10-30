@@ -5,12 +5,15 @@ import { applyEvent, MAX_LOG_LINES } from "./jobState.js";
 const step = (over: Partial<JobStep>): JobStep => ({
   id: "overview",
   label: "Analyse (overview)",
+  target: 0,
   status: "pending",
   ...over,
 });
 const job = (steps: JobStep[]): Job => ({
   id: "j1",
-  target: "/apps/tool",
+  recipe: { id: "raw-analysis", title: "Raw analysis", question: "?", targetLabels: ["Binary"] },
+  targets: ["/apps/tool"],
+  preflights: [null],
   status: "running",
   createdAt: "2026-10-23T00:00:00.000Z",
   steps,
@@ -29,6 +32,18 @@ describe("applyEvent", () => {
       endedAt: "2026-10-23T00:01:00.000Z",
       reaVersion: "6.7.0",
     });
+  });
+
+  it("fills in each target's preflight live, without waiting for a reload", () => {
+    let view = applyEvent({ logs: [] }, { type: "snapshot", job: job([step({})]) });
+    const report = {
+      target: { path: "/apps/tool", format: "mach-o" as const, architectures: ["arm64"] },
+      routes: [],
+      issues: [],
+      canAnalyse: true,
+    };
+    view = applyEvent(view, { type: "job", status: "running", preflights: [report] });
+    expect(view.job?.preflights[0]).toEqual(report);
   });
 
   it("lets a reconnect's snapshot override stale local state", () => {

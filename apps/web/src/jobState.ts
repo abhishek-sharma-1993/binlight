@@ -25,6 +25,7 @@ export function applyEvent(view: JobView, event: JobEvent): JobView {
           ...(event.startedAt && { startedAt: event.startedAt }),
           ...(event.endedAt && { endedAt: event.endedAt }),
           ...(event.reaVersion && { reaVersion: event.reaVersion }),
+          ...(event.preflights && { preflights: event.preflights }),
         },
       };
     case "step":

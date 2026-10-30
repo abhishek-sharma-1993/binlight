@@ -1,4 +1,4 @@
-import type { Job, JobEvent, StepId } from "@binlight/shared";
+import type { Job, JobEvent, RecipeInfo, StepId } from "@binlight/shared";
 
 /** An API failure with the server's own message. */
 export class ApiError extends Error {
@@ -28,12 +28,16 @@ async function json<T>(res: Response): Promise<T> {
   return body as T;
 }
 
-export async function createJob(path: string, fresh: boolean): Promise<Job> {
+export async function listRecipes(): Promise<RecipeInfo[]> {
+  return json(await fetch("/api/recipes"));
+}
+
+export async function createJob(recipe: string, targets: string[], fresh: boolean): Promise<Job> {
   return json(
     await fetch("/api/jobs", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ path, fresh }),
+      body: JSON.stringify({ recipe, targets, fresh }),
     }),
   );
 }
@@ -62,7 +66,7 @@ export async function uploadFile(
 }
 
 export async function stepResult(id: string, step: StepId): Promise<unknown> {
-  return json(await fetch(`/api/jobs/${id}/steps/${step}/result`));
+  return json(await fetch(`/api/jobs/${id}/steps/${encodeURIComponent(step)}/result`));
 }
 
 /** Subscribes to a job's live events. Returns a function that closes the stream. */

@@ -51,8 +51,9 @@ export function JobList({
               onClick={() => onSelect(job.id)}
             >
               <span className={`badge ${job.status}`}>{JOB_STATUS_TEXT[job.status]}</span>
-              <span className="target" title={job.target}>
-                {job.target.split("/").pop()}
+              <span className="target" title={`${job.recipe.title}: ${job.targets.join(" vs ")}`}>
+                {job.targets.map((t) => t.split("/").pop()).join(" vs ")}
+                <span className="small muted"> · {job.recipe.title}</span>
               </span>
               <span className="muted small">{new Date(job.createdAt).toLocaleTimeString()}</span>
             </button>

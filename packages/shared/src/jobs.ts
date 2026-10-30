@@ -1,18 +1,27 @@
 import type { PreflightReport } from "./preflight.js";
 
-/** The fixed steps of a phase 0 analysis job, in run order. */
-export const JOB_STEPS = [
-  { id: "preflight", label: "Check the target and this machine" },
-  { id: "start", label: "Start REA" },
-  { id: "open", label: "Open the binary" },
-  { id: "go", label: "Read Go build info" },
-  { id: "overview", label: "Analyse (overview)" },
-  { id: "strings", label: "List strings" },
-  { id: "procedures", label: "List procedures" },
-  { id: "close", label: "Close the binary" },
-] as const;
+/**
+ * Step ids are unique within a job. System steps are `preflight`, `start`,
+ * `open` and `close`; recipe steps use the recipe's ids. With two targets every
+ * id gets a target suffix: `preflight@1`, `go@2`.
+ */
+export type StepId = string;
 
-export type StepId = (typeof JOB_STEPS)[number]["id"];
+/** A recipe as the page sees it (the server holds the tools and rules). */
+export interface RecipeInfo {
+  id: string;
+  title: string;
+  /** The plain question the recipe answers. */
+  question: string;
+  description: string;
+  /** How many binaries the recipe takes (2 for comparisons). */
+  targets: 1 | 2;
+  /** What each target is, e.g. ["Older release", "Newer release"]. */
+  targetLabels: string[];
+  /** Whether any step needs a disassembler (a deep-analysis route). */
+  needsDeep: boolean;
+  steps: { id: string; label: string; why: string; tool: string; deep: boolean }[];
+}
 
 /**
  * "skipped" always carries a reason (e.g. no deep-analysis route); a failed
@@ -32,6 +41,10 @@ export interface StepError {
 export interface JobStep {
   id: StepId;
   label: string;
+  /** Why the step runs, in plain words (recipe steps). */
+  why?: string;
+  /** Which target (0-based) the step works on. */
+  target: number;
   /** The REA tool this step calls, if any. */
   tool?: string;
   status: StepStatus;
@@ -57,13 +70,15 @@ export interface JobStep {
 
 export interface Job {
   id: string;
-  /** The path the user asked to analyse. */
-  target: string;
+  recipe: Pick<RecipeInfo, "id" | "title" | "question" | "targetLabels">;
+  /** The paths the user asked to analyse, in recipe order. */
+  targets: string[];
   status: JobStatus;
   createdAt: string;
   startedAt?: string;
   endedAt?: string;
-  preflight?: PreflightReport;
+  /** Preflight report per target (missing until that target's preflight ran). */
+  preflights: (PreflightReport | null)[];
   steps: JobStep[];
   /** REA version that ran the job (or produced its cached results). */
   reaVersion?: string;
@@ -74,7 +89,14 @@ export interface Job {
 /** Server-Sent Events from /api/jobs/:id/events. Every connection starts with a snapshot. */
 export type JobEvent =
   | { type: "snapshot"; job: Job }
-  | { type: "job"; status: JobStatus; startedAt?: string; endedAt?: string; reaVersion?: string }
+  | {
+      type: "job";
+      status: JobStatus;
+      startedAt?: string;
+      endedAt?: string;
+      reaVersion?: string;
+      preflights?: (PreflightReport | null)[];
+    }
   | { type: "step"; step: JobStep }
   | { type: "heartbeat"; at: string; runningStep?: StepId; elapsedMs?: number }
   | { type: "log"; line: string };

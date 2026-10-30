@@ -89,6 +89,40 @@ describe("server", () => {
     expect(await call("GET", "/api/health")).toEqual({ status: 200, body: { ok: true } });
   });
 
+  it("lists the recipes the page can offer", async () => {
+    const reply = await call("GET", "/api/recipes");
+    expect(reply.status).toBe(200);
+    expect(reply.body).toEqual([
+      expect.objectContaining({
+        id: "raw-analysis",
+        targets: 1,
+        needsDeep: true,
+        steps: expect.arrayContaining([
+          expect.objectContaining({ id: "go", tool: "inspect_go_binary", deep: false }),
+        ]),
+      }),
+    ]);
+  });
+
+  it("starts a job from a recipe and targets, and explains bad requests", async () => {
+    const created = await call("POST", "/api/jobs", {
+      recipe: "raw-analysis",
+      targets: ["/apps/tool"],
+    });
+    expect(created.status).toBe(201);
+    expect(created.body).toMatchObject({
+      recipe: { id: "raw-analysis" },
+      targets: ["/apps/tool"],
+    });
+
+    const unknown = await call("POST", "/api/jobs", { recipe: "nope", targets: ["/a"] });
+    expect(unknown).toEqual({ status: 400, body: { error: 'No recipe "nope".' } });
+    const tooMany = await call("POST", "/api/jobs", { targets: ["/a", "/b"] });
+    expect(tooMany.status).toBe(400);
+    expect((tooMany.body as { error: string }).error).toMatch(/needs 1 target/);
+    expect((await call("POST", "/api/jobs", { targets: [1] })).status).toBe(400);
+  });
+
   it("refuses non-local Host names (DNS rebinding)", async () => {
     const reply = await call("GET", "/api/health", undefined, { host: "evil.example:8787" });
     expect(reply.status).toBe(403);

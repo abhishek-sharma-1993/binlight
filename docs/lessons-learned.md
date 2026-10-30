@@ -48,6 +48,17 @@ executable_missing`. Building it from the release's Makefile fails: its
   server launched by a desktop app. Binlight must pass `GHIDRA_INSTALL_DIR` and
   the timeouts explicitly when it spawns `rea --mcp`.
 
+## Paths and error details (Oct 30 2026)
+
+- **REA refuses a symlinked target**: `inspect_go_binary` on
+  `/opt/homebrew/bin/ollama` fails with `invalid_request`, "Expected a regular
+  file without a symlink". Homebrew's `bin/` entries are links. Resolve with
+  `realpath` first (preflight does). A symlinked parent folder (`/var` →
+  `/private/var`) is fine; only the final component matters. Docker staging
+  hid this in phase 0 because it copies the real file.
+- REA's generic message ("Analysis input is invalid") carries the real reason
+  in `details.issues[].message`; show it.
+
 ## MCP response budget (gate run, Oct 23 2026)
 
 - REA refuses any single MCP response above **10 MiB** by default (the MCP SDK's

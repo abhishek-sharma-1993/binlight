@@ -36,7 +36,17 @@ export function JobView({ jobId }: { jobId: string }) {
     <div className="job-view">
       <div className="job-head">
         <div>
-          <h2 className="target-path">{job.target}</h2>
+          <p className="recipe-name">
+            {job.recipe.title}: <span className="question">{job.recipe.question}</span>
+          </p>
+          {job.targets.map((t, i) => (
+            <h2 key={i} className="target-path">
+              {job.targets.length > 1 && (
+                <span className="muted small">{job.recipe.targetLabels[i]}: </span>
+              )}
+              {t}
+            </h2>
+          ))}
           <p className="muted small">
             Job {job.id} · REA {job.reaVersion ?? "not started"}
             {job.fresh ? " · cache ignored" : ""}
@@ -71,7 +81,16 @@ export function JobView({ jobId }: { jobId: string }) {
         ))}
       </ol>
 
-      {job.preflight && <Preflight report={job.preflight} />}
+      {job.preflights.map(
+        (report, i) =>
+          report && (
+            <Preflight
+              key={i}
+              report={report}
+              {...(job.targets.length > 1 && { title: `Preflight: ${job.recipe.targetLabels[i]}` })}
+            />
+          ),
+      )}
 
       <section className="card">
         <h3>REA log</h3>
@@ -106,6 +125,7 @@ function StepRow({ jobId, step, now }: { jobId: string; step: JobStep; now: numb
             {elapsed !== undefined ? formatDuration(elapsed) : ""}
           </span>
         </div>
+        {step.why && step.status === "pending" && <p className="muted small">{step.why}</p>}
         {detail.kind === "summary" && <p>{detail.text}</p>}
         {detail.kind === "status" && <p className="muted">{detail.text}</p>}
         {detail.kind === "skipped" && <p className="muted">Skipped: {detail.reason}</p>}
@@ -171,11 +191,11 @@ function ResultViewer({ jobId, step }: { jobId: string; step: JobStep }) {
   );
 }
 
-function Preflight({ report }: { report: PreflightReport }) {
+function Preflight({ report, title = "Preflight" }: { report: PreflightReport; title?: string }) {
   const t = report.target;
   return (
     <section className="card">
-      <h3>Preflight</h3>
+      <h3>{title}</h3>
       <dl className="facts">
         <dt>Format</dt>
         <dd>

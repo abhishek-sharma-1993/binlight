@@ -333,3 +333,41 @@ ul.issues li.limits {
 .job-view > section {
   margin-bottom: 16px;
 }
+fieldset.recipes {
+  border: none;
+  padding: 0;
+  margin: 0 0 10px;
+}
+fieldset.recipes legend {
+  padding: 0;
+  margin-bottom: 4px;
+}
+label.recipe {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  cursor: pointer;
+}
+label.recipe.selected {
+  border-color: var(--border);
+  background: var(--bg);
+}
+label.recipe > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.question {
+  font-style: italic;
+}
+.recipe-name {
+  margin: 0 0 4px;
+  color: var(--muted);
+}
+.target-input h3 {
+  margin: 6px 0 4px;
+}

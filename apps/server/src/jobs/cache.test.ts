@@ -29,13 +29,13 @@ describe("jobs with the evidence cache", () => {
   it("reuses a repeat run's results without starting REA", async () => {
     const first = fakeSession(deep);
     const a = manager(first);
-    const one = await a.jobs.settled(a.jobs.create("/apps/tool").id);
+    const one = await a.jobs.settled(a.jobs.create({ targets: ["/apps/tool"] }).id);
     expect(one?.status).toBe("done");
     expect(one?.steps.some((s) => s.cached)).toBe(false);
 
     const second = fakeSession(deep);
     const b = manager(second);
-    const two = await b.jobs.settled(b.jobs.create("/apps/tool").id);
+    const two = await b.jobs.settled(b.jobs.create({ targets: ["/apps/tool"] }).id);
 
     expect(two?.status).toBe("done");
     expect(b.d.opened).toBe(0);
@@ -68,11 +68,13 @@ describe("jobs with the evidence cache", () => {
       },
     });
     const a = manager(failing);
-    expect((await a.jobs.settled(a.jobs.create("/apps/tool").id))?.status).toBe("failed");
+    expect((await a.jobs.settled(a.jobs.create({ targets: ["/apps/tool"] }).id))?.status).toBe(
+      "failed",
+    );
 
     const retry = fakeSession(deep);
     const b = manager(retry);
-    const job = await b.jobs.settled(b.jobs.create("/apps/tool").id);
+    const job = await b.jobs.settled(b.jobs.create({ targets: ["/apps/tool"] }).id);
     expect(job?.status).toBe("done");
     // Failed steps are never cached, so only procedures (plus open/close) ran.
     expect(retry.calls).toEqual(["open_binary", "list_procedures", "close_binary"]);
@@ -83,19 +85,19 @@ describe("jobs with the evidence cache", () => {
 
   it("keys on the analysed bytes: a different binary is analysed afresh", async () => {
     const a = manager(fakeSession(deep));
-    await a.jobs.settled(a.jobs.create("/apps/tool").id);
+    await a.jobs.settled(a.jobs.create({ targets: ["/apps/tool"] }).id);
     const other = fakeSession(deep);
     const b = manager(other, "e".repeat(64));
-    await b.jobs.settled(b.jobs.create("/apps/other").id);
+    await b.jobs.settled(b.jobs.create({ targets: ["/apps/other"] }).id);
     expect(other.calls).toContain("binary_overview");
   });
 
   it("ignores the cache when asked for a fresh run", async () => {
     const a = manager(fakeSession(deep));
-    await a.jobs.settled(a.jobs.create("/apps/tool").id);
+    await a.jobs.settled(a.jobs.create({ targets: ["/apps/tool"] }).id);
     const again = fakeSession(deep);
     const b = manager(again);
-    const job = await b.jobs.settled(b.jobs.create("/apps/tool", { fresh: true }).id);
+    const job = await b.jobs.settled(b.jobs.create({ targets: ["/apps/tool"], fresh: true }).id);
     expect(job?.fresh).toBe(true);
     expect(again.calls).toContain("binary_overview");
     expect(job?.steps.some((s) => s.cached)).toBe(false);
@@ -103,13 +105,13 @@ describe("jobs with the evidence cache", () => {
 
   it("caches Go build info independently of the deep provider", async () => {
     const a = manager(fakeSession(deep));
-    await a.jobs.settled(a.jobs.create("/apps/tool").id);
+    await a.jobs.settled(a.jobs.create({ targets: ["/apps/tool"] }).id);
 
     const noDeep = fakeSession(undefined);
     const pre = report({ analysisSha256: sha });
     delete pre.deep;
     const jobs = new JobManager({ ...deps(noDeep, pre), cache });
-    const job = await jobs.settled(jobs.create("/apps/tool").id);
+    const job = await jobs.settled(jobs.create({ targets: ["/apps/tool"] }).id);
     expect(noDeep.calls).toEqual([]);
     expect(byId(job?.steps)["go"]).toMatchObject({ status: "done", cached: true });
   });

@@ -1,3 +1,4 @@
+import { lstat, realpath } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import type { DetectedTarget, PreflightIssue, PreflightReport } from "@binlight/shared";
@@ -33,8 +34,12 @@ export async function preflight(
   const issues: PreflightIssue[] = [];
 
   let target: DetectedTarget;
+  let real: string;
   try {
-    target = await detectTarget(path);
+    // REA refuses symlinks ("Expected a regular file without a symlink"), and
+    // Homebrew's /opt/homebrew/bin/* are links: analyse the file they point to.
+    real = await realpath(path);
+    target = { ...(await detectTarget(real)), path };
   } catch (err) {
     const e = err as NodeJS.ErrnoException;
     return {
@@ -52,7 +57,16 @@ export async function preflight(
     };
   }
 
-  let native: DetectedTarget | undefined = target;
+  // Only the file itself being a link is worth saying (/var → /private/var isn't).
+  if (real !== path && (await lstat(path)).isSymbolicLink()) {
+    issues.push({
+      severity: "note",
+      code: "symlink_resolved",
+      message: `${path} is a link to ${real}; analysing that file.`,
+    });
+  }
+
+  let native: DetectedTarget | undefined = real === path ? target : { ...target, path: real };
   if (target.format === "app-bundle") {
     native = target.executable;
     if (!native) {

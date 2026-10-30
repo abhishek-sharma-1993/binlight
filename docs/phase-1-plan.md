@@ -37,13 +37,18 @@ beyond the written instructions.
 
 ### A. Recipe foundations
 
-- [ ] **1. Recipe engine.** A recipe declares its question, its steps (REA tool,
+- [x] **1. Recipe engine.** A recipe declares its question, its steps (REA tool,
       arguments, whether it needs a deep route, a plain-language label and why
       it runs) and its rules. The job runner runs recipe steps instead of phase
       0's fixed list; per-step caching is unchanged. Jobs can take two targets
       (for "What changed?"). The page gets a recipe picker and a question box:
       with AI on, Claude maps a question to a recipe or says honestly that no
       recipe covers it; in local-only mode the picker alone.
+      _Done 30 Oct: recipes are data (`apps/server/src/recipes/`); phase 0's
+      analysis is the `raw-analysis` recipe; two-target jobs run one REA session
+      per target; cache entries keyed per argument set. The question box ships
+      with task 4 (it needs the API key); the `rules` slot with task 2 (it needs
+      the `Finding` type)._
 - [ ] **2. Findings model.** `Finding {id, kind, statement, evidence[],
 confidence (observed | inferred), caveats}`. Each evidence reference is an
       REA evidence ID plus a locator (address, file offset or ±36-char snippet).

@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
@@ -24,6 +24,25 @@ describe("preflight", () => {
     expect(report.canAnalyse).toBe(false);
     expect(report.issues[0]).toMatchObject({ severity: "blocker", code: "target_missing" });
     expect(report.issues[0]?.message).toContain("ENOENT");
+  });
+
+  it("analyses the file a symlink points to (REA refuses links), and says so", async () => {
+    const { symlinkSync } = await import("node:fs");
+    const elf = join(dir, "real-tool");
+    const head = Buffer.alloc(64);
+    head.writeUInt32BE(0x7f454c46, 0);
+    head[5] = 1;
+    head.writeUInt16LE(62, 18);
+    writeFileSync(elf, head);
+    const link = join(dir, "tool-link");
+    symlinkSync(elf, link);
+
+    const report = await preflight(link, { health: dockerWorks, cacheDir: dir });
+    expect(report.target.path).toBe(link);
+    expect(report.analysisPath).toBe(realpathSync(elf));
+    expect(report.issues).toContainEqual(
+      expect.objectContaining({ severity: "note", code: "symlink_resolved" }),
+    );
   });
 
   it("blocks a file that is not an executable", async () => {

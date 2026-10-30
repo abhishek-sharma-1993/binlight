@@ -11,7 +11,7 @@ describe("JobManager", () => {
     const fake = fakeSession({ route: "docker-ghidra", providerId: "ghidra" });
     const d = deps(fake);
     const jobs = new JobManager(d);
-    const job = await jobs.settled(jobs.create("/apps/tool").id);
+    const job = await jobs.settled(jobs.create({ targets: ["/apps/tool"] }).id);
 
     expect(job?.status).toBe("done");
     expect(d.opened).toBe(1);
@@ -44,7 +44,7 @@ describe("JobManager", () => {
     const jobs = new JobManager(
       deps(fakeSession({ route: "docker-ghidra", providerId: "ghidra" })),
     );
-    const created = jobs.create("/apps/tool");
+    const created = jobs.create({ targets: ["/apps/tool"] });
     const events: JobEvent[] = [];
     jobs.subscribe(created.id, (e) => events.push(e));
     await jobs.settled(created.id);
@@ -82,7 +82,7 @@ describe("JobManager", () => {
     });
     delete pre.deep;
     const jobs = new JobManager(deps(fake, pre));
-    const job = await jobs.settled(jobs.create("/apps/tool").id);
+    const job = await jobs.settled(jobs.create({ targets: ["/apps/tool"] }).id);
 
     expect(job?.status).toBe("done");
     expect(fake.calls).toEqual(["inspect_go_binary"]);
@@ -113,7 +113,7 @@ describe("JobManager", () => {
       }),
     );
     const jobs = new JobManager(d);
-    const job = await jobs.settled(jobs.create("/apps/tool").id);
+    const job = await jobs.settled(jobs.create({ targets: ["/apps/tool"] }).id);
 
     expect(job?.status).toBe("failed");
     expect(d.opened).toBe(0);
@@ -139,7 +139,7 @@ describe("JobManager", () => {
       },
     );
     const jobs = new JobManager(deps(fake));
-    const job = await jobs.settled(jobs.create("/apps/tool").id);
+    const job = await jobs.settled(jobs.create({ targets: ["/apps/tool"] }).id);
 
     expect(job?.status).toBe("failed");
     const s = byId(job?.steps ?? []);
@@ -174,7 +174,7 @@ describe("JobManager", () => {
       },
     );
     const jobs = new JobManager(deps(fake));
-    const done = await jobs.settled(jobs.create("/apps/tool").id);
+    const done = await jobs.settled(jobs.create({ targets: ["/apps/tool"] }).id);
     expect(byId(done?.steps ?? [])["go"]).toMatchObject({
       status: "done",
       summary: "Not a Go binary (no Go build info).",
@@ -187,7 +187,7 @@ describe("JobManager", () => {
       { list_procedures: async () => evidence("list_procedures", { not: "a list" }) },
     );
     const jobs = new JobManager(deps(fake));
-    const job = await jobs.settled(jobs.create("/apps/tool").id);
+    const job = await jobs.settled(jobs.create({ targets: ["/apps/tool"] }).id);
     expect(byId(job?.steps ?? [])["procedures"]).toMatchObject({
       status: "failed",
       error: { code: "unexpected_rea_response" },
@@ -206,7 +206,7 @@ describe("JobManager", () => {
       },
     );
     const jobs = new JobManager(deps(fake));
-    const job = await jobs.settled(jobs.create("/apps/tool").id);
+    const job = await jobs.settled(jobs.create({ targets: ["/apps/tool"] }).id);
     const s = byId(job?.steps ?? []);
     expect(s["overview"]?.error?.code).toBe("rea_exited");
     expect(s["overview"]?.error?.message).toContain("OutOfMemoryError");
@@ -224,7 +224,7 @@ describe("JobManager", () => {
       { binary_overview: untilAborted },
     );
     const jobs = new JobManager(deps(fake));
-    const { id } = jobs.create("/apps/tool");
+    const { id } = jobs.create({ targets: ["/apps/tool"] });
     await new Promise<void>((resolve) => {
       jobs.subscribe(id, (e) => {
         if (e.type === "step" && e.step.id === "overview" && e.step.status === "running") resolve();
@@ -248,8 +248,8 @@ describe("JobManager", () => {
       { binary_overview: untilAborted },
     );
     const jobs = new JobManager(deps(slow));
-    const first = jobs.create("/apps/one");
-    const second = jobs.create("/apps/two");
+    const first = jobs.create({ targets: ["/apps/one"] });
+    const second = jobs.create({ targets: ["/apps/two"] });
     expect(jobs.get(second.id)?.status).toBe("queued");
 
     expect(await jobs.cancel(second.id)).toBe(true);
@@ -266,7 +266,7 @@ describe("JobManager", () => {
       { binary_overview: untilAborted },
     );
     const jobs = new JobManager(deps(fake));
-    const { id } = jobs.create("/apps/tool");
+    const { id } = jobs.create({ targets: ["/apps/tool"] });
     const beat = await new Promise<JobEvent>((resolve) => {
       jobs.subscribe(id, (e) => {
         if (e.type === "heartbeat" && e.runningStep === "overview") resolve(e);

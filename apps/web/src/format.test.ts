@@ -2,7 +2,7 @@ import type { JobStep } from "@binlight/shared";
 import { describe, expect, it } from "vitest";
 import { formatDuration, stepDetail, stepElapsed } from "./format.js";
 
-const base: JobStep = { id: "overview", label: "Analyse (overview)", status: "pending" };
+const base: JobStep = { id: "overview", label: "Analyse (overview)", target: 0, status: "pending" };
 
 describe("stepDetail", () => {
   it("shows a failed step's real error and never its counts", () => {
