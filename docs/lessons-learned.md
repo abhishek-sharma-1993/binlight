@@ -48,6 +48,19 @@ executable_missing`. Building it from the release's Makefile fails: its
   server launched by a desktop app. Binlight must pass `GHIDRA_INSTALL_DIR` and
   the timeouts explicitly when it spawns `rea --mcp`.
 
+## Claude API and Keychain (Oct 30 2026)
+
+- `security -i` runs commands read from stdin (so a secret never appears in a
+  process's arguments), but **exits 0 even when a command fails**; read
+  `returned -NNNNN` from its output instead (`-25300`: item not found).
+- `@anthropic-ai/sdk` 1.3.0: with no credentials it throws `AnthropicError`
+  ("Could not resolve authentication method…") before sending anything; with a
+  bad key, `AuthenticationError` (401). `models.retrieve(model)` is a free way
+  to check a key.
+- A live page must subscribe to every server event type: `findings` and
+  `verdict` events were silently dropped for two tasks because `watchJob` had a
+  hard-coded list. A compile-time check now fails when a type is missing.
+
 ## Findings on the reference targets (Oct 30 2026)
 
 - **The disassembler's string list misses most hard-coded URLs in Go

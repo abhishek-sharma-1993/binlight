@@ -1,6 +1,13 @@
 import { createHash } from "node:crypto";
 import Anthropic from "@anthropic-ai/sdk";
-import type { Finding, Verdict, VerdictBody } from "@binlight/shared";
+import type {
+  AiPreview,
+  Finding,
+  RecipeInfo,
+  RecipeSuggestion,
+  Verdict,
+  VerdictBody,
+} from "@binlight/shared";
 import { z } from "zod";
 
 /** What Binlight sends Claude: finding statements and caveats only, never snippets, strings or binaries. */
@@ -85,6 +92,35 @@ const outputShape = z.object({
   claims: z.array(z.object({ text: z.string(), findings: z.array(z.string()) })),
 });
 
+/** The exact request a verdict rewrite sends; the preview shows this same object. */
+export function verdictParams(model: string, request: AiRequest) {
+  return {
+    model,
+    max_tokens: 16000,
+    // Re-run a declined request on Anthropic's recommended fallback model.
+    betas: ["server-side-fallback-2026-07-01"],
+    fallbacks: "default" as const,
+    output_config: {
+      effort: "medium" as const,
+      format: { type: "json_schema" as const, schema: OUTPUT_SCHEMA },
+    },
+    system: SYSTEM,
+    messages: [{ role: "user" as const, content: JSON.stringify(request) }],
+  };
+}
+
+/** What `write` would send, for the user to approve first. */
+export function verdictPreview(model: string, request: AiRequest): AiPreview {
+  const params = verdictParams(model, request);
+  const content = params.messages[0]?.content ?? "";
+  return {
+    model,
+    system: params.system,
+    request: content,
+    characters: params.system.length + content.length,
+  };
+}
+
 export interface ClaudeWriterOptions {
   model?: string;
   timeoutMs?: number;
@@ -115,22 +151,10 @@ export function claudeWriter(options: ClaudeWriterOptions = {}): AiWriter {
       let response: Anthropic.Beta.BetaMessage;
       try {
         client ??= new Anthropic();
-        response = await client.beta.messages.create(
-          {
-            model,
-            max_tokens: 16000,
-            // Re-run a declined request on Anthropic's recommended fallback model.
-            betas: ["server-side-fallback-2026-07-01"],
-            fallbacks: "default",
-            output_config: {
-              effort: "medium",
-              format: { type: "json_schema", schema: OUTPUT_SCHEMA },
-            },
-            system: SYSTEM,
-            messages: [{ role: "user", content: JSON.stringify(request) }],
-          },
-          { timeout: timeoutMs, ...(signal && { signal }) },
-        );
+        response = await client.beta.messages.create(verdictParams(model, request), {
+          timeout: timeoutMs,
+          ...(signal && { signal }),
+        });
       } catch (err) {
         throw new AiWriteError(describeApiError(err, timeoutMs), { cause: err });
       }
@@ -157,7 +181,7 @@ export function claudeWriter(options: ClaudeWriterOptions = {}): AiWriter {
   };
 }
 
-function describeApiError(err: unknown, timeoutMs: number): string {
+export function describeApiError(err: unknown, timeoutMs: number): string {
   // Most specific first: in this SDK the connection errors subclass APIError.
   if (err instanceof Anthropic.AuthenticationError) {
     return "The Claude API rejected the API key (401). Check ANTHROPIC_API_KEY.";
@@ -183,4 +207,75 @@ function describeApiError(err: unknown, timeoutMs: number): string {
   }
   if (err instanceof Error && err.name === "AbortError") return "Cancelled.";
   return err instanceof Error ? err.message : String(err);
+}
+
+const SUGGEST_SYSTEM = `You help a developer pick a recipe in Binlight, a tool that analyses compiled programs.
+Given their question and the available recipes, choose the one recipe whose question best covers it, or none.
+Choose none when no recipe really answers it; do not stretch a recipe to fit. Explain the choice in one short sentence.`;
+
+const SUGGEST_SCHEMA = {
+  type: "object",
+  properties: {
+    recipe: { anyOf: [{ type: "string" }, { type: "null" }] },
+    reason: { type: "string" },
+  },
+  required: ["recipe", "reason"],
+  additionalProperties: false,
+} as const;
+
+/** Maps a free-text question to a recipe id, or null with the honest reason. */
+export async function suggestRecipe(
+  client: Anthropic,
+  model: string,
+  question: string,
+  recipes: RecipeInfo[],
+): Promise<RecipeSuggestion> {
+  let response: Anthropic.Beta.BetaMessage;
+  try {
+    response = await client.beta.messages.create(
+      {
+        model,
+        max_tokens: 4000,
+        betas: ["server-side-fallback-2026-07-01"],
+        fallbacks: "default",
+        output_config: { effort: "low", format: { type: "json_schema", schema: SUGGEST_SCHEMA } },
+        system: SUGGEST_SYSTEM,
+        messages: [
+          {
+            role: "user",
+            content: JSON.stringify({
+              question,
+              recipes: recipes.map(({ id, title, question: q, description }) => ({
+                id,
+                title,
+                question: q,
+                description,
+              })),
+            }),
+          },
+        ],
+      },
+      { timeout: 60_000 },
+    );
+  } catch (err) {
+    throw new AiWriteError(describeApiError(err, 60_000), { cause: err });
+  }
+  if (response.stop_reason === "refusal") throw new AiWriteError("Claude declined to answer.");
+  const text = response.content.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("");
+  let parsed: RecipeSuggestion;
+  try {
+    parsed = z
+      .object({ recipe: z.string().nullable(), reason: z.string() })
+      .parse(JSON.parse(text));
+  } catch {
+    throw new AiWriteError("Claude's answer was not in the expected format.");
+  }
+  // Never trust an id we did not offer.
+  if (parsed.recipe !== null && !recipes.some((r) => r.id === parsed.recipe)) {
+    return {
+      recipe: null,
+      reason: `Claude named a recipe that does not exist ("${parsed.recipe}").`,
+    };
+  }
+  return parsed;
 }

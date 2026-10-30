@@ -464,3 +464,36 @@ li.finding:target {
   background: var(--bg);
   outline: 2px solid var(--accent);
 }
+button.secondary {
+  background: none;
+  color: var(--accent);
+}
+.key-form,
+.ask-row {
+  display: flex;
+  gap: 6px;
+}
+.key-form input,
+.ask-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+}
+.consent {
+  border-top: 1px solid var(--border);
+  margin-top: 10px;
+  padding-top: 6px;
+}
+.consent h4 {
+  margin: 4px 0;
+}
+.consent-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}

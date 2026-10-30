@@ -1,4 +1,11 @@
-import type { Job, JobEvent, RecipeInfo, StepId } from "@binlight/shared";
+import type {
+  AiSettings,
+  Job,
+  JobEvent,
+  RecipeInfo,
+  RecipeSuggestion,
+  StepId,
+} from "@binlight/shared";
 
 /** An API failure with the server's own message. */
 export class ApiError extends Error {
@@ -69,6 +76,23 @@ export async function stepResult(id: string, step: StepId): Promise<unknown> {
   return json(await fetch(`/api/jobs/${id}/steps/${encodeURIComponent(step)}/result`));
 }
 
+/**
+ * Every server event type. A new type missing here would never reach a live
+ * page (findings and verdicts once didn't); the check below fails to compile then.
+ */
+export const JOB_EVENT_TYPES = [
+  "snapshot",
+  "job",
+  "step",
+  "findings",
+  "verdict",
+  "heartbeat",
+  "log",
+] as const satisfies readonly JobEvent["type"][];
+type Unsubscribed = Exclude<JobEvent["type"], (typeof JOB_EVENT_TYPES)[number]>;
+const everyEventSubscribed: [Unsubscribed] extends [never] ? true : Unsubscribed = true;
+void everyEventSubscribed;
+
 /** Subscribes to a job's live events. Returns a function that closes the stream. */
 export function watchJob(
   id: string,
@@ -76,8 +100,7 @@ export function watchJob(
   onConnection: (connected: boolean) => void,
 ): () => void {
   const source = new EventSource(`/api/jobs/${id}/events`);
-  const types: JobEvent["type"][] = ["snapshot", "job", "step", "heartbeat", "log"];
-  for (const type of types) {
+  for (const type of JOB_EVENT_TYPES) {
     source.addEventListener(type, (e) =>
       onEvent(JSON.parse((e as MessageEvent<string>).data) as JobEvent),
     );
@@ -86,4 +109,39 @@ export function watchJob(
   // EventSource reconnects by itself; every reconnect starts with a fresh snapshot.
   source.onerror = () => onConnection(false);
   return () => source.close();
+}
+
+const jsonInit = (method: string, body?: unknown): RequestInit => ({
+  method,
+  ...(body !== undefined && {
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  }),
+});
+
+export async function getAiSettings(): Promise<AiSettings> {
+  return json(await fetch("/api/settings/ai"));
+}
+
+export async function updateAiSettings(
+  change: Partial<Pick<AiSettings, "mode" | "askBeforeSending" | "model">>,
+): Promise<AiSettings> {
+  return json(await fetch("/api/settings/ai", jsonInit("PUT", change)));
+}
+
+/** Sends the key once; the server checks it with Claude and keeps it in the Keychain. */
+export async function saveAiKey(key: string): Promise<AiSettings> {
+  return json(await fetch("/api/settings/ai/key", jsonInit("PUT", { key })));
+}
+
+export async function removeAiKey(): Promise<AiSettings> {
+  return json(await fetch("/api/settings/ai/key", jsonInit("DELETE")));
+}
+
+export async function answerConsent(id: string, send: boolean): Promise<void> {
+  await json(await fetch(`/api/jobs/${id}/ai-consent`, jsonInit("POST", { send })));
+}
+
+export async function askForRecipe(question: string): Promise<RecipeSuggestion> {
+  return json(await fetch("/api/ask", jsonInit("POST", { question })));
 }

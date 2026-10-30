@@ -1,4 +1,6 @@
+import type { AiSettings } from "@binlight/shared";
 import { useCallback, useEffect, useState } from "react";
+import { AiPanel } from "./AiPanel.js";
 import { JobList } from "./JobList.js";
 import { JobView } from "./JobView.js";
 import { NewJobForm } from "./NewJobForm.js";
@@ -11,6 +13,7 @@ function jobFromUrl(): string | undefined {
 export function App() {
   const [jobId, setJobId] = useState<string | undefined>(jobFromUrl);
   const [listVersion, setListVersion] = useState(0);
+  const [ai, setAi] = useState<AiSettings | undefined>();
 
   useEffect(() => {
     const onPop = () => setJobId(jobFromUrl());
@@ -32,16 +35,18 @@ export function App() {
             Binlight
           </button>
         </h1>
-        <span className="muted">Phase 0: raw results</span>
+        <span className="muted">Phase 1 preview</span>
       </header>
       <aside>
         <NewJobForm
+          aiOn={ai?.mode === "claude" && ai.key.source !== "none"}
           onCreated={(id) => {
             setListVersion((v) => v + 1);
             select(id);
           }}
         />
         <JobList selected={jobId} onSelect={select} version={listVersion} />
+        <AiPanel onChange={setAi} />
       </aside>
       <main>
         {jobId ? (

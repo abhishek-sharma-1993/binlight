@@ -111,19 +111,24 @@ lacked an input says "not run" with the reason. The **verdict** is then built
 from the findings: a short answer, claims that each cite findings, a confidence
 set by what actually ran, and the gaps.
 
-AI is **off by default** (local-only): the verdict comes from the rules alone.
-To have Claude rewrite it in plain English with your own key:
+AI is **off by default** (local-only): the verdict comes from the rules alone
+and nothing leaves the machine. To have Claude rewrite verdicts in plain
+English, open the **AI** card in the page, paste your own Claude API key (it is
+checked with Claude, then stored in the macOS Keychain; the page only ever sees
+`sk-ant-…` plus the last 4 characters), and switch Claude on. A key in
+`ANTHROPIC_API_KEY` on the server works too. Settings that aren't secret live
+in `~/.binlight/settings.json` (`BINLIGHT_SETTINGS_PATH` to override).
 
-```bash
-BINLIGHT_AI=on ANTHROPIC_API_KEY=... npm run serve   # optional BINLIGHT_AI_MODEL, default claude-opus-5-5
-```
-
-Claude receives finding statements and caveats only (never snippets, strings or
-binaries) and its version is shown only if it passes Binlight's validator:
+By default each job **asks first**: the verdict shows exactly what would be
+sent (model, instructions, and the findings' statements and caveats, never
+snippets, strings or binaries) with "Send to Claude" and "Keep the rule-based
+verdict". Claude's version is shown only if it passes Binlight's validator:
 every claim cites findings of the job, states no number they don't contain, and
 avoids "only N servers", "talks to" and safety judgements. Otherwise the page
-shows the rule-based verdict with the reason. Key entry in the page and a
-preview of what is sent come with phase 1 task 4.
+shows the rule-based verdict with the reason.
+
+With Claude on, a question box maps a question in your own words to a recipe
+(or says no recipe covers it); the question and the recipe list are sent.
 
 ## Docker runner (deep analysis on Apple Silicon)
 

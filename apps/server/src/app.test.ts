@@ -1,8 +1,12 @@
 import { request } from "node:http";
+import { mkdtempSync, rmSync } from "node:fs";
 import type { AddressInfo } from "node:net";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { Job, JobEvent } from "@binlight/shared";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createApp } from "./app.js";
+import { AiService, MemoryKeyStore, SettingsFile } from "./settings/index.js";
 import { deps, fakeSession, untilAborted } from "./jobs/fakes.js";
 import { JobManager } from "./jobs/manager.js";
 
@@ -216,5 +220,64 @@ describe("server cancel", () => {
     const cancel = await fetch(`${base}/api/jobs/${job.id}/cancel`, { method: "POST" });
     expect(cancel.status).toBe(202);
     expect((await jobs.settled(job.id))?.status).toBe("cancelled");
+  });
+});
+
+describe("AI settings API", () => {
+  const KEY = `sk-ant-api03-${"q".repeat(40)}abcd`;
+  const dir = mkdtempSync(join(tmpdir(), "binlight-api-ai-"));
+  const ai = new AiService(
+    new SettingsFile(join(dir, "settings.json")),
+    new MemoryKeyStore(),
+    {},
+    () => ({ models: { retrieve: async () => ({}) } }) as never,
+  );
+  const app = createApp({ jobs: new JobManager(deps(fakeSession(undefined))), ai });
+  let base = "";
+  beforeAll(async () => {
+    await new Promise<void>((resolve) => app.listen(0, "127.0.0.1", resolve));
+    base = `http://127.0.0.1:${(app.address() as AddressInfo).port}`;
+  });
+  afterAll(() => {
+    app.closeAllConnections();
+    app.close();
+    rmSync(dir, { recursive: true, force: true });
+  });
+  const call = (method: string, path: string, body?: unknown) =>
+    fetch(base + path, {
+      method,
+      ...(body !== undefined && {
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      }),
+    });
+
+  it("saves a key, reports only its hint, switches AI on, and removes it", async () => {
+    expect((await (await call("GET", "/api/settings/ai")).json()) as object).toMatchObject({
+      mode: "local-only",
+    });
+    const on = await call("PUT", "/api/settings/ai", { mode: "claude" });
+    expect(on.status).toBe(400);
+    const saved = await call("PUT", "/api/settings/ai/key", { key: KEY });
+    const text = await saved.text();
+    expect(saved.status).toBe(200);
+    expect(text).not.toContain(KEY);
+    expect(JSON.parse(text)).toMatchObject({ key: { source: "keychain", hint: "sk-ant-…abcd" } });
+    expect(
+      (
+        (await (await call("PUT", "/api/settings/ai", { mode: "claude" })).json()) as {
+          mode: string;
+        }
+      ).mode,
+    ).toBe("claude");
+    expect(
+      ((await (await call("DELETE", "/api/settings/ai/key")).json()) as { mode: string }).mode,
+    ).toBe("local-only");
+  });
+
+  it("explains bad requests", async () => {
+    expect((await call("PUT", "/api/settings/ai", { mode: "always" })).status).toBe(400);
+    expect((await call("PUT", "/api/settings/ai/key", { key: 'x" y' })).status).toBe(400);
+    expect((await call("POST", "/api/ask", { question: "Does it phone home?" })).status).toBe(400);
   });
 });

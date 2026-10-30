@@ -72,11 +72,19 @@ confidence (observed | inferred), caveats}`. Each evidence reference is an
       fallbacks), opt-in via `BINLIGHT_AI=on` until task 4. Verified locally:
       AI off, and AI on without credentials (falls back with the reason). A
       live Claude call is **not yet verified**: no API key on this machine._
-- [ ] **4. AI settings and privacy.** Enter the user's Claude API key ❓(where it
+- [x] **4. AI settings and privacy.** Enter the user's Claude API key ❓(where it
       is stored), local-only switch ❓(default), and before the first AI call in
       a job, a preview of exactly what will be sent: findings and short
       snippets, never binaries or whole string lists. The key never reaches the
       browser after entry, logs or exports.
+      _Done 30 Oct with decisions 1 and 2 as recommended: key entered in the
+      page, checked with Claude, stored in the macOS Keychain (written via
+      `security -i` on stdin); local-only until a key is added; per-job consent
+      showing the exact request (built by the same code that sends it); the
+      question box from task 1. Verified against the real Claude API with
+      fabricated keys (refused, nothing stored; send → 401 → rule-based
+      verdict). Not yet verified: a real key's Keychain round trip and a
+      successful Claude rewrite (needs the owner's key)._
 - [ ] **5. HTML export.** One self-contained file: no external requests, a
       strict CSP, and it opens offline. It holds the verdict, the findings, an
       excerpt of every cited evidence record, the binary's identity (SHA-256,
@@ -173,10 +181,9 @@ multi-user use. Those are phases 2–3.
 
 ## Decisions needed (❓)
 
-1. **Where the Claude API key lives.** Options: server environment variable only,
-   or entered in the page and stored in the macOS Keychain. Recommended: the
-   Keychain, so testers don't edit shell files.
-2. **AI default on first run.** Recommended: local-only until a key is added.
+1. ~~**Where the Claude API key lives.**~~ Decided 30 Oct: entered in the page,
+   stored in the macOS Keychain (`ANTHROPIC_API_KEY` also works).
+2. ~~**AI default on first run.**~~ Decided 30 Oct: local-only until a key is added.
 3. **"Is it current?" online check.** Recommended: offline by default; opt-in
    check against the Go module proxy and OSV that sends only module paths and
    versions, with a notice.

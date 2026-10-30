@@ -77,7 +77,7 @@ export function JobView({ jobId }: { jobId: string }) {
       </div>
       {cancelError && <p className="error">Cancel failed: {cancelError}</p>}
 
-      {job.verdict && <Verdict verdict={job.verdict} />}
+      {job.verdict && <Verdict jobId={job.id} verdict={job.verdict} />}
 
       <ol className="steps">
         {job.steps.map((step) => (

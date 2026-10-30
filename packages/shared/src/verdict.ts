@@ -1,3 +1,5 @@
+import type { AiPreview } from "./settings.js";
+
 /** One sentence of a verdict and the findings it rests on. */
 export interface VerdictClaim {
   text: string;
@@ -23,14 +25,17 @@ export interface Verdict {
   gaps: string[];
   ai: {
     /**
-     * off: local-only mode. running: Claude is rewriting it. used: Claude's
-     * version passed validation. rejected: it did not (reason says why).
-     * failed: the API call failed (reason says why).
+     * off: local-only mode. awaiting-consent: waiting for the user to approve
+     * sending `preview`. declined: the user chose not to send it. running:
+     * Claude is rewriting it. used: Claude's version passed validation.
+     * rejected: it did not (reason says why). failed: the call failed (reason).
      */
-    status: "off" | "running" | "used" | "rejected" | "failed";
+    status: "off" | "awaiting-consent" | "declined" | "running" | "used" | "rejected" | "failed";
     model?: string;
     reason?: string;
     /** Claude's validated rewrite (status "used" only). */
     body?: VerdictBody;
+    /** What would be sent (status "awaiting-consent" only). */
+    preview?: AiPreview;
   };
 }

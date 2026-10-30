@@ -20,7 +20,15 @@ import {
   type RecipeStep,
 } from "../recipes/index.js";
 import { runRules } from "../rules/runner.js";
-import { aiRequest, assess, validateVerdict, type AiWriter } from "../verdict/index.js";
+import type { AiProvider } from "../settings/ai-service.js";
+import {
+  aiRequest,
+  assess,
+  validateVerdict,
+  verdictPreview,
+  type AiRequest,
+  type AiWriter,
+} from "../verdict/index.js";
 import type { StepResult, TargetInput } from "../rules/types.js";
 import { parseResult, StepFailure, toStepError, type StepOutcome } from "./steps.js";
 
@@ -58,8 +66,8 @@ export interface JobDeps {
   cache?: EvidenceCache;
   /** REA version results are cached under (the client refuses any other). */
   reaVersion?: string;
-  /** Claude rewrites verdicts when set; otherwise local-only (rule-based verdicts). */
-  ai?: AiWriter;
+  /** AI settings, read when a verdict is due; without one every job is local-only. */
+  ai?: AiProvider;
 }
 
 export interface CreateJob {
@@ -114,6 +122,8 @@ interface JobState {
   session?: JobSession;
   /** REA stopped mid-target; that target's later steps cannot run. */
   halted?: boolean;
+  /** The verdict request waiting for the user's go-ahead. */
+  aiPending?: AiRequest;
 }
 
 /** A step id, suffixed with the target number when a recipe takes two targets. */
@@ -479,48 +489,93 @@ export class JobManager {
   }
 
   /**
-   * The rule-based verdict first (always), then Claude's rewrite if AI is on.
-   * The rewrite is shown only if it passes the same validation; otherwise the
-   * rule-based verdict stays, with the reason.
+   * The rule-based verdict first (always). Then, if AI is on: with "ask before
+   * sending", wait for consent showing exactly what would be sent (the job
+   * itself finishes, so the queue moves on); otherwise send now. Claude's
+   * rewrite is shown only if it passes the same validation.
    */
   private async runVerdict(state: JobState): Promise<void> {
     const { job, recipe } = state;
     if (!recipe.verdict || !job.findings || !job.rules) return;
     const findings = job.findings;
     const rules = recipe.verdict(findings);
-    const ai = this.deps.ai;
-    job.verdict = {
-      rules,
-      ...assess(job),
-      ai: ai
-        ? { status: "running", model: ai.model }
-        : {
-            status: "off",
-            reason: "AI is off (local-only mode): this verdict comes from Binlight's rules alone.",
-          },
+    const assessment = assess(job);
+    const ai = (await this.deps.ai?.current()) ?? {
+      off: "AI is off (local-only mode): this verdict comes from Binlight's rules alone.",
     };
-    this.emit(state, { type: "verdict", verdict: structuredClone(job.verdict) });
-    if (!ai) return;
+    const request = aiRequest(recipe.question, recipe.title, { ...assessment, rules }, findings);
 
-    const verdict = job.verdict;
+    if ("off" in ai) {
+      job.verdict = { rules, ...assessment, ai: { status: "off", reason: ai.off } };
+    } else if (ai.ask) {
+      state.aiPending = request;
+      job.verdict = {
+        rules,
+        ...assessment,
+        ai: {
+          status: "awaiting-consent",
+          model: ai.writer.model,
+          preview: verdictPreview(ai.writer.model, request),
+        },
+      };
+    } else {
+      job.verdict = { rules, ...assessment, ai: { status: "running", model: ai.writer.model } };
+    }
+    this.emit(state, { type: "verdict", verdict: structuredClone(job.verdict) });
+    if (!("off" in ai) && !ai.ask) await this.writeVerdict(state, ai.writer, request);
+  }
+
+  /**
+   * The user's answer to the preview: send it to Claude, or keep the
+   * rule-based verdict. Returns false if this job is not waiting for one.
+   */
+  async consent(id: string, send: boolean): Promise<boolean> {
+    const state = this.jobs.get(id);
+    const verdict = state?.job.verdict;
+    const request = state?.aiPending;
+    if (!state || !verdict || !request || verdict.ai.status !== "awaiting-consent") return false;
+    delete state.aiPending;
+    if (!send) {
+      verdict.ai = {
+        status: "declined",
+        reason:
+          "You chose not to send this job's findings to Claude; this is Binlight's rule-based verdict.",
+      };
+      this.emit(state, { type: "verdict", verdict: structuredClone(verdict) });
+      return true;
+    }
+    // Settings may have changed while the preview was open.
+    const ai = (await this.deps.ai?.current()) ?? { off: "AI is off." };
+    if ("off" in ai) {
+      verdict.ai = { status: "failed", reason: `Not sent: ${ai.off}` };
+      this.emit(state, { type: "verdict", verdict: structuredClone(verdict) });
+      return true;
+    }
+    verdict.ai = { status: "running", model: ai.writer.model };
+    this.emit(state, { type: "verdict", verdict: structuredClone(verdict) });
+    void this.writeVerdict(state, ai.writer, request);
+    return true;
+  }
+
+  private async writeVerdict(state: JobState, writer: AiWriter, request: AiRequest): Promise<void> {
+    const verdict = state.job.verdict;
+    const findings = state.job.findings ?? [];
+    if (!verdict) return;
     try {
-      const body = await ai.write(
-        aiRequest(recipe.question, recipe.title, verdict, findings),
-        state.abort.signal,
-      );
+      const body = await writer.write(request, state.abort.signal);
       const check = validateVerdict(body, findings);
       verdict.ai = check.ok
-        ? { status: "used", model: ai.model, body }
+        ? { status: "used", model: writer.model, body }
         : {
             status: "rejected",
-            model: ai.model,
+            model: writer.model,
             reason: `Claude's version did not pass Binlight's checks, so the rule-based verdict is shown: ${check.reasons.join(" ")}`,
           };
     } catch (err) {
       if (state.abort.signal.aborted) return;
       verdict.ai = {
         status: "failed",
-        model: ai.model,
+        model: writer.model,
         reason: `Claude could not write the verdict, so the rule-based verdict is shown: ${err instanceof Error ? err.message : String(err)}`,
       };
     }

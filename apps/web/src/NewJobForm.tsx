@@ -1,6 +1,6 @@
 import type { RecipeInfo } from "@binlight/shared";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { createJob, listRecipes, uploadFile } from "./api.js";
+import { askForRecipe, createJob, listRecipes, uploadFile } from "./api.js";
 
 /** One target: an uploaded file or a path on this machine. */
 interface TargetInput {
@@ -8,7 +8,13 @@ interface TargetInput {
   file?: File | undefined;
 }
 
-export function NewJobForm({ onCreated }: { onCreated: (id: string) => void }) {
+export function NewJobForm({
+  onCreated,
+  aiOn,
+}: {
+  onCreated: (id: string) => void;
+  aiOn: boolean;
+}) {
   const [recipes, setRecipes] = useState<RecipeInfo[] | undefined>();
   const [recipeId, setRecipeId] = useState<string | undefined>();
   const [inputs, setInputs] = useState<TargetInput[]>([{ path: "" }]);
@@ -16,6 +22,29 @@ export function NewJobForm({ onCreated }: { onCreated: (id: string) => void }) {
   const [busy, setBusy] = useState<string | undefined>();
   const [error, setError] = useState<string | undefined>();
   const form = useRef<HTMLFormElement>(null);
+  const [question, setQuestion] = useState("");
+  const [suggestion, setSuggestion] = useState<string | undefined>();
+
+  async function ask() {
+    setSuggestion(undefined);
+    setError(undefined);
+    setBusy("Asking Claude which recipe fits…");
+    try {
+      const s = await askForRecipe(question);
+      if (s.recipe) {
+        setRecipeId(s.recipe);
+        setSuggestion(
+          `Picked "${recipes?.find((r) => r.id === s.recipe)?.title ?? s.recipe}": ${s.reason}`,
+        );
+      } else {
+        setSuggestion(`No recipe covers this yet: ${s.reason}`);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(undefined);
+    }
+  }
 
   useEffect(() => {
     listRecipes().then(
@@ -77,6 +106,31 @@ export function NewJobForm({ onCreated }: { onCreated: (id: string) => void }) {
   return (
     <form ref={form} className="card" onSubmit={(e) => void submit(e)}>
       <h2>New job</h2>
+      {aiOn && recipes && (
+        <div className="ask">
+          <label>
+            Ask in your own words
+            <span className="ask-row">
+              <input
+                type="text"
+                placeholder="Does this phone home?"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+              />
+              <button
+                type="button"
+                className="secondary"
+                disabled={!question.trim() || busy !== undefined}
+                onClick={() => void ask()}
+              >
+                Find a recipe
+              </button>
+            </span>
+          </label>
+          <p className="hint">Your question and the list of recipes are sent to Claude.</p>
+          {suggestion && <p className="small">{suggestion}</p>}
+        </div>
+      )}
       {!recipes && !error && <p className="muted">Loading recipes…</p>}
       {recipes && (
         <fieldset className="recipes">

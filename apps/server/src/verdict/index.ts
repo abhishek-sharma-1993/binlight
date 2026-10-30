@@ -3,6 +3,10 @@ export {
   AiWriteError,
   claudeWriter,
   DEFAULT_AI_MODEL,
+  describeApiError,
+  suggestRecipe,
+  verdictParams,
+  verdictPreview,
   type AiRequest,
   type AiWriter,
 } from "./ai.js";

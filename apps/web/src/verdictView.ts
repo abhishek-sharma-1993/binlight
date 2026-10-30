@@ -24,6 +24,14 @@ export function verdictView(verdict: Verdict): VerdictView {
         status: `Binlight's rule-based verdict. Claude (${ai.model ?? ""}) is rewriting it in plain English…`,
         alert: false,
       };
+    case "awaiting-consent":
+      return {
+        body: verdict.rules,
+        status: `Binlight's rule-based verdict. Claude (${ai.model ?? ""}) can rewrite it in plain English: check what would be sent below.`,
+        alert: false,
+      };
+    case "declined":
+      return { body: verdict.rules, status: ai.reason ?? "Not sent to Claude.", alert: false };
     case "off":
       return {
         body: verdict.rules,

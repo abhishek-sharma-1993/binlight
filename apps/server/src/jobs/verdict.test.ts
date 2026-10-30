@@ -4,11 +4,13 @@ import { AiWriteError, type AiWriter } from "../verdict/index.js";
 import { deps, dockerRoute, evidence, fakeSession } from "./fakes.js";
 import { JobManager } from "./manager.js";
 
-const writer = (write: AiWriter["write"]): AiWriter => ({ model: "claude-opus-5-5", write });
+const writer = (write: AiWriter["write"]) => ({
+  current: async () => ({ writer: { model: "claude-opus-5-5", write }, ask: false }),
+});
 const strings = async () =>
   evidence("list_strings", [{ address: "0x1", value: "https://kubernetes.io/docs" }]);
 
-async function run(ai?: AiWriter) {
+async function run(ai?: ReturnType<typeof writer>) {
   const jobs = new JobManager({
     ...deps(fakeSession(dockerRoute, { list_strings: strings })),
     ...(ai && { ai }),
