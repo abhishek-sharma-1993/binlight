@@ -497,3 +497,12 @@ button.secondary {
   margin-top: 8px;
   flex-wrap: wrap;
 }
+a.button {
+  font: inherit;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  text-decoration: none;
+  white-space: nowrap;
+}

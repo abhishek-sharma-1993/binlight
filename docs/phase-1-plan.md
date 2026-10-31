@@ -83,14 +83,19 @@ confidence (observed | inferred), caveats}`. Each evidence reference is an
       showing the exact request (built by the same code that sends it); the
       question box from task 1. Verified against the real Claude API with
       fabricated keys (refused, nothing stored; send → 401 → rule-based
-      verdict). Not yet verified: a real key's Keychain round trip and a
-      successful Claude rewrite (needs the owner's key)._
-- [ ] **5. HTML export.** One self-contained file: no external requests, a
+      verdict). A real key's Keychain round trip and a successful Claude
+      rewrite are **deferred by the owner's choice (31 Oct)**: Binlight runs
+      local-only, with no API spend; the AI path stays in place, tested
+      against the real API's error paths, and works once a key is added._
+- [x] **5. HTML export.** One self-contained file: no external requests, a
       strict CSP, and it opens offline. It holds the verdict, the findings, an
       excerpt of every cited evidence record, the binary's identity (SHA-256,
       REA version, provider, Binlight version), what wasn't analysed and why,
       and the authorised-use note. Size budget ~2 MB. Tests: every cited
       evidence ID is present in the file; no network access when opened.
+      _Done 31 Oct (`apps/server/src/export/`): kubectl 35 KB, Ollama 19 KB.
+      Opened served from a throwaway local server: one request (the file
+      itself), no scripts, every cited evidence ID has its excerpt._
 - [ ] **6. Step feed.** Plain-language step labels and "why this step", the
       expected duration from this machine's history ("kubectl's analysis took
       16 min last time"), cache reuse called out, and failures shown with

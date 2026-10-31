@@ -73,6 +73,16 @@ export function JobView({ jobId }: { jobId: string }) {
               Cancel
             </button>
           )}
+          {!active && (
+            <a
+              className="button"
+              href={`/api/jobs/${encodeURIComponent(job.id)}/export`}
+              download
+              title="One self-contained HTML file: opens offline, safe to share"
+            >
+              Download report
+            </a>
+          )}
         </div>
       </div>
       {cancelError && <p className="error">Cancel failed: {cancelError}</p>}

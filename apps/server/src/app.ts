@@ -1,5 +1,6 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import type { JobEvent } from "@binlight/shared";
+import { exportReport, reportFileName } from "./export/index.js";
 import { JobRequestError, type JobManager } from "./jobs/manager.js";
 import { recipeInfo, RECIPES, type Recipe } from "./recipes/index.js";
 import { AiSettingsError, type AiService } from "./settings/index.js";
@@ -212,6 +213,19 @@ export function createApp(deps: AppDeps): Server {
           const action = parts[3];
           if (!action && method === "GET") return send(res, 200, job);
           if (action === "events" && method === "GET") return streamEvents(req, res, jobs, id);
+          if (action === "export" && method === "GET") {
+            if (job.status === "queued" || job.status === "running") {
+              throw new HttpError(409, "The job is still running; export it when it has finished.");
+            }
+            const html = await exportReport(job, (step) => jobs.result(id, step));
+            res.writeHead(200, {
+              "content-type": "text/html; charset=utf-8",
+              "content-disposition": `attachment; filename="${reportFileName(job)}"`,
+              "x-content-type-options": "nosniff",
+              "cache-control": "no-store",
+            });
+            return res.end(html);
+          }
           if (action === "ai-consent" && method === "POST") {
             const body = (await readJson(req)) as { send?: unknown };
             if (typeof body.send !== "boolean")

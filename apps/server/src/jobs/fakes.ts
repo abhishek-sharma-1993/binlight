@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type { PreflightReport, RouteDecision } from "@binlight/shared";
 import type { CallOptions, ReaToolResult } from "../rea/client.js";
 import type { JobDeps, JobSession } from "./manager.js";
@@ -6,9 +7,10 @@ import type { JobDeps, JobSession } from "./manager.js";
 
 const hex = (c: string) => c.repeat(64);
 
+/** Like REA, every record gets its own evidence id (here: derived from the operation). */
 export function evidence(operation: string, normalized: unknown) {
   return {
-    evidence_id: `ev_${hex("a")}`,
+    evidence_id: `ev_${createHash("sha256").update(operation).digest("hex")}`,
     subject: {
       name: "tool",
       digest: { sha256: hex("b") },

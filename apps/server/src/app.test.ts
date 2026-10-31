@@ -177,6 +177,15 @@ describe("server", () => {
     expect(again[0]).toMatchObject({ type: "snapshot", job: { id: job.id, status: "done" } });
 
     expect((await call("POST", `/api/jobs/${job.id}/cancel`)).status).toBe(409);
+
+    // A finished job downloads as one HTML file.
+    const exported = await fetch(`http://127.0.0.1:${port}/api/jobs/${job.id}/export`);
+    expect(exported.status).toBe(200);
+    expect(exported.headers.get("content-type")).toBe("text/html; charset=utf-8");
+    expect(exported.headers.get("content-disposition")).toMatch(
+      /^attachment; filename="binlight-tool-raw-analysis-\d{4}-\d{2}-\d{2}\.html"$/,
+    );
+    expect(await exported.text()).toMatch(/^<!doctype html>/);
     expect((await call("GET", "/api/jobs/does-not-exist")).status).toBe(404);
   });
 });

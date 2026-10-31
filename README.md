@@ -130,6 +130,18 @@ shows the rule-based verdict with the reason.
 With Claude on, a question box maps a question in your own words to a recipe
 (or says no recipe covers it); the question and the recipe list are sent.
 
+## Sharing a report
+
+**Download report** on a finished job (or `GET /api/jobs/:id/export`) gives
+one self-contained HTML file to share: the verdict and where it came from,
+confidence and what wasn't checked, findings with caveats, an excerpt of every
+cited REA evidence record, and the identity of what was analysed (SHA-256, REA
+version, provider, Binlight version). It has no scripts and loads nothing (its
+own Content-Security-Policy is `default-src 'none'`), so it opens offline.
+Text from the binary is escaped, string evidence appears only as short
+snippets, credential-shaped values are truncated, and the file stays under
+about 2 MB (anything left out is announced).
+
 ## Docker runner (deep analysis on Apple Silicon)
 
 Ghidra ships no arm64 macOS decompiler, so on Apple Silicon deep analysis runs
