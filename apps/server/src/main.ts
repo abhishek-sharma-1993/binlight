@@ -1,5 +1,6 @@
 import { createApp } from "./app.js";
 import { EvidenceCache } from "./cache/evidence.js";
+import { HistoryFile } from "./history/history.js";
 import { JobManager } from "./jobs/manager.js";
 import { preflight } from "./preflight/index.js";
 import { formatReaLog } from "./rea/log.js";
@@ -19,6 +20,7 @@ const ai = new AiService(new SettingsFile(settingsPath), new MacKeychain());
 const jobs = new JobManager({
   cache: new EvidenceCache(),
   ai,
+  history: new HistoryFile(),
   preflight: (path) => preflight(path),
   openSession: (path, deep, onLog) =>
     openReaSession(path, deep, {

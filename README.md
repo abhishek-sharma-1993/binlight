@@ -103,6 +103,16 @@ Nothing is evicted yet; delete the folder to reclaim space.
 
 The server listens on 127.0.0.1 only and rejects non-local `Host` headers.
 
+## Expected durations
+
+Each live step's duration is appended to `~/.binlight/history.jsonl`, keyed by
+the analysed bytes' SHA-256 and size, the tool, the route, and whether that call
+carried the disassembler's analysis. A running step then shows what to expect:
+how long **the same binary** took last time, or, for a new binary's analysis,
+an **estimate by size** from earlier analyses on this machine (labelled as
+one). With no history it shows no number. Cached steps say when the reused
+result was produced.
+
 ## Findings and verdict
 
 After a job's last step, the recipe's **rules** turn REA's results into

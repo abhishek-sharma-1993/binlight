@@ -66,7 +66,7 @@ describe("findings in jobs", () => {
     const runs = Object.fromEntries((job?.rules ?? []).map((r) => [r.id, r]));
     expect(runs["hardcoded-hosts"]).toMatchObject({
       status: "not-run",
-      reason: "Needs results that this job doesn't have: List strings.",
+      reason: "Needs results that this job doesn't have: List the text it contains.",
     });
     expect(runs["go-build-info"]?.status).toBe("ran");
     expect(job?.findings?.some((f) => f.rule === "hardcoded-hosts")).toBe(false);

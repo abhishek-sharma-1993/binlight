@@ -1,7 +1,16 @@
 import type { JobStep, PreflightReport } from "@binlight/shared";
 import { useEffect, useReducer, useState } from "react";
 import { cancelJob, stepResult, watchJob } from "./api.js";
-import { formatDuration, JOB_STATUS_TEXT, STATUS_ICON, stepDetail, stepElapsed } from "./format.js";
+import {
+  cacheText,
+  expectationText,
+  expectedProgress,
+  formatDuration,
+  JOB_STATUS_TEXT,
+  STATUS_ICON,
+  stepDetail,
+  stepElapsed,
+} from "./format.js";
 import { Findings } from "./Findings.js";
 import { Verdict } from "./Verdict.js";
 import { applyEvent } from "./jobState.js";
@@ -141,7 +150,18 @@ function StepRow({ jobId, step, now }: { jobId: string; step: JobStep; now: numb
             {elapsed !== undefined ? formatDuration(elapsed) : ""}
           </span>
         </div>
-        {step.why && step.status === "pending" && <p className="muted small">{step.why}</p>}
+        {step.why && (step.status === "pending" || step.status === "running") && (
+          <p className="muted small">{step.why}</p>
+        )}
+        {expectationText(step, now) && (
+          <p className={`small ${step.status === "running" ? "expected" : "muted"}`}>
+            {expectationText(step, now)}
+          </p>
+        )}
+        {expectedProgress(step, now) !== undefined && (
+          <progress className="expected" value={expectedProgress(step, now)} max={1} />
+        )}
+        {cacheText(step) && <p className="muted small">{cacheText(step)}</p>}
         {detail.kind === "summary" && <p>{detail.text}</p>}
         {detail.kind === "status" && <p className="muted">{detail.text}</p>}
         {detail.kind === "skipped" && <p className="muted">Skipped: {detail.reason}</p>}

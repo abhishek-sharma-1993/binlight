@@ -107,6 +107,7 @@ export async function preflight(
   let analysisPath: string | undefined;
   let analysisArchitecture: string | undefined;
   let analysisSha256: string | undefined;
+  let analysisBytes: number | undefined;
   if (native?.format === "mach-o-universal") {
     const slice = preferredSlice(native.slices ?? [], options.hostArch);
     if (!slice || !native.sha256) {
@@ -125,6 +126,7 @@ export async function preflight(
         );
         analysisArchitecture = slice.architecture;
         analysisSha256 = await sha256Of(analysisPath);
+        analysisBytes = slice.size;
         issues.push({
           severity: "note",
           code: "thinned_universal",
@@ -142,6 +144,7 @@ export async function preflight(
     analysisPath = native.path;
     analysisArchitecture = native.architectures[0];
     analysisSha256 = native.sha256;
+    if (native.bytes !== undefined) analysisBytes = native.bytes;
   }
 
   // Provider health only matters once there is something to analyse.
@@ -165,6 +168,7 @@ export async function preflight(
     ...(analysisPath !== undefined && { analysisPath }),
     ...(analysisArchitecture !== undefined && { analysisArchitecture }),
     ...(analysisSha256 !== undefined && { analysisSha256 }),
+    ...(analysisBytes !== undefined && { analysisBytes }),
     ...(deep && { deep }),
     routes,
     issues,

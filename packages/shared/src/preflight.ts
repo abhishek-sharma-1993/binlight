@@ -53,6 +53,8 @@ export interface PreflightReport {
   analysisArchitecture?: string;
   /** SHA-256 of the exact bytes REA analyses (the slice, for a universal binary). */
   analysisSha256?: string;
+  /** Size of those bytes. */
+  analysisBytes?: number;
   /** Chosen deep-analysis route, or undefined when none works. */
   deep?: RouteDecision;
   /** Every route considered, in preference order, with why it was or wasn't chosen. */

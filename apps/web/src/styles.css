@@ -506,3 +506,12 @@ a.button {
   text-decoration: none;
   white-space: nowrap;
 }
+p.expected {
+  color: var(--running);
+}
+progress.expected {
+  width: 100%;
+  max-width: 360px;
+  height: 6px;
+  accent-color: var(--running);
+}

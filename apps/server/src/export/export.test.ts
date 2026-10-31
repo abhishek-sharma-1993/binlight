@@ -88,7 +88,9 @@ describe("HTML export", () => {
         });
       },
     });
-    expect(html).toContain("List strings: failed (resource_constraint: too big for stdio)");
+    expect(html).toContain(
+      "List the text it contains: failed (resource_constraint: too big for stdio)",
+    );
     expect(html).toContain("not run");
   });
 

@@ -70,6 +70,22 @@ export interface JobStep {
   cached?: boolean;
   /** When the cached result was first produced. */
   cachedAt?: string;
+  /** How long this step is expected to take, from this machine's history (absent if unknown). */
+  expected?: StepExpectation;
+}
+
+/**
+ * An expectation from past runs on this machine. "same-binary": these exact
+ * bytes took this long last time. "size-scaled": earlier analyses of other
+ * binaries, scaled by size: an estimate, and labelled as one.
+ */
+export interface StepExpectation {
+  ms: number;
+  basis: "same-binary" | "size-scaled";
+  /** How many past runs it rests on. */
+  samples: number;
+  /** When the same binary last ran this step ("same-binary" only). */
+  lastAt?: string;
 }
 
 export interface Job {

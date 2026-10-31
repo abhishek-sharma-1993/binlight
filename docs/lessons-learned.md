@@ -48,6 +48,19 @@ executable_missing`. Building it from the release's Makefile fails: its
   server launched by a desktop app. Binlight must pass `GHIDRA_INSTALL_DIR` and
   the timeouts explicitly when it spawns `rea --mcp`.
 
+## Step durations (Oct 31 2026, M2, Docker Ghidra)
+
+- Analysis time is stable run to run: kubectl 1.37.1 took 977.5 s at the gate
+  and 978.4 s eight days later; the 2.7 MB Go fixture 79 s and 85 s.
+- **Scaling time per byte from a small binary overestimates big ones about
+  2x**: Ghidra's start-up cost dominates small binaries (fixture-only estimate
+  for kubectl: 32 min; actual: 16.3 min). With samples of different sizes,
+  fixed + per-byte fits well: 42 s + 15.3 s per MB on this Mac.
+- `list_strings` on kubectl took 74 s (fresh), `list_procedures` 19 s; the
+  rest are seconds or less.
+- The auto-reloading dev server restarts on any server code edit and drops
+  in-memory jobs, killing a running analysis: use `npm run serve` for long runs.
+
 ## Claude API and Keychain (Oct 30 2026)
 
 - `security -i` runs commands read from stdin (so a secret never appears in a

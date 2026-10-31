@@ -155,7 +155,7 @@ describe("JobManager", () => {
     expect(s["overview"]?.summary).toBeUndefined();
     expect(s["strings"]).toMatchObject({
       status: "skipped",
-      reason: expect.stringContaining("overview"),
+      reason: expect.stringContaining("Analyse with the disassembler"),
     });
     expect(fake.calls).not.toContain("list_strings");
     expect(fake.calls.at(-1)).toBe("close_binary");

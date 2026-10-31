@@ -10,6 +10,7 @@ import type {
   StepId,
 } from "@binlight/shared";
 import { argsVariant, type CacheKey, type EvidenceCache } from "../cache/evidence.js";
+import type { StepHistory, StepKind } from "../history/history.js";
 import type { CallOptions, ReaToolResult } from "../rea/client.js";
 import { PINNED_REA_VERSION } from "../rea/version.js";
 import {
@@ -68,6 +69,8 @@ export interface JobDeps {
   reaVersion?: string;
   /** AI settings, read when a verdict is due; without one every job is local-only. */
   ai?: AiProvider;
+  /** Past step durations on this machine, for expectations; none means no expectations. */
+  history?: StepHistory;
 }
 
 export interface CreateJob {
@@ -102,6 +105,12 @@ const MAX_LOG_LINE = 500;
 const FROM_CACHE = "Not needed: every result came from the evidence cache.";
 
 type Listener = (event: JobEvent) => void;
+
+/** What a live step is, for its expectation and for recording how long it took. */
+interface Timing extends StepKind {
+  sha256: string;
+  bytes: number | undefined;
+}
 
 interface CacheRef {
   key: CacheKey;
@@ -325,6 +334,10 @@ export class JobManager {
     const report = job.preflights[t] as PreflightReport;
     const deep = report.deep;
     const recipeSteps = stepsFor(recipe, t);
+    const timing = (kind: StepKind): Timing | undefined =>
+      report.analysisSha256
+        ? { ...kind, sha256: report.analysisSha256, bytes: report.analysisBytes }
+        : undefined;
     const noDeepReason =
       report.issues.find((i) => i.code === "no_deep_route")?.message ?? "No deep-analysis route.";
 
@@ -354,19 +367,30 @@ export class JobManager {
       this.setStatus(state, "running");
       this.skip(state, id("start"), FROM_CACHE);
     } else {
-      const started = await this.step(state, id("start"), async () => {
-        // Provider-free steps only: local REA, no disassembler or container.
-        const route = needsOpen ? deep : undefined;
-        const session = await this.deps.openSession(report.analysisPath as string, route, (line) =>
-          this.emit(state, { type: "log", line: line.slice(0, MAX_LOG_LINE) }),
-        );
-        state.session = session;
-        job.reaVersion = session.rea.version;
-        this.setStatus(state, "running");
-        return {
-          summary: `REA ${session.rea.version}${session.deep ? ` (${session.deep.route})` : " (local, no deep provider)"}`,
-        };
-      });
+      const started = await this.step(
+        state,
+        id("start"),
+        async () => {
+          // Provider-free steps only: local REA, no disassembler or container.
+          const route = needsOpen ? deep : undefined;
+          const session = await this.deps.openSession(
+            report.analysisPath as string,
+            route,
+            (line) => this.emit(state, { type: "log", line: line.slice(0, MAX_LOG_LINE) }),
+          );
+          state.session = session;
+          job.reaVersion = session.rea.version;
+          this.setStatus(state, "running");
+          return {
+            summary: `REA ${session.rea.version}${session.deep ? ` (${session.deep.route})` : " (local, no deep provider)"}`,
+          };
+        },
+        timing({
+          tool: "start",
+          route: needsOpen && deep ? deep.route : "local",
+          carriesAnalysis: false,
+        }),
+      );
       if (!started.ok) return this.skipTarget(state, t, "REA did not start.");
     }
     const session = state.session;
@@ -377,13 +401,18 @@ export class JobManager {
       else if (!needsOpen) this.skip(state, id("open"), FROM_CACHE);
       else if (session) {
         opened = (
-          await this.step(state, id("open"), async () => {
-            await this.call(state, id("open"), "open_binary", this.timeouts.deep, {
-              path: session.target,
-              provider_id: deep.providerId,
-            });
-            return { summary: `Opened with ${deep.providerId}` };
-          })
+          await this.step(
+            state,
+            id("open"),
+            async () => {
+              await this.call(state, id("open"), "open_binary", this.timeouts.deep, {
+                path: session.target,
+                provider_id: deep.providerId,
+              });
+              return { summary: `Opened with ${deep.providerId}` };
+            },
+            timing({ tool: "open_binary", route: deep.route, carriesAnalysis: false }),
+          )
         ).ok;
       }
     }
@@ -410,30 +439,46 @@ export class JobManager {
       }
       const carriesAnalysis = !hit && rs.deep && !analysisTried;
       if (carriesAnalysis) analysisTried = true;
-      const { ok } = await this.step(state, sid, async () => {
-        if (hit) return hit;
-        const args = rs.args?.(session?.target ?? "") ?? {};
-        const result = await this.call(
-          state,
-          sid,
-          rs.tool,
-          rs.deep ? this.timeouts.deep : this.timeouts.light,
-          args,
-        );
-        const outcome = rs.outcome(result);
-        await this.save(state, sid, outcome);
-        return outcome;
-      });
+      const { ok } = await this.step(
+        state,
+        sid,
+        async () => {
+          if (hit) return hit;
+          const args = rs.args?.(session?.target ?? "") ?? {};
+          const result = await this.call(
+            state,
+            sid,
+            rs.tool,
+            rs.deep ? this.timeouts.deep : this.timeouts.light,
+            args,
+          );
+          const outcome = rs.outcome(result);
+          await this.save(state, sid, outcome);
+          return outcome;
+        },
+        hit
+          ? undefined
+          : timing({
+              tool: rs.tool,
+              route: rs.deep && deep ? deep.route : "local",
+              carriesAnalysis,
+            }),
+      );
       if (!ok && carriesAnalysis) analysisFailed = rs.label;
       if (this.stopped(state)) return;
     }
 
     if (hasDeepSteps) {
       if (opened) {
-        await this.step(state, id("close"), async () => {
-          await this.call(state, id("close"), "close_binary", this.timeouts.light, {});
-          return { summary: "Closed" };
-        });
+        await this.step(
+          state,
+          id("close"),
+          async () => {
+            await this.call(state, id("close"), "close_binary", this.timeouts.light, {});
+            return { summary: "Closed" };
+          },
+          deep && timing({ tool: "close_binary", route: deep.route, carriesAnalysis: false }),
+        );
       } else {
         this.skip(
           state,
@@ -625,8 +670,15 @@ export class JobManager {
     state: JobState,
     id: StepId,
     work: () => Promise<StepOutcome>,
+    timing?: Timing,
   ): Promise<{ ok: boolean }> {
     const step = this.findStep(state, id);
+    if (timing && this.deps.history) {
+      const expected = await this.deps.history
+        .expect(timing, timing.sha256, timing.bytes)
+        .catch(() => undefined);
+      if (expected) step.expected = expected;
+    }
     const started = Date.now();
     step.status = "running";
     step.startedAt = new Date(started).toISOString();
@@ -646,6 +698,25 @@ export class JobManager {
         // With a cache, analysis results are read back from disk on request.
         if (!(this.deps.cache && state.cacheRefs.has(id))) state.results.set(id, outcome.result);
         step.hasResult = true;
+      }
+      if (timing && !outcome.cachedAt && this.deps.history) {
+        const { sha256, bytes, tool, route, carriesAnalysis } = timing;
+        await this.deps.history
+          .record({
+            at: new Date().toISOString(),
+            sha256,
+            bytes: bytes ?? 0,
+            tool,
+            route,
+            carriesAnalysis,
+            elapsedMs: Date.now() - started,
+          })
+          .catch((err: unknown) =>
+            this.emit(state, {
+              type: "log",
+              line: `history: could not record ${id}: ${String(err)}`,
+            }),
+          );
       }
       return { ok: true };
     } catch (err) {
@@ -754,8 +825,8 @@ function planSteps(recipe: Recipe, targets: string[]): JobStep[] {
       ...(tool && { tool }),
       status: "pending",
     });
-    steps.push(system("preflight", "Check the target and this machine"));
-    steps.push(system("start", "Start REA"));
+    steps.push(system("preflight", "Check the file and this machine"));
+    steps.push(system("start", "Start the analysis engine (REA)"));
     if (deep) steps.push(system("open", "Open the binary", "open_binary"));
     for (const rs of own) {
       steps.push({

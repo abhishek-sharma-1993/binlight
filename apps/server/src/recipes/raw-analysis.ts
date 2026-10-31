@@ -27,7 +27,7 @@ export const rawAnalysis: Recipe = {
     },
     {
       id: "overview",
-      label: "Analyse (overview)",
+      label: "Analyse with the disassembler",
       why: "Runs the disassembler's analysis once; every later step reuses it.",
       tool: "binary_overview",
       deep: true,
@@ -35,7 +35,7 @@ export const rawAnalysis: Recipe = {
     },
     {
       id: "strings",
-      label: "List strings",
+      label: "List the text it contains",
       why: "Text the binary contains: URLs, messages, names.",
       tool: "list_strings",
       deep: true,
@@ -43,7 +43,7 @@ export const rawAnalysis: Recipe = {
     },
     {
       id: "procedures",
-      label: "List procedures",
+      label: "List its functions",
       why: "Every function the disassembler found, by name and address.",
       tool: "list_procedures",
       deep: true,

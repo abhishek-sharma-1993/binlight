@@ -96,10 +96,14 @@ confidence (observed | inferred), caveats}`. Each evidence reference is an
       _Done 31 Oct (`apps/server/src/export/`): kubectl 35 KB, Ollama 19 KB.
       Opened served from a throwaway local server: one request (the file
       itself), no scripts, every cited evidence ID has its excerpt._
-- [ ] **6. Step feed.** Plain-language step labels and "why this step", the
+- [x] **6. Step feed.** Plain-language step labels and "why this step", the
       expected duration from this machine's history ("kubectl's analysis took
       16 min last time"), cache reuse called out, and failures shown with
       REA's code, message and fix (already true; keep it).
+      _Done 31 Oct: durations recorded in `~/.binlight/history.jsonl`; running
+      steps show the same binary's last time, or a size-scaled estimate
+      (fixed + per-byte fit) labelled as one, or nothing. Real: fixture
+      "about 1 min" vs 1 min 25 s; Ollama "about 7 min" vs 7 min 51 s._
 
 ### B. Recipe 1: What's inside? (no decompiler)
 
