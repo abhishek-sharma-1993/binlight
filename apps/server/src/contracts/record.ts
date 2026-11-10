@@ -30,6 +30,7 @@ try {
     session.rea,
     session.target,
     provider,
+    { onHost: runner === "local" },
   );
   if (schemaProblems.length > 0) {
     console.error("REA responses do not match src/rea/schemas.ts; nothing written:");

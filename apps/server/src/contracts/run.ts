@@ -27,9 +27,13 @@ const SAMPLE_ITEMS = 5;
 type Args = (target: string) => Record<string, unknown>;
 
 /** The tools Binlight calls, in session order: one open, many reads, one close. */
-const STEPS: { tool: string; args: Args }[] = [
+const STEPS: { tool: string; args: Args; hostOnly?: boolean }[] = [
   { tool: "inspect_go_binary", args: (t) => ({ path: t }) },
+  { tool: "inspect_rust_binary", args: (t) => ({ path: t }) },
   { tool: "open_binary", args: (t) => ({ path: t }) },
+  // Apple's tools on the Mac itself: "capability_unavailable" inside the Linux runner.
+  { tool: "inspect_macho", args: () => ({ detail: "complete" }), hostOnly: true },
+  { tool: "inspect_signature", args: () => ({}), hostOnly: true },
   { tool: "binary_overview", args: () => ({}) },
   { tool: "list_strings", args: () => ({}) },
   { tool: "list_procedures", args: () => ({}) },
@@ -127,17 +131,19 @@ export async function recordContracts(
   rea: ReaClient,
   target: string,
   provider?: string,
+  options: { onHost?: boolean } = {},
 ): Promise<ContractRun> {
+  const wanted = STEPS.filter((s) => !s.hostOnly || options.onHost);
   const schemaIssues: string[] = [];
   const tools = await rea.listTools();
-  const used = new Set([...STEPS, ...ERROR_CASES].map((s) => s.tool));
+  const used = new Set([...wanted, ...ERROR_CASES].map((s) => s.tool));
   const inputSchemas = Object.fromEntries(
     tools.filter((t) => used.has(t.name)).map((t) => [t.name, t.inputSchema]),
   );
 
   const steps: StepRecord[] = [];
   let chosenProvider: string | undefined;
-  for (const step of STEPS) {
+  for (const step of wanted) {
     const args = step.args(target);
     if (step.tool === "open_binary" && provider) args["provider_id"] = provider;
     const { structured } = await rea.callTool(step.tool, args, { timeoutMs: CALL_TIMEOUT_MS });

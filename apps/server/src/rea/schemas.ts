@@ -90,6 +90,46 @@ export const toolSchemas = {
         .nullable(),
     }),
   ),
+  inspect_rust_binary: evidence(
+    z.object({
+      format: z.string(),
+      architecture: z.string().nullable(),
+      // Shape confirmed only for "absent" so far (null); read defensively by the rule
+      // until a cargo-auditable fixture is recorded (phase 1 task 8).
+      auditable_metadata: z.unknown(),
+      rustc_commit: z.string().nullable(),
+    }),
+  ),
+  inspect_macho: evidence(
+    z.object({
+      format: z.string(),
+      build_metadata: z.object({
+        items: z.array(
+          z.object({
+            platform: z.string(),
+            minimum_os: z.string().nullish(),
+            sdk: z.string().nullish(),
+          }),
+        ),
+      }),
+      dependencies: z.object({
+        items: z.array(z.object({ path: z.string(), kind: z.string() })),
+        total: count,
+        exhaustive: z.boolean(),
+      }),
+    }),
+  ),
+  inspect_signature: evidence(
+    z.object({
+      signed: z.boolean(),
+      identifier: z.string().nullish(),
+      team_identifier: z.string().nullish(),
+      authorities: z.array(z.string()).nullish(),
+      timestamp: z.string().nullish(),
+      hardened_runtime: z.boolean().nullish(),
+      entitlements: z.unknown(),
+    }),
+  ),
 } as const;
 
 export type ContractTool = keyof typeof toolSchemas;

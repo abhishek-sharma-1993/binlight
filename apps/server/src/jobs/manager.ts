@@ -8,6 +8,7 @@ import type {
   PreflightReport,
   RouteDecision,
   StepId,
+  TargetFormat,
 } from "@binlight/shared";
 import { argsVariant, type CacheKey, type EvidenceCache } from "../cache/evidence.js";
 import type { StepHistory, StepKind } from "../history/history.js";
@@ -341,11 +342,19 @@ export class JobManager {
     const noDeepReason =
       report.issues.find((i) => i.code === "no_deep_route")?.message ?? "No deep-analysis route.";
 
+    // What this binary is decides which steps apply ("Mach-O only" steps skip otherwise).
+    const format = analysedFormat(report);
+    const applies = (rs: RecipeStep) => !rs.formats || rs.formats.includes(format);
+    const runnable = (rs: RecipeStep) => applies(rs) && !(rs.deep && !deep);
+    const opens = (rs: RecipeStep) => rs.deep || rs.opens === true;
+    const formatReason = (rs: RecipeStep) =>
+      `Not for this file: it applies to ${rs.formats?.join(" or ")} binaries, and this is ${format}.`;
+
     // Cache first: a step is reused if this exact binary was analysed by the same
     // REA version and provider with the same arguments.
     const cached = new Map<string, StepOutcome>();
     for (const rs of recipeSteps) {
-      if (rs.deep && !deep) continue;
+      if (!runnable(rs)) continue;
       const key = this.cacheKey(report, rs);
       if (!key) continue;
       const ref = { key, tool: rs.tool, variant: argsVariant(rs.args?.("") ?? {}) };
@@ -358,21 +367,27 @@ export class JobManager {
         this.emit(state, { type: "log", line: `cache ${id(rs.id)}: ${read.reason}` });
       }
     }
-    const live = recipeSteps.filter((rs) => !(rs.deep && !deep) && !cached.has(rs.id));
-    const needsOpen = live.some((rs) => rs.deep);
-    const hasDeepSteps = recipeSteps.some((rs) => rs.deep);
+    const live = recipeSteps.filter((rs) => runnable(rs) && !cached.has(rs.id));
+    // A disassembler (and, on Apple Silicon, its container) only when a live step needs one.
+    const liveDeep = deep !== undefined && live.some((rs) => rs.deep);
+    const needsOpen = live.some(opens);
+    const hasOpenSteps = recipeSteps.some(opens);
 
     if (live.length === 0) {
       job.reaVersion = this.reaVersion;
       this.setStatus(state, "running");
-      this.skip(state, id("start"), FROM_CACHE);
+      this.skip(
+        state,
+        id("start"),
+        recipeSteps.some(runnable) ? FROM_CACHE : "Not needed: no step applies to this file.",
+      );
     } else {
       const started = await this.step(
         state,
         id("start"),
         async () => {
           // Provider-free steps only: local REA, no disassembler or container.
-          const route = needsOpen ? deep : undefined;
+          const route = liveDeep ? deep : undefined;
           const session = await this.deps.openSession(
             report.analysisPath as string,
             route,
@@ -387,7 +402,7 @@ export class JobManager {
         },
         timing({
           tool: "start",
-          route: needsOpen && deep ? deep.route : "local",
+          route: liveDeep && deep ? deep.route : "local",
           carriesAnalysis: false,
         }),
       );
@@ -395,23 +410,38 @@ export class JobManager {
     }
     const session = state.session;
 
+    // Why open (and close) are not needed, when they aren't.
+    const openSteps = recipeSteps.filter(opens);
+    const noOpenReason = openSteps.some(runnable)
+      ? FROM_CACHE
+      : openSteps.some((rs) => applies(rs))
+        ? noDeepReason
+        : "Not needed: no step that inspects the open binary applies to this file.";
+
     let opened = false;
-    if (hasDeepSteps) {
-      if (!deep) this.skip(state, id("open"), noDeepReason);
-      else if (!needsOpen) this.skip(state, id("open"), FROM_CACHE);
+    if (hasOpenSteps) {
+      if (!needsOpen) this.skip(state, id("open"), noOpenReason);
       else if (session) {
+        const provider = liveDeep && deep ? deep.providerId : undefined;
         opened = (
           await this.step(
             state,
             id("open"),
             async () => {
+              // Without a provider, REA opens lazily: nothing starts until a deep call.
               await this.call(state, id("open"), "open_binary", this.timeouts.deep, {
                 path: session.target,
-                provider_id: deep.providerId,
+                ...(provider && { provider_id: provider }),
               });
-              return { summary: `Opened with ${deep.providerId}` };
+              return {
+                summary: provider ? `Opened with ${provider}` : "Opened (no disassembler needed)",
+              };
             },
-            timing({ tool: "open_binary", route: deep.route, carriesAnalysis: false }),
+            timing({
+              tool: "open_binary",
+              route: liveDeep && deep ? deep.route : "local",
+              carriesAnalysis: false,
+            }),
           )
         ).ok;
       }
@@ -425,11 +455,15 @@ export class JobManager {
     for (const rs of recipeSteps) {
       const sid = id(rs.id);
       const hit = cached.get(rs.id);
+      if (!applies(rs)) {
+        this.skip(state, sid, formatReason(rs));
+        continue;
+      }
       if (rs.deep && !deep) {
         this.skip(state, sid, noDeepReason);
         continue;
       }
-      if (!hit && rs.deep && !opened) {
+      if (!hit && opens(rs) && !opened) {
         this.skip(state, sid, "Opening the binary failed (see above).");
         continue;
       }
@@ -468,7 +502,7 @@ export class JobManager {
       if (this.stopped(state)) return;
     }
 
-    if (hasDeepSteps) {
+    if (hasOpenSteps) {
       if (opened) {
         await this.step(
           state,
@@ -477,17 +511,21 @@ export class JobManager {
             await this.call(state, id("close"), "close_binary", this.timeouts.light, {});
             return { summary: "Closed" };
           },
-          deep && timing({ tool: "close_binary", route: deep.route, carriesAnalysis: false }),
+          timing({
+            tool: "close_binary",
+            route: liveDeep && deep ? deep.route : "local",
+            carriesAnalysis: false,
+          }),
         );
       } else {
         this.skip(
           state,
           id("close"),
-          !deep
-            ? noDeepReason
-            : needsOpen
-              ? "Opening the binary failed (see above)."
-              : "Not needed: nothing was opened.",
+          needsOpen
+            ? "Opening the binary failed (see above)."
+            : noOpenReason === FROM_CACHE
+              ? "Not needed: nothing was opened."
+              : noOpenReason,
         );
       }
     }
@@ -817,7 +855,7 @@ function planSteps(recipe: Recipe, targets: string[]): JobStep[] {
     const id = (base: string) => stepId(base, t, n);
     const suffix = n > 1 ? ` (${recipe.targetLabels[t]}: ${basename(targets[t] ?? "")})` : "";
     const own = stepsFor(recipe, t);
-    const deep = own.some((s) => s.deep);
+    const deep = own.some((s) => s.deep || s.opens === true);
     const system = (base: string, label: string, tool?: string): JobStep => ({
       id: id(base),
       label: label + suffix,
@@ -841,6 +879,12 @@ function planSteps(recipe: Recipe, targets: string[]): JobStep[] {
     if (deep) steps.push(system("close", "Close the binary", "close_binary"));
   }
   return steps;
+}
+
+/** The analysed file's format; a thinned universal binary is a plain Mach-O. */
+function analysedFormat(report: PreflightReport): TargetFormat {
+  const format = report.target.executable?.format ?? report.target.format;
+  return format === "mach-o-universal" ? "mach-o" : format;
 }
 
 function isFinished(status: JobStatus): boolean {

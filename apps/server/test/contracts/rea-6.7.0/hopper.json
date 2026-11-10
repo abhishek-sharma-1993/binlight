@@ -49,7 +49,55 @@
         {}
       ]
     },
+    "inspect_macho": {
+      "type": "object",
+      "properties": {
+        "detail": {
+          "description": "Omitted or complete returns the complete inspection Evidence. summary retains that complete Evidence in this session and returns its inspect_analysis_view summary; use normalized_result.parent_evidence_id for macho pages.",
+          "type": "string",
+          "enum": [
+            "complete",
+            "summary"
+          ]
+        }
+      },
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "examples": [
+        {}
+      ]
+    },
+    "inspect_signature": {
+      "type": "object",
+      "properties": {},
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "examples": [
+        {}
+      ]
+    },
     "inspect_go_binary": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\x00]*$",
+          "description": "Absolute filesystem path to the selected executable or library"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "examples": [
+        {
+          "path": "/artifacts/application"
+        }
+      ]
+    },
+    "inspect_rust_binary": {
       "type": "object",
       "properties": {
         "path": {
@@ -240,7 +288,7 @@
         "subject.name": "string"
       },
       "sample": {
-        "evidence_id": "ev_5298ec1d476b01bf96664064ad5f390cf82be5c8c7a8a1e5c36e3f07a739e5dc",
+        "evidence_id": "ev_cb00be93df104abc31a8c68249ced9cfc9ba956d453c446d10a5d25ca0d6efc9",
         "subject": {
           "name": "hello-go",
           "digest": {
@@ -353,6 +401,119 @@
       }
     },
     {
+      "tool": "inspect_rust_binary",
+      "args": {
+        "path": "$FIXTURE"
+      },
+      "shape": {
+        "$": "object",
+        "analysis_profile": "null",
+        "authority": "string",
+        "confidence": "string",
+        "environment": "null",
+        "evidence_id": "string",
+        "evidence_links": "array",
+        "limitations": "array",
+        "limitations[]": "string",
+        "locations": "array",
+        "locations[]": "object",
+        "locations[].kind": "string",
+        "locations[].path": "string",
+        "normalized_result": "object",
+        "normalized_result.architecture": "string",
+        "normalized_result.artifact": "object",
+        "normalized_result.artifact.bytes": "number",
+        "normalized_result.artifact.path": "string",
+        "normalized_result.artifact.sha256": "string",
+        "normalized_result.auditable_metadata": "null",
+        "normalized_result.bits": "number",
+        "normalized_result.byte_order": "string",
+        "normalized_result.format": "string",
+        "normalized_result.limitations": "array",
+        "normalized_result.limitations[]": "string",
+        "normalized_result.rustc_commit": "null",
+        "operation": "string",
+        "parameters": "object",
+        "parameters.path": "string",
+        "predicate_type": "string",
+        "provider": "object",
+        "provider.id": "string",
+        "provider.name": "string",
+        "provider.version": "string",
+        "raw_result": "null",
+        "relationship_coverage": "null",
+        "subject": "object",
+        "subject.architecture": "string",
+        "subject.digest": "object",
+        "subject.digest.sha256": "string",
+        "subject.format": "string",
+        "subject.local_path": "string",
+        "subject.name": "string"
+      },
+      "sample": {
+        "evidence_id": "ev_b0c035d58c1b4b09df8cba429101ded3755cc765498393a0c902d9ab3f9a40a0",
+        "subject": {
+          "name": "hello-go",
+          "digest": {
+            "sha256": "ccc7b51f764f14a50059510204a1b7f1c46ea4a6e77fc2b31e0dc82561647ad2"
+          },
+          "local_path": "$FIXTURE",
+          "format": "mach-o",
+          "architecture": "arm64"
+        },
+        "provider": {
+          "id": "rust-auditable",
+          "name": "REA Rust dependency reader",
+          "version": "1"
+        },
+        "analysis_profile": null,
+        "predicate_type": "rea.analysis",
+        "operation": "inspect_rust_binary",
+        "parameters": {
+          "path": "$FIXTURE"
+        },
+        "raw_result": null,
+        "normalized_result": {
+          "artifact": {
+            "path": "$FIXTURE",
+            "sha256": "ccc7b51f764f14a50059510204a1b7f1c46ea4a6e77fc2b31e0dc82561647ad2",
+            "bytes": 2718850
+          },
+          "format": "macho",
+          "architecture": "arm64",
+          "bits": 64,
+          "byte_order": "little",
+          "auditable_metadata": null,
+          "rustc_commit": null,
+          "limitations": [
+            "Embedded dependency metadata is file content. It does not authenticate package names, versions, sources, or the compiler that produced the binary.",
+            "Only the .dep-v0 dependency section and read-only compiler path strings are inspected. Functions, types, and runtime behavior are not recovered.",
+            "Resource guards bound the selected file to 256 MiB, a dependency section to 1 MiB, inflated JSON to the smaller of 8 MiB and 64 times the section size, and the complete report to 8 MiB. Package and dependency counts are admitted against that output budget before schema cloning, graph objects, or reverse-edge allocation.",
+            "No .dep-v0 section was found. Absence of .dep-v0 does not mean the binary has no dependencies.",
+            "No /rustc/<40-hex>/ path was found in read-only data, so a rustc commit hash is unknown."
+          ]
+        },
+        "confidence": "observed",
+        "authority": "shipped-artifact",
+        "environment": null,
+        "limitations": [
+          "Embedded dependency metadata is file content. It does not authenticate package names, versions, sources, or the compiler that produced the binary.",
+          "Only the .dep-v0 dependency section and read-only compiler path strings are inspected. Functions, types, and runtime behavior are not recovered.",
+          "Resource guards bound the selected file to 256 MiB, a dependency section to 1 MiB, inflated JSON to the smaller of 8 MiB and 64 times the section size, and the complete report to 8 MiB. Package and dependency counts are admitted against that output budget before schema cloning, graph objects, or reverse-edge allocation.",
+          "No .dep-v0 section was found. Absence of .dep-v0 does not mean the binary has no dependencies.",
+          "No /rustc/<40-hex>/ path was found in read-only data, so a rustc commit hash is unknown."
+        ],
+        "relationship_coverage": null,
+        "locations": [
+          {
+            "kind": "artifact-path",
+            "path": "$FIXTURE"
+          }
+        ],
+        "evidence_links": []
+      }
+    },
+    {
       "tool": "open_binary",
       "args": {
         "path": "$FIXTURE"
@@ -374,6 +535,1098 @@
           "sha256": "ccc7b51f764f14a50059510204a1b7f1c46ea4a6e77fc2b31e0dc82561647ad2",
           "architecture": "arm64"
         }
+      }
+    },
+    {
+      "tool": "inspect_macho",
+      "args": {
+        "detail": "complete"
+      },
+      "shape": {
+        "$": "object",
+        "analysis_profile": "null",
+        "authority": "string",
+        "confidence": "string",
+        "environment": "null",
+        "evidence_id": "string",
+        "evidence_links": "array",
+        "limitations": "array",
+        "limitations[]": "string",
+        "locations": "array",
+        "locations[]": "object",
+        "locations[].end": "absent|number",
+        "locations[].kind": "string",
+        "locations[].offset": "absent|number",
+        "locations[].start": "absent|number",
+        "normalized_result": "object",
+        "normalized_result.architectures": "object",
+        "normalized_result.architectures.exhaustive": "boolean",
+        "normalized_result.architectures.items": "array",
+        "normalized_result.architectures.items[]": "object",
+        "normalized_result.architectures.items[].alignment": "null",
+        "normalized_result.architectures.items[].cpu_subtype": "null",
+        "normalized_result.architectures.items[].cpu_type": "null",
+        "normalized_result.architectures.items[].file_offset": "null",
+        "normalized_result.architectures.items[].name": "string",
+        "normalized_result.architectures.items[].size": "null",
+        "normalized_result.architectures.limitations": "array",
+        "normalized_result.architectures.total": "number",
+        "normalized_result.build_metadata": "object",
+        "normalized_result.build_metadata.exhaustive": "boolean",
+        "normalized_result.build_metadata.items": "array",
+        "normalized_result.build_metadata.items[]": "object",
+        "normalized_result.build_metadata.items[].minimum_os": "string",
+        "normalized_result.build_metadata.items[].platform": "string",
+        "normalized_result.build_metadata.items[].sdk": "string",
+        "normalized_result.build_metadata.items[].tools": "array",
+        "normalized_result.build_metadata.limitations": "array",
+        "normalized_result.build_metadata.total": "number",
+        "normalized_result.dependencies": "object",
+        "normalized_result.dependencies.exhaustive": "boolean",
+        "normalized_result.dependencies.items": "array",
+        "normalized_result.dependencies.items[]": "object",
+        "normalized_result.dependencies.items[].compatibility_version": "string",
+        "normalized_result.dependencies.items[].current_version": "string",
+        "normalized_result.dependencies.items[].kind": "string",
+        "normalized_result.dependencies.items[].path": "string",
+        "normalized_result.dependencies.limitations": "array",
+        "normalized_result.dependencies.total": "number",
+        "normalized_result.endian": "string",
+        "normalized_result.entrypoints": "object",
+        "normalized_result.entrypoints.exhaustive": "boolean",
+        "normalized_result.entrypoints.items": "array",
+        "normalized_result.entrypoints.items[]": "object",
+        "normalized_result.entrypoints.items[].file_offset": "number",
+        "normalized_result.entrypoints.limitations": "array",
+        "normalized_result.entrypoints.total": "number",
+        "normalized_result.exports": "object",
+        "normalized_result.exports.exhaustive": "boolean",
+        "normalized_result.exports.items": "array",
+        "normalized_result.exports.limitations": "array",
+        "normalized_result.exports.limitations[]": "string",
+        "normalized_result.exports.total": "null",
+        "normalized_result.file_type": "string",
+        "normalized_result.flags": "array",
+        "normalized_result.flags[]": "string",
+        "normalized_result.format": "string",
+        "normalized_result.imports": "object",
+        "normalized_result.imports.exhaustive": "boolean",
+        "normalized_result.imports.items": "array",
+        "normalized_result.imports.items[]": "object",
+        "normalized_result.imports.items[].address": "null",
+        "normalized_result.imports.items[].name": "string",
+        "normalized_result.imports.items[].reexport": "null",
+        "normalized_result.imports.items[].source": "string",
+        "normalized_result.imports.items[].weak": "null",
+        "normalized_result.imports.limitations": "array",
+        "normalized_result.imports.limitations[]": "string",
+        "normalized_result.imports.total": "null",
+        "normalized_result.limitations": "array",
+        "normalized_result.limitations[]": "string",
+        "normalized_result.load_commands": "object",
+        "normalized_result.load_commands.exhaustive": "boolean",
+        "normalized_result.load_commands.items": "array",
+        "normalized_result.load_commands.items[]": "object",
+        "normalized_result.load_commands.items[].fields": "object",
+        "normalized_result.load_commands.items[].fields.bind_off": "number",
+        "normalized_result.load_commands.items[].fields.bind_size": "number",
+        "normalized_result.load_commands.items[].fields.cmd": "string",
+        "normalized_result.load_commands.items[].fields.cmdsize": "number",
+        "normalized_result.load_commands.items[].fields.compatibility version": "string",
+        "normalized_result.load_commands.items[].fields.current version": "string",
+        "normalized_result.load_commands.items[].fields.dataoff": "number",
+        "normalized_result.load_commands.items[].fields.datasize": "number",
+        "normalized_result.load_commands.items[].fields.entryoff": "number",
+        "normalized_result.load_commands.items[].fields.export_off": "number",
+        "normalized_result.load_commands.items[].fields.export_size": "number",
+        "normalized_result.load_commands.items[].fields.extrefsymoff": "number",
+        "normalized_result.load_commands.items[].fields.extreloff": "number",
+        "normalized_result.load_commands.items[].fields.fileoff": "number",
+        "normalized_result.load_commands.items[].fields.filesize": "number",
+        "normalized_result.load_commands.items[].fields.flags": "number",
+        "normalized_result.load_commands.items[].fields.iextdefsym": "number",
+        "normalized_result.load_commands.items[].fields.ilocalsym": "number",
+        "normalized_result.load_commands.items[].fields.indirectsymoff": "number",
+        "normalized_result.load_commands.items[].fields.initprot": "number",
+        "normalized_result.load_commands.items[].fields.iundefsym": "number",
+        "normalized_result.load_commands.items[].fields.lazy_bind_off": "number",
+        "normalized_result.load_commands.items[].fields.lazy_bind_size": "number",
+        "normalized_result.load_commands.items[].fields.locreloff": "number",
+        "normalized_result.load_commands.items[].fields.maxprot": "number",
+        "normalized_result.load_commands.items[].fields.minos": "string",
+        "normalized_result.load_commands.items[].fields.modtaboff": "number",
+        "normalized_result.load_commands.items[].fields.name": "string",
+        "normalized_result.load_commands.items[].fields.nextdefsym": "number",
+        "normalized_result.load_commands.items[].fields.nextrefsyms": "number",
+        "normalized_result.load_commands.items[].fields.nextrel": "number",
+        "normalized_result.load_commands.items[].fields.nindirectsyms": "number",
+        "normalized_result.load_commands.items[].fields.nlocalsym": "number",
+        "normalized_result.load_commands.items[].fields.nlocrel": "number",
+        "normalized_result.load_commands.items[].fields.nmodtab": "number",
+        "normalized_result.load_commands.items[].fields.nsects": "number",
+        "normalized_result.load_commands.items[].fields.nsyms": "number",
+        "normalized_result.load_commands.items[].fields.ntoc": "number",
+        "normalized_result.load_commands.items[].fields.ntools": "number",
+        "normalized_result.load_commands.items[].fields.nundefsym": "number",
+        "normalized_result.load_commands.items[].fields.platform": "number",
+        "normalized_result.load_commands.items[].fields.rebase_off": "number",
+        "normalized_result.load_commands.items[].fields.rebase_size": "number",
+        "normalized_result.load_commands.items[].fields.sdk": "string",
+        "normalized_result.load_commands.items[].fields.segname": "string",
+        "normalized_result.load_commands.items[].fields.stacksize": "number",
+        "normalized_result.load_commands.items[].fields.stroff": "number",
+        "normalized_result.load_commands.items[].fields.strsize": "number",
+        "normalized_result.load_commands.items[].fields.symoff": "number",
+        "normalized_result.load_commands.items[].fields.time stamp": "string",
+        "normalized_result.load_commands.items[].fields.tocoff": "number",
+        "normalized_result.load_commands.items[].fields.uuid": "string",
+        "normalized_result.load_commands.items[].fields.vmaddr": "number",
+        "normalized_result.load_commands.items[].fields.vmsize": "number",
+        "normalized_result.load_commands.items[].fields.weak_bind_off": "number",
+        "normalized_result.load_commands.items[].fields.weak_bind_size": "number",
+        "normalized_result.load_commands.items[].index": "number",
+        "normalized_result.load_commands.items[].kind": "string",
+        "normalized_result.load_commands.limitations": "array",
+        "normalized_result.load_commands.total": "number",
+        "normalized_result.provenance": "array",
+        "normalized_result.provenance[]": "object",
+        "normalized_result.provenance[].command": "array",
+        "normalized_result.provenance[].command[]": "string",
+        "normalized_result.provenance[].executable_sha256": "string",
+        "normalized_result.provenance[].exit": "object",
+        "normalized_result.provenance[].exit.code": "number",
+        "normalized_result.provenance[].exit.signal": "null",
+        "normalized_result.provenance[].stderr_bytes": "number",
+        "normalized_result.provenance[].stdout_bytes": "number",
+        "normalized_result.provenance[].tool": "string",
+        "normalized_result.provenance[].tool_version": "null",
+        "normalized_result.provenance[].version_reason": "string",
+        "normalized_result.segments": "object",
+        "normalized_result.segments.exhaustive": "boolean",
+        "normalized_result.segments.items": "array",
+        "normalized_result.segments.items[]": "object",
+        "normalized_result.segments.items[].file_offset": "number",
+        "normalized_result.segments.items[].file_size": "number",
+        "normalized_result.segments.items[].initial_permissions": "object",
+        "normalized_result.segments.items[].initial_permissions.execute": "boolean",
+        "normalized_result.segments.items[].initial_permissions.raw": "string",
+        "normalized_result.segments.items[].initial_permissions.read": "boolean",
+        "normalized_result.segments.items[].initial_permissions.write": "boolean",
+        "normalized_result.segments.items[].maximum_permissions": "object",
+        "normalized_result.segments.items[].maximum_permissions.execute": "boolean",
+        "normalized_result.segments.items[].maximum_permissions.raw": "string",
+        "normalized_result.segments.items[].maximum_permissions.read": "boolean",
+        "normalized_result.segments.items[].maximum_permissions.write": "boolean",
+        "normalized_result.segments.items[].name": "string",
+        "normalized_result.segments.items[].sections": "object",
+        "normalized_result.segments.items[].sections.exhaustive": "boolean",
+        "normalized_result.segments.items[].sections.items": "array",
+        "normalized_result.segments.items[].sections.items[]": "object",
+        "normalized_result.segments.items[].sections.items[].address": "string",
+        "normalized_result.segments.items[].sections.items[].alignment": "number",
+        "normalized_result.segments.items[].sections.items[].file_offset": "number",
+        "normalized_result.segments.items[].sections.items[].flags": "array",
+        "normalized_result.segments.items[].sections.items[].flags[]": "string",
+        "normalized_result.segments.items[].sections.items[].name": "string",
+        "normalized_result.segments.items[].sections.items[].segment": "string",
+        "normalized_result.segments.items[].sections.items[].size": "number",
+        "normalized_result.segments.items[].sections.limitations": "array",
+        "normalized_result.segments.items[].sections.total": "number",
+        "normalized_result.segments.items[].vm_address": "string",
+        "normalized_result.segments.items[].vm_size": "number",
+        "normalized_result.segments.limitations": "array",
+        "normalized_result.segments.total": "number",
+        "normalized_result.selected_architecture": "object",
+        "normalized_result.selected_architecture.container_file_offset": "number",
+        "normalized_result.selected_architecture.name": "string",
+        "normalized_result.uuid": "string",
+        "normalized_result.word_size": "number",
+        "operation": "string",
+        "parameters": "object",
+        "predicate_type": "string",
+        "provider": "object",
+        "provider.id": "string",
+        "provider.name": "string",
+        "provider.version": "null",
+        "raw_result": "null",
+        "relationship_coverage": "null",
+        "subject": "object",
+        "subject.architecture": "string",
+        "subject.digest": "object",
+        "subject.digest.sha256": "string",
+        "subject.format": "string",
+        "subject.local_path": "string",
+        "subject.name": "string"
+      },
+      "sample": {
+        "evidence_id": "ev_52c159d5820e070a7ae39486cee55f528b57fbc69e483afbb29a5608cb803749",
+        "subject": {
+          "name": "hello-go",
+          "digest": {
+            "sha256": "ccc7b51f764f14a50059510204a1b7f1c46ea4a6e77fc2b31e0dc82561647ad2"
+          },
+          "local_path": "/private$FIXTURE",
+          "format": "mach-o",
+          "architecture": "arm64"
+        },
+        "provider": {
+          "id": "native-macos",
+          "name": "macOS native inspection utilities",
+          "version": null
+        },
+        "analysis_profile": null,
+        "predicate_type": "rea.analysis",
+        "operation": "inspect_macho",
+        "parameters": {},
+        "raw_result": null,
+        "normalized_result": {
+          "format": "mach-o",
+          "selected_architecture": {
+            "name": "arm64",
+            "container_file_offset": 0
+          },
+          "endian": "little",
+          "word_size": 64,
+          "file_type": "2",
+          "flags": [
+            "0x00200004"
+          ],
+          "uuid": "0608689F-2050-38A5-90B1-82D7B31E6478",
+          "entrypoints": {
+            "items": [
+              {
+                "file_offset": 506512
+              }
+            ],
+            "total": 1,
+            "exhaustive": true,
+            "limitations": []
+          },
+          "architectures": {
+            "items": [
+              {
+                "name": "arm64",
+                "cpu_type": null,
+                "cpu_subtype": null,
+                "file_offset": null,
+                "size": null,
+                "alignment": null
+              }
+            ],
+            "total": 1,
+            "exhaustive": true,
+            "limitations": []
+          },
+          "build_metadata": {
+            "items": [
+              {
+                "platform": "MACOS",
+                "minimum_os": "13.0",
+                "sdk": "26.2",
+                "tools": []
+              }
+            ],
+            "total": 1,
+            "exhaustive": true,
+            "limitations": []
+          },
+          "load_commands": {
+            "items": [
+              {
+                "index": 0,
+                "kind": "LC_SEGMENT_64",
+                "fields": {
+                  "cmd": "LC_SEGMENT_64",
+                  "cmdsize": 72,
+                  "segname": "__PAGEZERO",
+                  "vmaddr": 0,
+                  "vmsize": 4294967296,
+                  "fileoff": 0,
+                  "filesize": 0,
+                  "maxprot": 0,
+                  "initprot": 0,
+                  "nsects": 0,
+                  "flags": 0
+                }
+              },
+              {
+                "index": 1,
+                "kind": "LC_SEGMENT_64",
+                "fields": {
+                  "cmd": "LC_SEGMENT_64",
+                  "cmdsize": 392,
+                  "segname": "__TEXT",
+                  "vmaddr": 4294967296,
+                  "vmsize": 1474560,
+                  "fileoff": 0,
+                  "filesize": 1474560,
+                  "maxprot": 7,
+                  "initprot": 5,
+                  "nsects": 4,
+                  "flags": 0
+                }
+              },
+              {
+                "index": 2,
+                "kind": "LC_SEGMENT_64",
+                "fields": {
+                  "cmd": "LC_SEGMENT_64",
+                  "cmdsize": 392,
+                  "segname": "__DATA_CONST",
+                  "vmaddr": 4296441856,
+                  "vmsize": 186192,
+                  "fileoff": 1474560,
+                  "filesize": 186192,
+                  "maxprot": 3,
+                  "initprot": 3,
+                  "nsects": 4,
+                  "flags": 16
+                }
+              },
+              {
+                "index": 3,
+                "kind": "LC_SEGMENT_64",
+                "fields": {
+                  "cmd": "LC_SEGMENT_64",
+                  "cmdsize": 632,
+                  "segname": "__DATA",
+                  "vmaddr": 4296638464,
+                  "vmsize": 224792,
+                  "fileoff": 1671168,
+                  "filesize": 49472,
+                  "maxprot": 3,
+                  "initprot": 3,
+                  "nsects": 7,
+                  "flags": 0
+                }
+              },
+              {
+                "index": 4,
+                "kind": "LC_SEGMENT_64",
+                "fields": {
+                  "cmd": "LC_SEGMENT_64",
+                  "cmdsize": 632,
+                  "segname": "__DWARF",
+                  "vmaddr": 4296867840,
+                  "vmsize": 0,
+                  "fileoff": 1736704,
+                  "filesize": 796155,
+                  "maxprot": 0,
+                  "initprot": 0,
+                  "nsects": 7,
+                  "flags": 0
+                }
+              }
+            ],
+            "total": 16,
+            "exhaustive": true,
+            "limitations": []
+          },
+          "dependencies": {
+            "items": [
+              {
+                "path": "/usr/lib/libSystem.B.dylib",
+                "kind": "LC_LOAD_DYLIB",
+                "current_version": "0.0.0",
+                "compatibility_version": "0.0.0"
+              },
+              {
+                "path": "/usr/lib/libresolv.9.dylib",
+                "kind": "LC_LOAD_DYLIB",
+                "current_version": "0.0.0",
+                "compatibility_version": "0.0.0"
+              }
+            ],
+            "total": 2,
+            "exhaustive": true,
+            "limitations": []
+          },
+          "imports": {
+            "items": [
+              {
+                "name": "___error",
+                "address": null,
+                "weak": null,
+                "reexport": null,
+                "source": "<this-image>"
+              },
+              {
+                "name": "__exit",
+                "address": null,
+                "weak": null,
+                "reexport": null,
+                "source": "<this-image>"
+              },
+              {
+                "name": "_arc4random_buf",
+                "address": null,
+                "weak": null,
+                "reexport": null,
+                "source": "<this-image>"
+              },
+              {
+                "name": "_clock_gettime",
+                "address": null,
+                "weak": null,
+                "reexport": null,
+                "source": "<this-image>"
+              },
+              {
+                "name": "_close",
+                "address": null,
+                "weak": null,
+                "reexport": null,
+                "source": "<this-image>"
+              }
+            ],
+            "total": null,
+            "exhaustive": false,
+            "limitations": [
+              "dyld_info textual imports may omit chained or toolchain-unsupported metadata."
+            ]
+          },
+          "exports": {
+            "items": [],
+            "total": null,
+            "exhaustive": false,
+            "limitations": [
+              "Merged nm/dyld_info results may be incomplete for stripped binaries."
+            ]
+          },
+          "segments": {
+            "items": [
+              {
+                "name": "__PAGEZERO",
+                "vm_address": "0x0",
+                "vm_size": 4294967296,
+                "file_offset": 0,
+                "file_size": 0,
+                "maximum_permissions": {
+                  "read": false,
+                  "write": false,
+                  "execute": false,
+                  "raw": "0"
+                },
+                "initial_permissions": {
+                  "read": false,
+                  "write": false,
+                  "execute": false,
+                  "raw": "0"
+                },
+                "sections": {
+                  "items": [],
+                  "total": 0,
+                  "exhaustive": true,
+                  "limitations": []
+                }
+              },
+              {
+                "name": "__TEXT",
+                "vm_address": "0x100000000",
+                "vm_size": 1474560,
+                "file_offset": 0,
+                "file_size": 1474560,
+                "maximum_permissions": {
+                  "read": true,
+                  "write": true,
+                  "execute": true,
+                  "raw": "7"
+                },
+                "initial_permissions": {
+                  "read": true,
+                  "write": false,
+                  "execute": true,
+                  "raw": "5"
+                },
+                "sections": {
+                  "items": [
+                    {
+                      "segment": "__TEXT",
+                      "name": "__text",
+                      "address": "0x100001000",
+                      "size": 702948,
+                      "file_offset": 4096,
+                      "alignment": 16,
+                      "flags": [
+                        "2147484672"
+                      ]
+                    },
+                    {
+                      "segment": "__TEXT",
+                      "name": "__symbol_stub1",
+                      "address": "0x1000aca00",
+                      "size": 696,
+                      "file_offset": 707072,
+                      "alignment": 32,
+                      "flags": [
+                        "2147484680"
+                      ]
+                    },
+                    {
+                      "segment": "__TEXT",
+                      "name": "__rodata",
+                      "address": "0x1000accc0",
+                      "size": 46402,
+                      "file_offset": 707776,
+                      "alignment": 32,
+                      "flags": [
+                        "0"
+                      ]
+                    },
+                    {
+                      "segment": "__TEXT",
+                      "name": "__gopclntab",
+                      "address": "0x1000b8208",
+                      "size": 707738,
+                      "file_offset": 754184,
+                      "alignment": 8,
+                      "flags": [
+                        "0"
+                      ]
+                    }
+                  ],
+                  "total": 4,
+                  "exhaustive": true,
+                  "limitations": []
+                }
+              },
+              {
+                "name": "__DATA_CONST",
+                "vm_address": "0x100168000",
+                "vm_size": 186192,
+                "file_offset": 1474560,
+                "file_size": 186192,
+                "maximum_permissions": {
+                  "read": true,
+                  "write": true,
+                  "execute": false,
+                  "raw": "3"
+                },
+                "initial_permissions": {
+                  "read": true,
+                  "write": true,
+                  "execute": false,
+                  "raw": "3"
+                },
+                "sections": {
+                  "items": [
+                    {
+                      "segment": "__DATA_CONST",
+                      "name": "__rodata",
+                      "address": "0x100168000",
+                      "size": 12352,
+                      "file_offset": 1474560,
+                      "alignment": 32,
+                      "flags": [
+                        "0"
+                      ]
+                    },
+                    {
+                      "segment": "__DATA_CONST",
+                      "name": "__go_type",
+                      "address": "0x10016b040",
+                      "size": 171848,
+                      "file_offset": 1486912,
+                      "alignment": 16,
+                      "flags": [
+                        "0"
+                      ]
+                    },
+                    {
+                      "segment": "__DATA_CONST",
+                      "name": "__go_func",
+                      "address": "0x100194f88",
+                      "size": 1528,
+                      "file_offset": 1658760,
+                      "alignment": 8,
+                      "flags": [
+                        "0"
+                      ]
+                    },
+                    {
+                      "segment": "__DATA_CONST",
+                      "name": "__got",
+                      "address": "0x100195580",
+                      "size": 464,
+                      "file_offset": 1660288,
+                      "alignment": 4,
+                      "flags": [
+                        "6"
+                      ]
+                    }
+                  ],
+                  "total": 4,
+                  "exhaustive": true,
+                  "limitations": []
+                }
+              },
+              {
+                "name": "__DATA",
+                "vm_address": "0x100198000",
+                "vm_size": 224792,
+                "file_offset": 1671168,
+                "file_size": 49472,
+                "maximum_permissions": {
+                  "read": true,
+                  "write": true,
+                  "execute": false,
+                  "raw": "3"
+                },
+                "initial_permissions": {
+                  "read": true,
+                  "write": true,
+                  "execute": false,
+                  "raw": "3"
+                },
+                "sections": {
+                  "items": [
+                    {
+                      "segment": "__DATA",
+                      "name": "__go_buildinfo",
+                      "address": "0x100198000",
+                      "size": 752,
+                      "file_offset": 1671168,
+                      "alignment": 16,
+                      "flags": [
+                        "0"
+                      ]
+                    },
+                    {
+                      "segment": "__DATA",
+                      "name": "__go_fipsinfo",
+                      "address": "0x100198300",
+                      "size": 120,
+                      "file_offset": 1671936,
+                      "alignment": 32,
+                      "flags": [
+                        "0"
+                      ]
+                    },
+                    {
+                      "segment": "__DATA",
+                      "name": "__go_module",
+                      "address": "0x100198380",
+                      "size": 568,
+                      "file_offset": 1672064,
+                      "alignment": 32,
+                      "flags": [
+                        "0"
+                      ]
+                    },
+                    {
+                      "segment": "__DATA",
+                      "name": "__noptrdata",
+                      "address": "0x1001985c0",
+                      "size": 26306,
+                      "file_offset": 1672640,
+                      "alignment": 32,
+                      "flags": [
+                        "0"
+                      ]
+                    },
+                    {
+                      "segment": "__DATA",
+                      "name": "__data",
+                      "address": "0x10019eca0",
+                      "size": 21650,
+                      "file_offset": 1698976,
+                      "alignment": 32,
+                      "flags": [
+                        "0"
+                      ]
+                    }
+                  ],
+                  "total": 7,
+                  "exhaustive": true,
+                  "limitations": []
+                }
+              },
+              {
+                "name": "__DWARF",
+                "vm_address": "0x1001d0000",
+                "vm_size": 0,
+                "file_offset": 1736704,
+                "file_size": 796155,
+                "maximum_permissions": {
+                  "read": false,
+                  "write": false,
+                  "execute": false,
+                  "raw": "0"
+                },
+                "initial_permissions": {
+                  "read": false,
+                  "write": false,
+                  "execute": false,
+                  "raw": "0"
+                },
+                "sections": {
+                  "items": [
+                    {
+                      "segment": "__DWARF",
+                      "name": "__zdebug_abbrev",
+                      "address": "0x1001d0000",
+                      "size": 350,
+                      "file_offset": 1736704,
+                      "alignment": 1,
+                      "flags": [
+                        "33554432"
+                      ]
+                    },
+                    {
+                      "segment": "__DWARF",
+                      "name": "__zdebug_line",
+                      "address": "0x1001d015e",
+                      "size": 158303,
+                      "file_offset": 1737054,
+                      "alignment": 1,
+                      "flags": [
+                        "33554432"
+                      ]
+                    },
+                    {
+                      "segment": "__DWARF",
+                      "name": "__zdebug_frame",
+                      "address": "0x1001f6bbd",
+                      "size": 31867,
+                      "file_offset": 1895357,
+                      "alignment": 1,
+                      "flags": [
+                        "33554432"
+                      ]
+                    },
+                    {
+                      "segment": "__DWARF",
+                      "name": "__debug_gdb_scri",
+                      "address": "0x1001fe838",
+                      "size": 24,
+                      "file_offset": 1927224,
+                      "alignment": 1,
+                      "flags": [
+                        "33554432"
+                      ]
+                    },
+                    {
+                      "segment": "__DWARF",
+                      "name": "__zdebug_info",
+                      "address": "0x1001fe850",
+                      "size": 381875,
+                      "file_offset": 1927248,
+                      "alignment": 1,
+                      "flags": [
+                        "33554432"
+                      ]
+                    }
+                  ],
+                  "total": 7,
+                  "exhaustive": true,
+                  "limitations": []
+                }
+              }
+            ],
+            "total": 6,
+            "exhaustive": true,
+            "limitations": []
+          },
+          "provenance": [
+            {
+              "tool": "lipo",
+              "command": [
+                "/Library/Developer/CommandLineTools/usr/bin/lipo",
+                "-detailed_info",
+                "$ARTIFACT"
+              ],
+              "tool_version": null,
+              "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+              "executable_sha256": "2c76ca45a75f26b368b9aa0b73a11c760bb5ce455415721004cde2dc8410a0fb",
+              "exit": {
+                "code": 0,
+                "signal": null
+              },
+              "stdout_bytes": 248,
+              "stderr_bytes": 0
+            },
+            {
+              "tool": "otool",
+              "command": [
+                "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+                "-h",
+                "-l",
+                "$ARTIFACT"
+              ],
+              "tool_version": null,
+              "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+              "executable_sha256": "6eb54bd59925f05581e1adb40d5922c9f296dd9fefb7d8f1e8be3b57fe4c3417",
+              "exit": {
+                "code": 0,
+                "signal": null
+              },
+              "stdout_bytes": 8290,
+              "stderr_bytes": 0
+            },
+            {
+              "tool": "nm",
+              "command": [
+                "/Library/Developer/CommandLineTools/usr/bin/llvm-nm",
+                "-gjU",
+                "--no-dyldinfo",
+                "$ARTIFACT"
+              ],
+              "tool_version": null,
+              "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+              "executable_sha256": "4387686b0799092bef64bb0a4742ea5bc0d72e80f9e9470cc7889a7ac7892171",
+              "exit": {
+                "code": 0,
+                "signal": null
+              },
+              "stdout_bytes": 0,
+              "stderr_bytes": 0
+            },
+            {
+              "tool": "dyld_info",
+              "command": [
+                "/Library/Developer/CommandLineTools/usr/bin/dyld_info",
+                "-imports",
+                "$ARTIFACT"
+              ],
+              "tool_version": null,
+              "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+              "executable_sha256": "ea4f2ae3bfef1d8146f6f7311d9b7ad5397877c39a8f8cda35f1111fb9734a56",
+              "exit": {
+                "code": 0,
+                "signal": null
+              },
+              "stdout_bytes": 2436,
+              "stderr_bytes": 0
+            },
+            {
+              "tool": "dyld_info",
+              "command": [
+                "/Library/Developer/CommandLineTools/usr/bin/dyld_info",
+                "-exports",
+                "$ARTIFACT"
+              ],
+              "tool_version": null,
+              "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+              "executable_sha256": "ea4f2ae3bfef1d8146f6f7311d9b7ad5397877c39a8f8cda35f1111fb9734a56",
+              "exit": {
+                "code": 0,
+                "signal": null
+              },
+              "stdout_bytes": 141,
+              "stderr_bytes": 0
+            }
+          ],
+          "limitations": [
+            "Imports and exports combine dyld_info and nm; stripped or toolchain-hidden symbols may be absent.",
+            "vtool output is retained as provenance but only otool build metadata is normalized."
+          ]
+        },
+        "confidence": "observed",
+        "authority": "shipped-artifact",
+        "environment": null,
+        "limitations": [
+          "Imports and exports combine dyld_info and nm; stripped or toolchain-hidden symbols may be absent.",
+          "vtool output is retained as provenance but only otool build metadata is normalized."
+        ],
+        "relationship_coverage": null,
+        "locations": [
+          {
+            "kind": "file-offset",
+            "offset": 506512
+          },
+          {
+            "kind": "file-offset-range",
+            "start": 0,
+            "end": 1474560
+          },
+          {
+            "kind": "file-offset-range",
+            "start": 1474560,
+            "end": 1660752
+          },
+          {
+            "kind": "file-offset-range",
+            "start": 1671168,
+            "end": 1720640
+          },
+          {
+            "kind": "file-offset-range",
+            "start": 1736704,
+            "end": 2532859
+          }
+        ],
+        "evidence_links": []
+      }
+    },
+    {
+      "tool": "inspect_signature",
+      "args": {},
+      "shape": {
+        "$": "object",
+        "analysis_profile": "null",
+        "authority": "string",
+        "confidence": "string",
+        "environment": "null",
+        "evidence_id": "string",
+        "evidence_links": "array",
+        "limitations": "array",
+        "limitations[]": "string",
+        "locations": "array",
+        "normalized_result": "object",
+        "normalized_result.authorities": "array",
+        "normalized_result.cdhashes": "array",
+        "normalized_result.cdhashes[]": "string",
+        "normalized_result.designated_requirement": "string",
+        "normalized_result.entitlements": "null",
+        "normalized_result.format": "string",
+        "normalized_result.hardened_runtime": "boolean",
+        "normalized_result.hash_algorithms": "array",
+        "normalized_result.hash_algorithms[]": "string",
+        "normalized_result.identifier": "string",
+        "normalized_result.limitations": "array",
+        "normalized_result.limitations[]": "string",
+        "normalized_result.provenance": "array",
+        "normalized_result.provenance[]": "object",
+        "normalized_result.provenance[].command": "array",
+        "normalized_result.provenance[].command[]": "string",
+        "normalized_result.provenance[].executable_sha256": "string",
+        "normalized_result.provenance[].exit": "object",
+        "normalized_result.provenance[].exit.code": "number",
+        "normalized_result.provenance[].exit.signal": "null",
+        "normalized_result.provenance[].stderr_bytes": "number",
+        "normalized_result.provenance[].stdout_bytes": "number",
+        "normalized_result.provenance[].tool": "string",
+        "normalized_result.provenance[].tool_version": "null",
+        "normalized_result.provenance[].version_reason": "string",
+        "normalized_result.signed": "boolean",
+        "normalized_result.team_identifier": "null",
+        "normalized_result.timestamp": "null",
+        "operation": "string",
+        "parameters": "object",
+        "predicate_type": "string",
+        "provider": "object",
+        "provider.id": "string",
+        "provider.name": "string",
+        "provider.version": "null",
+        "raw_result": "null",
+        "relationship_coverage": "null",
+        "subject": "object",
+        "subject.architecture": "string",
+        "subject.digest": "object",
+        "subject.digest.sha256": "string",
+        "subject.format": "string",
+        "subject.local_path": "string",
+        "subject.name": "string"
+      },
+      "sample": {
+        "evidence_id": "ev_e9506992dfff29f8f71ef9d68b4e4ebd21901ffc73debe49dea3a9bdab576dd3",
+        "subject": {
+          "name": "hello-go",
+          "digest": {
+            "sha256": "ccc7b51f764f14a50059510204a1b7f1c46ea4a6e77fc2b31e0dc82561647ad2"
+          },
+          "local_path": "/private$FIXTURE",
+          "format": "mach-o",
+          "architecture": "arm64"
+        },
+        "provider": {
+          "id": "native-macos",
+          "name": "macOS native inspection utilities",
+          "version": null
+        },
+        "analysis_profile": null,
+        "predicate_type": "rea.analysis",
+        "operation": "inspect_signature",
+        "parameters": {},
+        "raw_result": null,
+        "normalized_result": {
+          "signed": true,
+          "identifier": "a.out",
+          "team_identifier": null,
+          "format": "Mach-O thin (arm64)",
+          "cdhashes": [
+            "9fc0f42c26f93ec091138c5a41f18404e31cd73f"
+          ],
+          "hash_algorithms": [
+            "sha256"
+          ],
+          "authorities": [],
+          "designated_requirement": "cdhash H\"9fc0f42c26f93ec091138c5a41f18404e31cd73f\"",
+          "entitlements": null,
+          "timestamp": null,
+          "hardened_runtime": false,
+          "provenance": [
+            {
+              "tool": "codesign",
+              "command": [
+                "/usr/bin/codesign",
+                "-d",
+                "--verbose=4",
+                "$ARTIFACT"
+              ],
+              "tool_version": null,
+              "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+              "executable_sha256": "214d455584d19abc0d74d02b9cbc7d3da6bdcb0596c235e6156dd9ed2f4e1ba7",
+              "exit": {
+                "code": 0,
+                "signal": null
+              },
+              "stdout_bytes": 0,
+              "stderr_bytes": 848
+            },
+            {
+              "tool": "codesign",
+              "command": [
+                "/usr/bin/codesign",
+                "-d",
+                "-r-",
+                "$ARTIFACT"
+              ],
+              "tool_version": null,
+              "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+              "executable_sha256": "214d455584d19abc0d74d02b9cbc7d3da6bdcb0596c235e6156dd9ed2f4e1ba7",
+              "exit": {
+                "code": 0,
+                "signal": null
+              },
+              "stdout_bytes": 67,
+              "stderr_bytes": 98
+            },
+            {
+              "tool": "codesign",
+              "command": [
+                "/usr/bin/codesign",
+                "-d",
+                "--entitlements",
+                ":-",
+                "$ARTIFACT"
+              ],
+              "tool_version": null,
+              "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+              "executable_sha256": "214d455584d19abc0d74d02b9cbc7d3da6bdcb0596c235e6156dd9ed2f4e1ba7",
+              "exit": {
+                "code": 0,
+                "signal": null
+              },
+              "stdout_bytes": 0,
+              "stderr_bytes": 186
+            }
+          ],
+          "limitations": [
+            "Entitlements and designated requirements require separate bounded commands.",
+            "Inspected a digest-verified Mach-O byte snapshot; filesystem-bound signing context and trust validation are not examined."
+          ]
+        },
+        "confidence": "observed",
+        "authority": "shipped-artifact",
+        "environment": null,
+        "limitations": [
+          "Entitlements and designated requirements require separate bounded commands.",
+          "Inspected a digest-verified Mach-O byte snapshot; filesystem-bound signing context and trust validation are not examined."
+        ],
+        "relationship_coverage": null,
+        "locations": [],
+        "evidence_links": []
       }
     },
     {

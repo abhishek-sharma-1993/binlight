@@ -75,7 +75,7 @@ One job per investigation, running a **recipe**: a fixed list of REA steps
 (`apps/server/src/recipes/`). Per target: preflight, start REA (local REA when
 no step needs a disassembler), open the binary once, then the recipe's steps
 reuse that analysis. Recipes may take two targets (comparisons); each target
-gets its own REA session. Phase 0's analysis is the `raw-analysis` recipe. One deep job
+gets its own REA session. Recipes: `whats-inside` ("What is it built from, and is it current?": build metadata, platform, libraries and signature in seconds, no disassembler) and `raw-analysis` (phase 0's full disassembler pass). One deep job
 runs at a time; others queue. Jobs live in the server's memory, so a page
 reload reconnects to them (a server restart keeps cached results, not the job
 list).

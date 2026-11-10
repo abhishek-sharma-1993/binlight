@@ -1,4 +1,4 @@
-import type { Finding, RecipeInfo, VerdictBody } from "@binlight/shared";
+import type { Finding, RecipeInfo, TargetFormat, VerdictBody } from "@binlight/shared";
 import type { StepOutcome } from "../jobs/steps.js";
 import type { Rule } from "../rules/types.js";
 
@@ -16,6 +16,13 @@ export interface RecipeStep {
    * `open_binary`. Provider-free tools (e.g. `inspect_go_binary`) set false.
    */
   deep: boolean;
+  /**
+   * Works on the open binary (e.g. `inspect_macho`), without needing a
+   * disassembler: the binary is opened with no provider. Deep steps open too.
+   */
+  opens?: boolean;
+  /** File formats it applies to; on others it is skipped with that reason. Default: all. */
+  formats?: TargetFormat[];
   /** Arguments, given the target path as REA sees it. Default: none. */
   args?: (target: string) => Record<string, unknown>;
   /** Turns the (schema-checked) REA result into the feed line and counts. */

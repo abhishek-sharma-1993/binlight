@@ -7,7 +7,7 @@ import { EvidenceCache } from "../cache/evidence.js";
 import { goOutcome, listOutcome, overviewOutcome } from "./steps.js";
 import type { ToolOutput } from "../rea/schemas.js";
 import { RECIPES, validateRecipe, type Recipe } from "../recipes/index.js";
-import { deps, dockerRoute, fakeSession, report, type FakeRea } from "./fakes.js";
+import { deps, dockerRoute, fakeSession, goodResults, report, type FakeRea } from "./fakes.js";
 import { JobManager, JobRequestError, type JobDeps } from "./manager.js";
 
 const byId = (steps: JobStep[] = []) => Object.fromEntries(steps.map((s) => [s.id, s]));
@@ -135,6 +135,59 @@ describe("JobManager with recipes", () => {
     expect(await jobs.result(job?.id ?? "", "strings@1")).toMatchObject({
       operation: "list_strings",
     });
+  });
+
+  it("opens the binary with no provider for metadata steps, and skips steps for other formats", async () => {
+    const args: Record<string, unknown>[] = [];
+    const fake = fakeSession(dockerRoute, {
+      open_binary: async (a) => {
+        args.push(a);
+        return goodResults["open_binary"];
+      },
+      inspect_macho: async () => {
+        throw new Error("must not run on an ELF file");
+      },
+    });
+    const meta: Recipe = {
+      ...light,
+      id: "meta-test",
+      steps: [
+        ...light.steps,
+        {
+          id: "macho",
+          label: "Mach-O",
+          why: "w",
+          tool: "inspect_macho",
+          deep: false,
+          opens: true,
+          formats: ["mach-o"],
+          outcome: go,
+        },
+        { ...(light.steps[0] as Recipe["steps"][number]), id: "go2", opens: true },
+      ],
+    };
+    const elf = report({
+      target: { path: "/apps/tool", format: "elf", architectures: ["x86_64"] },
+    });
+    const jobs = new JobManager({ ...deps(fake, elf), recipes: [meta] });
+    const job = await jobs.settled(
+      jobs.create({ recipe: "meta-test", targets: ["/apps/tool"] }).id,
+    );
+    const s = byId(job?.steps);
+    expect(job?.status).toBe("done");
+    expect(s["macho"]).toMatchObject({ status: "skipped" });
+    expect(s["macho"]?.reason).toBe(
+      "Not for this file: it applies to mach-o binaries, and this is elf.",
+    );
+    expect(s["open"]?.summary).toMatch(/no disassembler needed/);
+    expect(args).toHaveLength(1);
+    expect(args[0]).not.toHaveProperty("provider_id");
+    expect(fake.calls).toEqual([
+      "open_binary",
+      "inspect_go_binary",
+      "inspect_go_binary",
+      "close_binary",
+    ]);
   });
 
   it("keeps going with the second target when the first can't be analysed", async () => {

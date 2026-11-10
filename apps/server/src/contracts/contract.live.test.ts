@@ -42,7 +42,9 @@ describe.each(runners)(`REA ${PINNED_REA_VERSION} contract ($runner)`, ({ runner
     if (!enabled) return;
     fixture = buildGoFixture();
     session = await openContractSession(runner, fixture);
-    run = await recordContracts(session.rea, session.target, session.provider);
+    run = await recordContracts(session.rea, session.target, session.provider, {
+      onHost: runner === "local",
+    });
   }, 60 * 60_000);
 
   afterAll(async () => {

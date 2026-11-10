@@ -119,3 +119,52 @@ export function listOutcome(
     result: value,
   };
 }
+
+export function rustOutcome(value: ToolOutput<"inspect_rust_binary">): StepOutcome {
+  const r = value.normalized_result;
+  const meta = r.auditable_metadata;
+  const packages =
+    meta && typeof meta === "object" && Array.isArray((meta as { packages?: unknown }).packages)
+      ? (meta as { packages: unknown[] }).packages.length
+      : undefined;
+  return {
+    summary:
+      packages !== undefined
+        ? `cargo-auditable dependency list · ${n(packages)} crates`
+        : r.rustc_commit
+          ? "Rust compiler commit found, no dependency list (not built with cargo-auditable)"
+          : "No Rust dependency list (not a Rust binary built with cargo-auditable)",
+    ...(packages !== undefined && { counts: { crates: packages } }),
+    evidenceId: value.evidence_id,
+    result: value,
+  };
+}
+
+export function machoOutcome(value: ToolOutput<"inspect_macho">): StepOutcome {
+  const r = value.normalized_result;
+  const build = r.build_metadata.items[0];
+  const platform = build
+    ? `${build.platform === "MACOS" ? "macOS" : build.platform}${build.minimum_os ? ` ${build.minimum_os}+` : ""}`
+    : "no platform record";
+  return {
+    summary: `${platform} · ${n(r.dependencies.total)} linked libraries`,
+    counts: { libraries: r.dependencies.total },
+    evidenceId: value.evidence_id,
+    result: value,
+  };
+}
+
+export function signatureOutcome(value: ToolOutput<"inspect_signature">): StepOutcome {
+  const s = value.normalized_result;
+  return {
+    summary: !s.signed
+      ? "Not signed"
+      : s.team_identifier
+        ? `Signed · Team ID ${s.team_identifier}`
+        : (s.authorities ?? []).length > 0
+          ? `Signed · ${(s.authorities ?? [])[0]}`
+          : "Ad-hoc signed (no identity)",
+    evidenceId: value.evidence_id,
+    result: value,
+  };
+}

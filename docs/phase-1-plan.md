@@ -107,7 +107,7 @@ confidence (observed | inferred), caveats}`. Each evidence reference is an
 
 ### B. Recipe 1: What's inside? (no decompiler)
 
-- [ ] **7. Recipe.** Question: "What is it built from, and is it current?"
+- [x] **7. Recipe.** Question: "What is it built from, and is it current?"
       Steps: preflight, `inspect_go_binary`, `inspect_rust_binary`, plus format
       and signing (`inspect_macho`, `inspect_signature`; confirm the shapes
       first). Findings: - language and toolchain (Go version), main module and version, `+dirty`
@@ -118,8 +118,22 @@ confidence (observed | inferred), caveats}`. Each evidence reference is an
       Acceptance: kubectl and Ollama answer in under 10 s with no Ghidra; the
       dependency list matches `go version -m` for both (a test oracle); every
       claim cites evidence.
+      _Done 10 Nov: recipe `whats-inside` (first in the list). Steps open the
+      binary with no provider, so no disassembler starts; `inspect_macho` and
+      `inspect_signature` are Mach-O only (skipped with the reason otherwise)
+      and work on local REA only (Docker reports `capability_unavailable`).
+      Rules: Go build info, Go support from a bundled release table dated
+      10 Nov 2026 (two newest majors supported; confidence "inferred"), Rust
+      crates (cargo-auditable, read defensively until task 8), "no dependency
+      list" said plainly, platform/SDK and linked libraries (non-system paths
+      named), signing (Apple, Team ID, ad-hoc or unsigned; hardened runtime,
+      timestamp). Real: kubectl 5.5 s, Ollama 4.3 s warm (first cold run
+      10.3 s, REA start-up); both match `go version -m` exactly
+      (`whats-inside.live.test.ts`). The ❓ online check is not built:
+      Binlight stays local-only._
 - [ ] **8. Contract tests** for `inspect_rust_binary`, `inspect_macho` and
-      `inspect_signature`, and a Rust fixture built with `cargo auditable`
+      `inspect_signature` (_recorded in task 7 for kubectl-style Go binaries;
+      the Mach-O pair is host-only_), and a Rust fixture built with `cargo auditable`
       ❓(needs a Rust toolchain on this Mac).
 - [ ] **9. Early user check.** 1–2 developers run "What's inside" from a clean
       install, watched but unaided. Fix what confuses them before B → C.

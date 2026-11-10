@@ -196,6 +196,20 @@ argument`) _after_ Ghidra's analysis succeeds, and every later call re-runs
 - Homebrew's kubectl here is 1.37.1, not the `/usr/local/bin` copy in the
   reference table; expect different counts at the gate run.
 
+## Metadata without a disassembler (REA 6.7.0, 10 Nov 2026)
+
+- `open_binary` **without** `provider_id` is lazy: no Hopper or Ghidra starts
+  (about 1 s), and `inspect_macho` / `inspect_signature` then work on it
+  (about 1 s and 0.4 s on kubectl).
+- Both are `capability_unavailable` inside the Docker runner (they use macOS
+  tools): run them on the host's REA only.
+- Homebrew's kubectl 1.37.1 and Ollama: `MACOS` minimum 26.0, SDK 26.5;
+  ad-hoc signed (`signed: true`, no `team_identifier`, empty `authorities`).
+- `inspect_rust_binary` on a Go binary: `auditable_metadata: null`,
+  `rustc_commit: null`. A real cargo-auditable shape is still unseen (task 8).
+- `inspect_go_binary`'s dependency list matches `go version -m` exactly for
+  kubectl (88) and Ollama.
+
 ## Reading findings from strings
 
 - **Go packs string literals end to end with no separators.** URLs are glued to

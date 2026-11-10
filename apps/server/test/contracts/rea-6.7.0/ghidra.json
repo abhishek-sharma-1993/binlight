@@ -70,6 +70,27 @@
         }
       ]
     },
+    "inspect_rust_binary": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\x00]*$",
+          "description": "Absolute filesystem path to the selected executable or library"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "examples": [
+        {
+          "path": "/artifacts/application"
+        }
+      ]
+    },
     "open_binary": {
       "type": "object",
       "properties": {
@@ -347,6 +368,119 @@
             "kind": "file-offset-range",
             "start": 1671168,
             "end": 1671200
+          }
+        ],
+        "evidence_links": []
+      }
+    },
+    {
+      "tool": "inspect_rust_binary",
+      "args": {
+        "path": "$FIXTURE"
+      },
+      "shape": {
+        "$": "object",
+        "analysis_profile": "null",
+        "authority": "string",
+        "confidence": "string",
+        "environment": "null",
+        "evidence_id": "string",
+        "evidence_links": "array",
+        "limitations": "array",
+        "limitations[]": "string",
+        "locations": "array",
+        "locations[]": "object",
+        "locations[].kind": "string",
+        "locations[].path": "string",
+        "normalized_result": "object",
+        "normalized_result.architecture": "string",
+        "normalized_result.artifact": "object",
+        "normalized_result.artifact.bytes": "number",
+        "normalized_result.artifact.path": "string",
+        "normalized_result.artifact.sha256": "string",
+        "normalized_result.auditable_metadata": "null",
+        "normalized_result.bits": "number",
+        "normalized_result.byte_order": "string",
+        "normalized_result.format": "string",
+        "normalized_result.limitations": "array",
+        "normalized_result.limitations[]": "string",
+        "normalized_result.rustc_commit": "null",
+        "operation": "string",
+        "parameters": "object",
+        "parameters.path": "string",
+        "predicate_type": "string",
+        "provider": "object",
+        "provider.id": "string",
+        "provider.name": "string",
+        "provider.version": "string",
+        "raw_result": "null",
+        "relationship_coverage": "null",
+        "subject": "object",
+        "subject.architecture": "string",
+        "subject.digest": "object",
+        "subject.digest.sha256": "string",
+        "subject.format": "string",
+        "subject.local_path": "string",
+        "subject.name": "string"
+      },
+      "sample": {
+        "evidence_id": "ev_159f05fbe17b5d8a74afed7ba1da6d5334e26d652161c9612b2f1fd7b26bd937",
+        "subject": {
+          "name": "hello-go",
+          "digest": {
+            "sha256": "ccc7b51f764f14a50059510204a1b7f1c46ea4a6e77fc2b31e0dc82561647ad2"
+          },
+          "local_path": "$FIXTURE",
+          "format": "mach-o",
+          "architecture": "arm64"
+        },
+        "provider": {
+          "id": "rust-auditable",
+          "name": "REA Rust dependency reader",
+          "version": "1"
+        },
+        "analysis_profile": null,
+        "predicate_type": "rea.analysis",
+        "operation": "inspect_rust_binary",
+        "parameters": {
+          "path": "$FIXTURE"
+        },
+        "raw_result": null,
+        "normalized_result": {
+          "artifact": {
+            "path": "$FIXTURE",
+            "sha256": "ccc7b51f764f14a50059510204a1b7f1c46ea4a6e77fc2b31e0dc82561647ad2",
+            "bytes": 2718850
+          },
+          "format": "macho",
+          "architecture": "arm64",
+          "bits": 64,
+          "byte_order": "little",
+          "auditable_metadata": null,
+          "rustc_commit": null,
+          "limitations": [
+            "Embedded dependency metadata is file content. It does not authenticate package names, versions, sources, or the compiler that produced the binary.",
+            "Only the .dep-v0 dependency section and read-only compiler path strings are inspected. Functions, types, and runtime behavior are not recovered.",
+            "Resource guards bound the selected file to 256 MiB, a dependency section to 1 MiB, inflated JSON to the smaller of 8 MiB and 64 times the section size, and the complete report to 8 MiB. Package and dependency counts are admitted against that output budget before schema cloning, graph objects, or reverse-edge allocation.",
+            "No .dep-v0 section was found. Absence of .dep-v0 does not mean the binary has no dependencies.",
+            "No /rustc/<40-hex>/ path was found in read-only data, so a rustc commit hash is unknown."
+          ]
+        },
+        "confidence": "observed",
+        "authority": "shipped-artifact",
+        "environment": null,
+        "limitations": [
+          "Embedded dependency metadata is file content. It does not authenticate package names, versions, sources, or the compiler that produced the binary.",
+          "Only the .dep-v0 dependency section and read-only compiler path strings are inspected. Functions, types, and runtime behavior are not recovered.",
+          "Resource guards bound the selected file to 256 MiB, a dependency section to 1 MiB, inflated JSON to the smaller of 8 MiB and 64 times the section size, and the complete report to 8 MiB. Package and dependency counts are admitted against that output budget before schema cloning, graph objects, or reverse-edge allocation.",
+          "No .dep-v0 section was found. Absence of .dep-v0 does not mean the binary has no dependencies.",
+          "No /rustc/<40-hex>/ path was found in read-only data, so a rustc commit hash is unknown."
+        ],
+        "relationship_coverage": null,
+        "locations": [
+          {
+            "kind": "artifact-path",
+            "path": "$FIXTURE"
           }
         ],
         "evidence_links": []

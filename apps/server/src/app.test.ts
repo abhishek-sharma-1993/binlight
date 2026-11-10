@@ -98,6 +98,14 @@ describe("server", () => {
     expect(reply.status).toBe(200);
     expect(reply.body).toEqual([
       expect.objectContaining({
+        id: "whats-inside",
+        targets: 1,
+        needsDeep: false,
+        steps: expect.arrayContaining([
+          expect.objectContaining({ id: "macho", tool: "inspect_macho", deep: false }),
+        ]),
+      }),
+      expect.objectContaining({
         id: "raw-analysis",
         targets: 1,
         needsDeep: true,
