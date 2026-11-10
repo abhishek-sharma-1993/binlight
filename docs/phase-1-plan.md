@@ -131,10 +131,17 @@ confidence (observed | inferred), caveats}`. Each evidence reference is an
       10.3 s, REA start-up); both match `go version -m` exactly
       (`whats-inside.live.test.ts`). The ❓ online check is not built:
       Binlight stays local-only._
-- [ ] **8. Contract tests** for `inspect_rust_binary`, `inspect_macho` and
-      `inspect_signature` (_recorded in task 7 for kubectl-style Go binaries;
-      the Mach-O pair is host-only_), and a Rust fixture built with `cargo auditable`
-      ❓(needs a Rust toolchain on this Mac).
+- [x] **8. Contract tests** for `inspect_rust_binary`, `inspect_macho` and
+      `inspect_signature`, and a Rust fixture built with `cargo auditable`
+      ~~❓(needs a Rust toolchain on this Mac)~~ (owner chose Docker).
+      _Done 10 Nov: `test/fixtures/hello-rust` (one local path dependency) is
+      built in Docker (`binlight-rust-fixture:1.99.1`: Rust 1.99.1,
+      cargo-auditable 0.7.7) with `--network none`; nothing is installed on
+      the Mac. The real shape caught a bug: `rustc_commit` is an object, not
+      a string, so every Rust binary would have failed the schema. Recorded
+      in `hopper.json` (host REA); the Mach-O pair is host-only. All 9 live
+      contract tests pass, and "What's inside?" answers for the fixture with
+      the Mac-only steps skipped and the reason shown._
 - [ ] **9. Early user check.** 1–2 developers run "What's inside" from a clean
       install, watched but unaided. Fix what confuses them before B → C.
 

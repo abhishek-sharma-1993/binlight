@@ -122,19 +122,15 @@ export function listOutcome(
 
 export function rustOutcome(value: ToolOutput<"inspect_rust_binary">): StepOutcome {
   const r = value.normalized_result;
-  const meta = r.auditable_metadata;
-  const packages =
-    meta && typeof meta === "object" && Array.isArray((meta as { packages?: unknown }).packages)
-      ? (meta as { packages: unknown[] }).packages.length
-      : undefined;
+  const root = r.auditable_metadata?.packages.find((p) => p.root);
+  const deps = r.auditable_metadata ? r.auditable_metadata.packages.length - (root ? 1 : 0) : 0;
   return {
-    summary:
-      packages !== undefined
-        ? `cargo-auditable dependency list · ${n(packages)} crates`
-        : r.rustc_commit
-          ? "Rust compiler commit found, no dependency list (not built with cargo-auditable)"
-          : "No Rust dependency list (not a Rust binary built with cargo-auditable)",
-    ...(packages !== undefined && { counts: { crates: packages } }),
+    summary: r.auditable_metadata
+      ? `${root ? `${root.name} ${root.version} · ` : ""}${n(deps)} crate ${deps === 1 ? "dependency" : "dependencies"} (cargo-auditable)`
+      : r.rustc_commit
+        ? "Rust compiler path found, but no crate list (not built with cargo-auditable)"
+        : "Not a Rust binary built with cargo-auditable (no crate list)",
+    ...(r.auditable_metadata && { counts: { dependencies: deps } }),
     evidenceId: value.evidence_id,
     result: value,
   };

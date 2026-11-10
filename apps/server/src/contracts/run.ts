@@ -20,7 +20,11 @@ import { diffShapes, formatShapeDiff, shapeOf, type Shape } from "./shape.js";
 const serverRoot = fileURLToPath(new URL("../../", import.meta.url));
 export const contractsDir = join(serverRoot, "test/contracts");
 const fixtureSource = join(serverRoot, "test/fixtures/hello-go");
+const rustFixtureSource = join(serverRoot, "test/fixtures/hello-rust");
+/** Rust 1.99.1 with cargo-auditable 0.7.7, built from test/fixtures/hello-rust/Dockerfile. */
+export const RUST_FIXTURE_IMAGE = "binlight-rust-fixture:1.99.1";
 const FIXTURE = "$FIXTURE";
+const RUST_FIXTURE = "$RUST_FIXTURE";
 const CALL_TIMEOUT_MS = 20 * 60_000;
 const SAMPLE_ITEMS = 5;
 
@@ -53,6 +57,8 @@ const ERROR_CASES: { name: string; tool: string; args: Args; code: string }[] = 
 
 export interface StepRecord {
   tool: string;
+  /** Which fixture it ran on, when not the Go one. */
+  fixture?: "rust";
   args: Record<string, unknown>;
   shape: Shape;
   /** The real response, with the fixture path replaced and arrays cut to a few items. */
@@ -100,6 +106,46 @@ export function buildGoFixture(): string {
   return out;
 }
 
+/**
+ * Builds test/fixtures/hello-rust with `cargo auditable` in Docker, offline
+ * (the fixture has only a local path dependency). The image is built on first
+ * use, which needs the network once. Returns a Linux ELF binary.
+ */
+export function buildRustFixture(): string {
+  const dir = mkdtempSync(join(tmpdir(), "binlight-contract-rust-"));
+  try {
+    try {
+      execFileSync("docker", ["image", "inspect", RUST_FIXTURE_IMAGE], { stdio: "ignore" });
+    } catch {
+      execFileSync("docker", ["build", "-q", "-t", RUST_FIXTURE_IMAGE, rustFixtureSource], {
+        stdio: "pipe",
+      });
+    }
+    execFileSync(
+      "docker",
+      [
+        "run", "--rm", "--network", "none",
+        "-v", `${rustFixtureSource}:/src:ro`, "-v", `${dir}:/out`,
+        "-e", "CARGO_TARGET_DIR=/tmp/target", "-w", "/src", RUST_FIXTURE_IMAGE,
+        "sh", "-c", "cargo auditable build --release --offline --locked && cp /tmp/target/release/hello-rust /out/",
+      ], // prettier-ignore
+      { stdio: "pipe" },
+    );
+  } catch (err) {
+    const stderr = (err as { stderr?: Buffer }).stderr
+      ?.toString()
+      .trim()
+      .split("\n")
+      .slice(-3)
+      .join(" | ");
+    throw new Error(
+      `Could not build the Rust contract fixture in Docker (needed for contract runs): ${stderr || String(err)}`,
+      { cause: err },
+    );
+  }
+  return join(dir, "hello-rust");
+}
+
 function goVersion(): string {
   return execFileSync("go", ["env", "GOVERSION"], { encoding: "utf8" }).trim();
 }
@@ -131,7 +177,7 @@ export async function recordContracts(
   rea: ReaClient,
   target: string,
   provider?: string,
-  options: { onHost?: boolean } = {},
+  options: { onHost?: boolean; rustFixture?: string } = {},
 ): Promise<ContractRun> {
   const wanted = STEPS.filter((s) => !s.hostOnly || options.onHost);
   const schemaIssues: string[] = [];
@@ -156,6 +202,27 @@ export async function recordContracts(
       args: substituted(args, target),
       shape: shapeOf(structured),
       sample: sampleOf(structured, target),
+    });
+  }
+
+  // The Go fixture has no Rust metadata; the Rust fixture shows the real shape.
+  if (options.rustFixture) {
+    const rust = options.rustFixture;
+    const args = { path: rust };
+    const { structured } = await rea.callTool("inspect_rust_binary", args, {
+      timeoutMs: CALL_TIMEOUT_MS,
+    });
+    schemaIssues.push(
+      ...schemaProblems("inspect_rust_binary", structured).map((p) => `${p} (Rust fixture)`),
+    );
+    const sample = (v: unknown) =>
+      JSON.parse(JSON.stringify(sampleOf(v, target)).replaceAll(rust, RUST_FIXTURE)) as unknown;
+    steps.push({
+      tool: "inspect_rust_binary",
+      fixture: "rust",
+      args: sample(args) as Record<string, unknown>,
+      shape: shapeOf(structured),
+      sample: sample(structured),
     });
   }
 
@@ -246,9 +313,9 @@ export function compareRecordings(recorded: ContractRecording, live: ContractRec
 
   const pairs: [string, Shape, Shape | undefined][] = [
     ...recorded.steps.map((s): [string, Shape, Shape | undefined] => [
-      s.tool,
+      s.fixture ? `${s.tool} (${s.fixture} fixture)` : s.tool,
       s.shape,
-      live.steps.find((l) => l.tool === s.tool)?.shape,
+      live.steps.find((l) => l.tool === s.tool && l.fixture === s.fixture)?.shape,
     ]),
     ...recorded.errors.map((e): [string, Shape, Shape | undefined] => [
       `error "${e.name}"`,

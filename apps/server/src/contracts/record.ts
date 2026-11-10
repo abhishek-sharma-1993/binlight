@@ -9,6 +9,7 @@ import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import {
   buildGoFixture,
+  buildRustFixture,
   openContractSession,
   recordContracts,
   recordingPath,
@@ -22,6 +23,8 @@ const option = (name: string) => {
 const runner: ContractRunner = option("--runner") === "docker" ? "docker" : "local";
 
 const fixture = buildGoFixture();
+// Rust metadata is read on the host's REA only; the runner needs no second fixture.
+const rustFixture = runner === "local" ? buildRustFixture() : undefined;
 const session = await openContractSession(runner, fixture);
 try {
   const started = Date.now();
@@ -30,7 +33,7 @@ try {
     session.rea,
     session.target,
     provider,
-    { onHost: runner === "local" },
+    { onHost: runner === "local", ...(rustFixture && { rustFixture }) },
   );
   if (schemaProblems.length > 0) {
     console.error("REA responses do not match src/rea/schemas.ts; nothing written:");
@@ -48,4 +51,5 @@ try {
 } finally {
   await session.close();
   rmSync(dirname(fixture), { recursive: true, force: true });
+  if (rustFixture) rmSync(dirname(rustFixture), { recursive: true, force: true });
 }

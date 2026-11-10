@@ -206,7 +206,13 @@ argument`) _after_ Ghidra's analysis succeeds, and every later call re-runs
 - Homebrew's kubectl 1.37.1 and Ollama: `MACOS` minimum 26.0, SDK 26.5;
   ad-hoc signed (`signed: true`, no `team_identifier`, empty `authorities`).
 - `inspect_rust_binary` on a Go binary: `auditable_metadata: null`,
-  `rustc_commit: null`. A real cargo-auditable shape is still unseen (task 8).
+  `rustc_commit: null`. On a cargo-auditable binary, `auditable_metadata`
+  has `packages[]` (`name`, `version`, `source` such as "local", `kind`,
+  `dependencies` as indexes, `root`) **including the root crate**, plus
+  `root_package_index`. `rustc_commit` is an **object**
+  (`{evidence_kind: "inferred", hashes: [{hash, file_offset}]}`), not a string.
+- No Rust toolchain is needed on the Mac: the fixture builds in Docker
+  offline (`binlight-rust-fixture:1.99.1`), and REA reads the Linux ELF fine.
 - `inspect_go_binary`'s dependency list matches `go version -m` exactly for
   kubectl (88) and Ollama.
 

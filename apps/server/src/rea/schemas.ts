@@ -94,10 +94,29 @@ export const toolSchemas = {
     z.object({
       format: z.string(),
       architecture: z.string().nullable(),
-      // Shape confirmed only for "absent" so far (null); read defensively by the rule
-      // until a cargo-auditable fixture is recorded (phase 1 task 8).
-      auditable_metadata: z.unknown(),
-      rustc_commit: z.string().nullable(),
+      // cargo-auditable's .dep-v0 section; null when the binary has none.
+      auditable_metadata: z
+        .object({
+          packages: z.array(
+            z.object({
+              name: z.string(),
+              version: z.string(),
+              source: z.string().nullish(),
+              kind: z.string().nullish(),
+              dependencies: z.array(z.number()),
+              root: z.boolean(),
+            }),
+          ),
+          root_package_index: z.number().nullish(),
+        })
+        .nullable(),
+      // Inferred from a /rustc/<commit>/ path in read-only data; null when absent.
+      rustc_commit: z
+        .object({
+          evidence_kind: z.string(),
+          hashes: z.array(z.object({ hash: z.string(), file_offset: z.number() })),
+        })
+        .nullable(),
     }),
   ),
   inspect_macho: evidence(

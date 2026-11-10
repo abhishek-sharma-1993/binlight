@@ -1,5 +1,4 @@
 import type { Finding } from "@binlight/shared";
-import { z } from "zod";
 import type { ToolOutput } from "../rea/schemas.js";
 import { GO_RELEASES, goSupport } from "./go-releases.js";
 import { ref, type Rule } from "./types.js";
@@ -59,44 +58,78 @@ export const goSupportRule: Rule = {
   },
 };
 
-/** cargo-auditable's dependency list, as REA reports it. Read defensively: not yet seen in a real run. */
-const rustPackages = z.object({
-  packages: z.array(z.object({ name: z.string(), version: z.string() }).loose()),
-});
-
-/** Rust crate dependencies, when the binary was built with cargo-auditable. */
+/** Rust crates, when the binary was built with cargo-auditable; and the compiler commit. */
 export const rustDependencies: Rule = {
   id: "rust-dependencies",
-  title: "Rust dependencies",
+  title: "Rust build information",
   needs: ["rust"],
   run({ targets }) {
     const findings: Finding[] = [];
     for (const t of targets) {
       const step = t.steps.get("rust");
       if (!step) continue;
-      const metadata = (step.result as ToolOutput<"inspect_rust_binary">).normalized_result
-        .auditable_metadata;
-      if (metadata === null || metadata === undefined) continue;
-      const parsed = rustPackages.safeParse(metadata);
-      if (!parsed.success) {
-        throw new Error(
-          "This binary embeds cargo-auditable dependency data, in a form Binlight cannot read yet (it is checked against a real Rust binary in phase 1 task 8).",
-        );
+      const r = (step.result as ToolOutput<"inspect_rust_binary">).normalized_result;
+      const id = (name: string) => (targets.length > 1 ? `${name}@${t.index + 1}` : name);
+      const target = targets.length > 1 ? { target: t.index } : {};
+      const meta = r.auditable_metadata;
+      if (meta) {
+        const root =
+          meta.packages.find((p) => p.root) ??
+          (meta.root_package_index != null ? meta.packages[meta.root_package_index] : undefined);
+        if (root) {
+          findings.push({
+            id: id("rust:main"),
+            rule: "rust-dependencies",
+            kind: "rust-main-crate",
+            ...target,
+            statement: `Main crate ${root.name} at version ${root.version}.`,
+            evidence: [ref(step, { field: "normalized_result.auditable_metadata.packages" })],
+            confidence: "observed",
+            caveats: [],
+            data: { name: root.name, version: root.version },
+          });
+        }
+        const deps = meta.packages.filter((p) => p !== root);
+        findings.push({
+          id: id("rust:dependencies"),
+          rule: "rust-dependencies",
+          kind: "rust-dependencies",
+          ...target,
+          statement:
+            deps.length === 0
+              ? "Its embedded crate list (cargo-auditable) has no dependencies."
+              : `It embeds a crate list (cargo-auditable) with ${deps.length} ${deps.length === 1 ? "dependency" : "dependencies"}.`,
+          evidence: [ref(step, { field: "normalized_result.auditable_metadata.packages" })],
+          confidence: "observed",
+          caveats: [
+            "The list is what the build recorded; it is not authenticated and does not show how much of each crate is used.",
+          ],
+          data: {
+            dependencies: deps.map((p) => ({
+              path: p.name,
+              version: p.version,
+              ...(p.source && { source: p.source }),
+              ...(p.kind && { kind: p.kind }),
+            })),
+          },
+        });
       }
-      const packages = parsed.data.packages;
-      findings.push({
-        id: targets.length > 1 ? `rust:dependencies@${t.index + 1}` : "rust:dependencies",
-        rule: "rust-dependencies",
-        kind: "rust-dependencies",
-        ...(targets.length > 1 && { target: t.index }),
-        statement: `It embeds a Rust dependency list (cargo-auditable) of ${packages.length} ${packages.length === 1 ? "crate" : "crates"}.`,
-        evidence: [ref(step, { field: "normalized_result.auditable_metadata" })],
-        confidence: "observed",
-        caveats: [
-          "The list is what the build recorded; it does not show how much of each crate is used.",
-        ],
-        data: { dependencies: packages.map((p) => ({ path: p.name, version: p.version })) },
-      });
+      const commit = r.rustc_commit?.hashes[0]?.hash;
+      if (commit) {
+        findings.push({
+          id: id("rust:compiler"),
+          rule: "rust-dependencies",
+          kind: "rust-compiler",
+          ...target,
+          statement: `It was most likely built with the Rust compiler at commit ${commit}.`,
+          evidence: [ref(step, { field: "normalized_result.rustc_commit" })],
+          confidence: "inferred",
+          caveats: [
+            "Read from a compiler path left in the binary, not proof of the compiler used. Which Rust release that commit is, and whether it is current, is not checked offline.",
+          ],
+          data: { commit },
+        });
+      }
     }
     return { findings };
   },

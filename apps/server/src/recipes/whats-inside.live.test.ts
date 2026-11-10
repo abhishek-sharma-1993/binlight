@@ -1,9 +1,10 @@
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import { EvidenceCache } from "../cache/evidence.js";
+import { buildRustFixture } from "../contracts/run.js";
 import { JobManager } from "../jobs/manager.js";
 import { preflight } from "../preflight/index.js";
 import { openReaSession } from "../runner/index.js";
@@ -69,6 +70,32 @@ describe("What's inside? on real binaries", () => {
         expect(validateVerdict(verdict.rules, job?.findings ?? [])).toEqual({ ok: true });
     }, 60_000);
   }
+
+  it(
+    "reads the Rust fixture's crate list, and skips the Mac-only steps on a Linux binary",
+    async () => {
+      const rust = buildRustFixture();
+      try {
+        const job = await jobs.settled(jobs.create({ recipe: "whats-inside", targets: [rust] }).id);
+        expect(job?.status, JSON.stringify(job?.steps.filter((s) => s.error))).toBe("done");
+        const steps = new Map((job?.steps ?? []).map((s) => [s.id, s]));
+        expect(steps.get("rust")?.summary).toBe(
+          "hello-rust 0.1.0 · 1 crate dependency (cargo-auditable)",
+        );
+        expect(steps.get("macho")).toMatchObject({
+          status: "skipped",
+          reason: "Not for this file: it applies to mach-o binaries, and this is elf.",
+        });
+        expect(steps.get("signature")?.status).toBe("skipped");
+        expect(job?.verdict?.rules.answer).toBe(
+          "A Rust build of hello-rust 0.1.0 with 1 crate dependency.",
+        );
+      } finally {
+        rmSync(dirname(rust), { recursive: true, force: true });
+      }
+    },
+    5 * 60_000,
+  );
 
   it("never asked for a disassembler", () => {
     expect(providers.every((p) => p === undefined)).toBe(true);

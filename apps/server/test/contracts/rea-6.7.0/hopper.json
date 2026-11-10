@@ -288,7 +288,7 @@
         "subject.name": "string"
       },
       "sample": {
-        "evidence_id": "ev_cb00be93df104abc31a8c68249ced9cfc9ba956d453c446d10a5d25ca0d6efc9",
+        "evidence_id": "ev_c80c8cc4103175dfe0c04e26956ea3effb83ac9c17ac8f22cb998036f36e813d",
         "subject": {
           "name": "hello-go",
           "digest": {
@@ -451,7 +451,7 @@
         "subject.name": "string"
       },
       "sample": {
-        "evidence_id": "ev_b0c035d58c1b4b09df8cba429101ded3755cc765498393a0c902d9ab3f9a40a0",
+        "evidence_id": "ev_446f5f4b2d2a24b2a574047a55a914d3234a29b24d21cbaad1fa9bf0620d9cab",
         "subject": {
           "name": "hello-go",
           "digest": {
@@ -2123,6 +2123,196 @@
       },
       "sample": {
         "result": null
+      }
+    },
+    {
+      "tool": "inspect_rust_binary",
+      "fixture": "rust",
+      "args": {
+        "path": "$RUST_FIXTURE"
+      },
+      "shape": {
+        "$": "object",
+        "analysis_profile": "null",
+        "authority": "string",
+        "confidence": "string",
+        "environment": "null",
+        "evidence_id": "string",
+        "evidence_links": "array",
+        "limitations": "array",
+        "limitations[]": "string",
+        "locations": "array",
+        "locations[]": "object",
+        "locations[].end": "absent|number",
+        "locations[].kind": "string",
+        "locations[].path": "absent|string",
+        "locations[].start": "absent|number",
+        "normalized_result": "object",
+        "normalized_result.architecture": "string",
+        "normalized_result.artifact": "object",
+        "normalized_result.artifact.bytes": "number",
+        "normalized_result.artifact.path": "string",
+        "normalized_result.artifact.sha256": "string",
+        "normalized_result.auditable_metadata": "object",
+        "normalized_result.auditable_metadata.compressed_bytes": "number",
+        "normalized_result.auditable_metadata.cyclic_dependency_indices": "array",
+        "normalized_result.auditable_metadata.dependency_edges": "array",
+        "normalized_result.auditable_metadata.dependency_edges[]": "object",
+        "normalized_result.auditable_metadata.dependency_edges[].from_index": "number",
+        "normalized_result.auditable_metadata.dependency_edges[].to_index": "number",
+        "normalized_result.auditable_metadata.file_offset": "number",
+        "normalized_result.auditable_metadata.format_version": "number",
+        "normalized_result.auditable_metadata.packages": "array",
+        "normalized_result.auditable_metadata.packages[]": "object",
+        "normalized_result.auditable_metadata.packages[].dependencies": "array",
+        "normalized_result.auditable_metadata.packages[].dependencies[]": "number",
+        "normalized_result.auditable_metadata.packages[].kind": "null",
+        "normalized_result.auditable_metadata.packages[].name": "string",
+        "normalized_result.auditable_metadata.packages[].root": "boolean",
+        "normalized_result.auditable_metadata.packages[].source": "string",
+        "normalized_result.auditable_metadata.packages[].version": "string",
+        "normalized_result.auditable_metadata.root_package_index": "number",
+        "normalized_result.auditable_metadata.section_bytes": "number",
+        "normalized_result.auditable_metadata.section_name": "string",
+        "normalized_result.auditable_metadata.uncompressed_bytes": "number",
+        "normalized_result.bits": "number",
+        "normalized_result.byte_order": "string",
+        "normalized_result.format": "string",
+        "normalized_result.limitations": "array",
+        "normalized_result.limitations[]": "string",
+        "normalized_result.rustc_commit": "object",
+        "normalized_result.rustc_commit.evidence_kind": "string",
+        "normalized_result.rustc_commit.hashes": "array",
+        "normalized_result.rustc_commit.hashes[]": "object",
+        "normalized_result.rustc_commit.hashes[].file_offset": "number",
+        "normalized_result.rustc_commit.hashes[].hash": "string",
+        "operation": "string",
+        "parameters": "object",
+        "parameters.path": "string",
+        "predicate_type": "string",
+        "provider": "object",
+        "provider.id": "string",
+        "provider.name": "string",
+        "provider.version": "string",
+        "raw_result": "null",
+        "relationship_coverage": "null",
+        "subject": "object",
+        "subject.architecture": "string",
+        "subject.digest": "object",
+        "subject.digest.sha256": "string",
+        "subject.format": "string",
+        "subject.local_path": "string",
+        "subject.name": "string"
+      },
+      "sample": {
+        "evidence_id": "ev_100c599f2a84017ab3793e215a2ddfb82bfc1c823f962a78b340b8e95f24b555",
+        "subject": {
+          "name": "hello-rust",
+          "digest": {
+            "sha256": "a42e1ea02509c9458800f0c85f51d4b66ee3c241ca78cadc0d0364d6b69a9781"
+          },
+          "local_path": "$RUST_FIXTURE",
+          "format": "elf",
+          "architecture": "arm64"
+        },
+        "provider": {
+          "id": "rust-auditable",
+          "name": "REA Rust dependency reader",
+          "version": "1"
+        },
+        "analysis_profile": null,
+        "predicate_type": "rea.analysis",
+        "operation": "inspect_rust_binary",
+        "parameters": {
+          "path": "$RUST_FIXTURE"
+        },
+        "raw_result": null,
+        "normalized_result": {
+          "artifact": {
+            "path": "$RUST_FIXTURE",
+            "sha256": "a42e1ea02509c9458800f0c85f51d4b66ee3c241ca78cadc0d0364d6b69a9781",
+            "bytes": 4621024
+          },
+          "format": "elf",
+          "architecture": "arm64",
+          "bits": 64,
+          "byte_order": "little",
+          "auditable_metadata": {
+            "section_name": ".dep-v0",
+            "file_offset": 330435,
+            "section_bytes": 119,
+            "compressed_bytes": 119,
+            "uncompressed_bytes": 168,
+            "format_version": 1,
+            "packages": [
+              {
+                "name": "greeting",
+                "version": "0.2.0",
+                "source": "local",
+                "kind": null,
+                "dependencies": [],
+                "root": false
+              },
+              {
+                "name": "hello-rust",
+                "version": "0.1.0",
+                "source": "local",
+                "kind": null,
+                "dependencies": [
+                  0
+                ],
+                "root": true
+              }
+            ],
+            "root_package_index": 1,
+            "dependency_edges": [
+              {
+                "from_index": 1,
+                "to_index": 0
+              }
+            ],
+            "cyclic_dependency_indices": []
+          },
+          "rustc_commit": {
+            "evidence_kind": "inferred",
+            "hashes": [
+              {
+                "hash": "58cf8f9c35b355199727627d07ae34a4e2846d67",
+                "file_offset": 236581
+              }
+            ]
+          },
+          "limitations": [
+            "Embedded dependency metadata is file content. It does not authenticate package names, versions, sources, or the compiler that produced the binary.",
+            "Only the .dep-v0 dependency section and read-only compiler path strings are inspected. Functions, types, and runtime behavior are not recovered.",
+            "Resource guards bound the selected file to 256 MiB, a dependency section to 1 MiB, inflated JSON to the smaller of 8 MiB and 64 times the section size, and the complete report to 8 MiB. Package and dependency counts are admitted against that output budget before schema cloning, graph objects, or reverse-edge allocation.",
+            "An omitted package kind is left null. The embedded format treats an omitted kind as runtime, and that default was not stored in the section.",
+            "The rustc commit hash is inferred from a /rustc/<40-hex>/ path in read-only data. It does not by itself prove which compiler produced the binary."
+          ]
+        },
+        "confidence": "observed",
+        "authority": "shipped-artifact",
+        "environment": null,
+        "limitations": [
+          "Embedded dependency metadata is file content. It does not authenticate package names, versions, sources, or the compiler that produced the binary.",
+          "Only the .dep-v0 dependency section and read-only compiler path strings are inspected. Functions, types, and runtime behavior are not recovered.",
+          "Resource guards bound the selected file to 256 MiB, a dependency section to 1 MiB, inflated JSON to the smaller of 8 MiB and 64 times the section size, and the complete report to 8 MiB. Package and dependency counts are admitted against that output budget before schema cloning, graph objects, or reverse-edge allocation.",
+          "An omitted package kind is left null. The embedded format treats an omitted kind as runtime, and that default was not stored in the section.",
+          "The rustc commit hash is inferred from a /rustc/<40-hex>/ path in read-only data. It does not by itself prove which compiler produced the binary."
+        ],
+        "relationship_coverage": null,
+        "locations": [
+          {
+            "kind": "artifact-path",
+            "path": "$RUST_FIXTURE"
+          },
+          {
+            "kind": "file-offset-range",
+            "start": 330435,
+            "end": 330554
+          }
+        ],
+        "evidence_links": []
       }
     }
   ],

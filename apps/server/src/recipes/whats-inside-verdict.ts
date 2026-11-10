@@ -36,9 +36,13 @@ export function whatsInsideVerdict(findings: Finding[]): VerdictBody {
     if (status === "supported") answer.push("that Go release is still supported");
     else if (status === "unsupported") answer.push("that Go release is no longer supported");
   } else if (rust) {
-    claim(rust);
+    const main = get("rust:main");
+    claim(main, rust);
+    claim(get("rust:compiler"));
     const count = (rust.data?.["dependencies"] as unknown[] | undefined)?.length ?? 0;
-    answer.push(`A Rust build with ${count} ${count === 1 ? "crate" : "crates"} listed`);
+    answer.push(
+      `A Rust build${main ? ` of ${String(main.data?.["name"] ?? "")} ${String(main.data?.["version"] ?? "")}` : ""} with ${count} crate ${count === 1 ? "dependency" : "dependencies"}`,
+    );
   } else if (none) {
     claim(none);
     answer.push(

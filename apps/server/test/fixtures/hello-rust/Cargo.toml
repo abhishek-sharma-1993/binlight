@@ -1,0 +1,11 @@
+[package]
+name = "hello-rust"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+greeting = { path = "greeting" }
+
+[profile.release]
+strip = false

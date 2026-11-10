@@ -37,11 +37,39 @@ const go = (info: unknown) =>
     { format: "macho", architecture: "arm64", build_info: info },
     "1",
   );
-const rust = (meta: unknown) =>
+// From REA 6.7.0 on test/fixtures/hello-rust, 10 Nov 2026.
+const RUST_FIXTURE_META = {
+  section_name: ".dep-v0",
+  format_version: 1,
+  packages: [
+    {
+      name: "greeting",
+      version: "0.2.0",
+      source: "local",
+      kind: null,
+      dependencies: [],
+      root: false,
+    },
+    {
+      name: "hello-rust",
+      version: "0.1.0",
+      source: "local",
+      kind: null,
+      dependencies: [0],
+      root: true,
+    },
+  ],
+  root_package_index: 1,
+};
+const RUST_COMMIT = {
+  evidence_kind: "inferred",
+  hashes: [{ hash: "58cf8f9c35b355199727627d07ae34a4e2846d67", file_offset: 236581 }],
+};
+const rust = (meta: unknown, commit: unknown = null) =>
   step(
     "rust",
     "inspect_rust_binary",
-    { format: "macho", architecture: "arm64", auditable_metadata: meta, rustc_commit: null },
+    { format: "macho", architecture: "arm64", auditable_metadata: meta, rustc_commit: commit },
     "2",
   );
 // kubectl from Homebrew, as REA 6.7.0 reported it on 10 Nov 2026.
@@ -154,21 +182,30 @@ describe("What's inside? rules", () => {
     expect(byId.get("deps:none")?.statement).toMatch(/^It embeds no dependency list/);
   });
 
-  it("reads a cargo-auditable crate list, and fails plainly on one it cannot read", () => {
-    const ok = run([
-      go(null),
-      rust({
-        packages: [
-          { name: "serde", version: "1.0.200" },
-          { name: "anyhow", version: "1.0.80" },
-        ],
-      }),
-    ]);
-    expect(ok.findings.find((f) => f.id === "rust:dependencies")?.statement).toBe(
-      "It embeds a Rust dependency list (cargo-auditable) of 2 crates.",
+  it("reads the Rust fixture's crate list (cargo-auditable 0.7.7, Rust 1.99.1)", () => {
+    const out = run([go(null), rust(RUST_FIXTURE_META, RUST_COMMIT)]);
+    const byId = new Map(out.findings.map((f) => [f.id, f]));
+    expect(byId.get("rust:main")?.statement).toBe("Main crate hello-rust at version 0.1.0.");
+    expect(byId.get("rust:dependencies")?.statement).toBe(
+      "It embeds a crate list (cargo-auditable) with 1 dependency.",
     );
-    const odd = run([go(null), rust({ format: "something else" })]);
-    expect(odd.rules.find((r) => r.id === "rust-dependencies")).toMatchObject({ status: "failed" });
+    expect(byId.get("rust:dependencies")?.data).toEqual({
+      dependencies: [{ path: "greeting", version: "0.2.0", source: "local" }],
+    });
+    expect(byId.get("rust:compiler")).toMatchObject({ confidence: "inferred" });
+    expect(byId.has("deps:none")).toBe(false);
+
+    const body = whatsInsideVerdict(out.findings);
+    expect(body.answer).toBe("A Rust build of hello-rust 0.1.0 with 1 crate dependency.");
+    expect(validateVerdict(body, out.findings)).toEqual({ ok: true });
+  });
+
+  it("names the compiler of a Rust binary without a crate list, and says there is no list", () => {
+    const out = run([go(null), rust(null, RUST_COMMIT)]);
+    const ids = out.findings.map((f) => f.id);
+    expect(ids).toContain("rust:compiler");
+    expect(ids).toContain("deps:none");
+    expect(ids).not.toContain("rust:dependencies");
   });
 
   it("does not run the Mach-O rules when those steps did not run", () => {

@@ -6,6 +6,7 @@ import { RUNNER_IMAGE } from "../preflight/health.js";
 import { PINNED_REA_VERSION } from "../rea/version.js";
 import {
   buildGoFixture,
+  buildRustFixture,
   compareRecordings,
   loadRecordings,
   openContractSession,
@@ -35,21 +36,25 @@ const runners: { runner: ContractRunner; enabled: boolean }[] = [
 
 describe.each(runners)(`REA ${PINNED_REA_VERSION} contract ($runner)`, ({ runner, enabled }) => {
   let fixture: string;
+  let rustFixture: string | undefined;
   let session: ContractSession | undefined;
   let run: ContractRun;
 
   beforeAll(async () => {
     if (!enabled) return;
     fixture = buildGoFixture();
+    rustFixture = runner === "local" ? buildRustFixture() : undefined;
     session = await openContractSession(runner, fixture);
     run = await recordContracts(session.rea, session.target, session.provider, {
       onHost: runner === "local",
+      ...(rustFixture && { rustFixture }),
     });
   }, 60 * 60_000);
 
   afterAll(async () => {
     await session?.close();
     if (fixture) rmSync(dirname(fixture), { recursive: true, force: true });
+    if (rustFixture) rmSync(dirname(rustFixture), { recursive: true, force: true });
   });
 
   it.skipIf(!enabled)("live responses parse with Binlight's schemas", () => {
