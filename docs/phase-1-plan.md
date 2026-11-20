@@ -238,8 +238,7 @@ multi-user use. Those are phases 2–3.
 6. **An older Ollama or kubectl release** downloaded as the "What changed?"
    reference pair.
 7. **The 5 developers**: who, and when task 16 runs.
-8. **Go function names** for "used in <function>" (task 10 spike). Ghidra names
-   almost none in release Go binaries. Recommended: Binlight reads Go's own
-   function table (a `debug/gosym` port), labelled as such and checked against
-   Ghidra's function entries. Alternatives: ask REA upstream, or show
-   `FUN_<address>` only. See `docs/spike-phone-home.md`.
+8. ~~**Go function names**~~ Decided 20 Nov: Binlight reads Go's own function
+   table (a `debug/gosym` port), labelled as a lookup in the file, checked
+   against Ghidra's function entry, with the name's bytes confirmed by REA's
+   `read_bytes`. See `docs/spike-phone-home.md`.

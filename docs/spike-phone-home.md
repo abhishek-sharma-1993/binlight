@@ -3,7 +3,7 @@
 **Run 20 Nov 2026** on kubectl 1.37.1 and Ollama 0.40.6 (Homebrew, arm64),
 REA 6.7.0, Ghidra 12.1.4 in the Docker runner. Code:
 `apps/server/src/spikes/phone-home.ts`; Go name check:
-`apps/server/src/spikes/gosym/`.
+`apps/server/test/oracles/gosym/`.
 
 ## Answer
 
@@ -105,5 +105,5 @@ array of strings`. A wrong "used in" would break the evidence rule, so v1
 ```bash
 cd apps/server
 npx tsx --conditions=@binlight/source src/spikes/phone-home.ts /opt/homebrew/bin/ollama /tmp/out
-cd src/spikes/gosym && go build -o /tmp/gosym . && /tmp/gosym "$(readlink -f /opt/homebrew/bin/ollama)" 0x1004950fc
+cd test/oracles/gosym && go build -o /tmp/gosym . && /tmp/gosym at "$(readlink -f /opt/homebrew/bin/ollama)" 0x1004950fc
 ```
