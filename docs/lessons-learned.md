@@ -229,6 +229,22 @@ argument`) _after_ Ghidra's analysis succeeds, and every later call re-runs
 - An `.app` whose executable is a script (Anaconda-Navigator's `run.py`) is
   refused at preflight with that reason.
 
+## From URL to code (REA 6.7.0, Ghidra 12.1.4, 20 Nov 2026)
+
+- `search_bytes` (hex pattern, Ghidra only, paged up to 1,000) finds every
+  `http(s)://` the raw byte scan finds, with address, segment and file offset,
+  under one evidence ID per page. `read_bytes` returns `bytes_hex`.
+- `xrefs` returns a plain list of "from" addresses. Go references a string
+  literal's start, so a URL in the middle of a message has no reference.
+- Ghidra's `list_strings` has addresses in other spaces (`__DWARF:0x…`) and
+  merges packed Go literals into long "strings" (1,112 bytes before
+  `go.dev` in the fixture), so a string object's start is not the literal's.
+- Release Go binaries (kubectl, Ollama) come out of Ghidra 12.1.4 with almost
+  every function as `FUN_<address>`; `__gopclntab` still holds every name,
+  and Go's `debug/gosym` agrees with Ghidra's entries exactly.
+- Walking back to the nearest referenced byte costs about 16 ms per `xrefs`
+  call (92,529 calls on kubectl) and can land on the previous literal.
+
 ## Reading findings from strings
 
 - **Go packs string literals end to end with no separators.** URLs are glued to

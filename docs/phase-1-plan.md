@@ -152,7 +152,7 @@ confidence (observed | inferred), caveats}`. Each evidence reference is an
 
 ### C. Recipe 2: Does it phone home? (decompiler)
 
-- [ ] **10. Spike: from a URL to the code that uses it.** Neither Ghidra nor
+- [x] **10. Spike: from a URL to the code that uses it.** Neither Ghidra nor
       Hopper lists URLs packed inside Go string data, and `search_strings`
       only searches the provider's string objects. So: scan the file's bytes
       for URL candidates (port `find_endpoints` and `snippets` from
@@ -162,6 +162,15 @@ confidence (observed | inferred), caveats}`. Each evidence reference is an
       Measure on kubectl and Ollama what share of candidates reach a function.
       This decides whether v1 can say "from where in the code" or only
       "mentions".
+      _Done 20 Nov (`docs/spike-phone-home.md`): REA's `search_bytes` finds
+      every URL the byte scan finds (kubectl 1,029/1,029, Ollama 99/99) with
+      evidence, so no offset mapping is needed. `xrefs` + one data hop reach
+      a function for Ollama 9 of 43 hosts and kubectl 3 of 36; the rest are
+      text in messages and docs. Walking back to the literal's start reaches
+      more but sometimes picks the previous message, so v1 leaves it out.
+      So v1 says "used in <function>" where observed and "mentioned" otherwise.
+      Ghidra names almost no Go functions in release builds (decision 8)._
+
 - [ ] **11. Recipe.** Findings: - hard-coded destinations by **hostname** (paths swallow the next glued
       literal), each with snippet, offset and, where the spike allows, the
       referencing function; - network capability from procedure names (Go `net/http`, `net.Dial`,
@@ -224,8 +233,13 @@ multi-user use. Those are phases 2–3.
    versions, with a notice.
 4. **Runner image distribution.** Publish `binlight-runner` to a registry
    (Ghidra is Apache 2.0, REA MIT), or keep the local build.
-5. **Rust toolchain** on this Mac to build the Rust fixture (`rustup`,
-   `cargo-auditable`).
+5. ~~**Rust toolchain**~~ Decided 10 Nov: build the fixture in Docker; nothing
+   installed on the Mac.
 6. **An older Ollama or kubectl release** downloaded as the "What changed?"
    reference pair.
 7. **The 5 developers**: who, and when task 16 runs.
+8. **Go function names** for "used in <function>" (task 10 spike). Ghidra names
+   almost none in release Go binaries. Recommended: Binlight reads Go's own
+   function table (a `debug/gosym` port), labelled as such and checked against
+   Ghidra's function entries. Alternatives: ask REA upstream, or show
+   `FUN_<address>` only. See `docs/spike-phone-home.md`.
