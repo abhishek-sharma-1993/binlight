@@ -515,3 +515,13 @@ progress.expected {
   height: 6px;
   accent-color: var(--running);
 }
+p.notice {
+  margin: 0;
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+.notice.warming {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--running);
+}

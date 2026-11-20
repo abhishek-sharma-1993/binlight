@@ -144,6 +144,11 @@ confidence (observed | inferred), caveats}`. Each evidence reference is an
       the Mac-only steps skipped and the reason shown._
 - [ ] **9. Early user check.** 1–2 developers run "What's inside" from a clean
       install, watched but unaided. Fix what confuses them before B → C.
+      _Prepared 20 Nov: session guide, script and notes sheet in
+      `docs/user-check-1.md`. A fresh-install dry run and a sweep of every
+      app on this Mac found and fixed five problems (first-run wait, server
+      not running, a misleading route note, two Go metadata shapes). Waiting
+      on the owner to run the sessions._
 
 ### C. Recipe 2: Does it phone home? (decompiler)
 

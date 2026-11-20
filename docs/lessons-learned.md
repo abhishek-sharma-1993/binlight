@@ -216,6 +216,19 @@ argument`) _after_ Ghidra's analysis succeeds, and every later call re-runs
 - `inspect_go_binary`'s dependency list matches `go version -m` exactly for
   kubectl (88) and Ollama.
 
+## Fresh installs and real apps (REA 6.7.0, 20 Nov 2026)
+
+- The first `rea doctor` after `npm install` compiles a Swift helper with
+  `swiftc` (35 s here; REA's own notes say 88 s on an Intel Mac with a cold
+  Swift cache). The cost is per Mac (Swift's module cache), not per install, so
+  a second fresh clone on the same Mac starts in 2 s. Needs Xcode Command Line
+  Tools. Binlight warms it at server start and allows 5 min.
+- `inspect_go_binary`: `sum` is null for replaced modules (`=>` in
+  `go version -m`; Docker Desktop's `com.docker.backend` has 11), and
+  `module.main` is null for Go's own tools (`go`, path `cmd/go`).
+- An `.app` whose executable is a script (Anaconda-Navigator's `run.py`) is
+  refused at preflight with that reason.
+
 ## Reading findings from strings
 
 - **Go packs string literals end to end with no separators.** URLs are glued to

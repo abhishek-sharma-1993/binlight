@@ -43,7 +43,8 @@ const AddressValue = z.object({ address: z.string(), value: z.string() });
 const GoModule = z.object({
   path: z.string(),
   version: z.string(),
-  sum: z.string(),
+  // null for a module replaced by another (`=>` in `go version -m`), e.g. in Docker Desktop.
+  sum: z.string().nullable(),
   replacement: z.unknown().nullable(),
 });
 
@@ -81,7 +82,8 @@ export const toolSchemas = {
           go_version: z.string(),
           module: z.object({
             path: z.string(),
-            main: GoModule,
+            // null for Go's own tools (e.g. `go`, path cmd/go): no main module.
+            main: GoModule.nullable(),
             dependencies: z.array(GoModule),
             settings: z.array(z.object({ key: z.string(), value: z.string() })),
             complete: z.boolean(),

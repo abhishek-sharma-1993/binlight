@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import type { AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { Job, JobEvent } from "@binlight/shared";
+import type { Job, JobEvent, ReaReadiness } from "@binlight/shared";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createApp } from "./app.js";
 import { AiService, MemoryKeyStore, SettingsFile } from "./settings/index.js";
@@ -296,5 +296,34 @@ describe("AI settings API", () => {
     expect((await call("PUT", "/api/settings/ai", { mode: "always" })).status).toBe(400);
     expect((await call("PUT", "/api/settings/ai/key", { key: 'x" y' })).status).toBe(400);
     expect((await call("POST", "/api/ask", { question: "Does it phone home?" })).status).toBe(400);
+  });
+});
+
+describe("server health", () => {
+  let readiness: ReaReadiness | undefined = { state: "warming", since: "2026-11-20T08:00:00.000Z" };
+  const app = createApp({
+    jobs: new JobManager(deps(fakeSession(undefined))),
+    reaReadiness: () => readiness,
+  });
+  let port = 0;
+  beforeAll(async () => {
+    await new Promise<void>((resolve) => app.listen(0, "127.0.0.1", resolve));
+    port = (app.address() as AddressInfo).port;
+  });
+  afterAll(() => {
+    app.closeAllConnections();
+    return new Promise<void>((resolve) => app.close(() => resolve()));
+  });
+
+  it("says whether REA is still doing its first-run build", async () => {
+    const health = () => fetch(`http://127.0.0.1:${port}/api/health`).then((r) => r.json());
+    expect(await health()).toEqual({
+      ok: true,
+      rea: { state: "warming", since: "2026-11-20T08:00:00.000Z" },
+    });
+    readiness = { state: "failed", error: "rea doctor failed: swiftc timed out" };
+    expect(await health()).toMatchObject({ rea: { state: "failed" } });
+    readiness = undefined;
+    expect(await health()).toEqual({ ok: true });
   });
 });

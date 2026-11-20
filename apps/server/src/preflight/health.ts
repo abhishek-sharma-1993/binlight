@@ -1,3 +1,4 @@
+import type { ReaReadiness } from "@binlight/shared";
 import { execFile } from "node:child_process";
 import { dirname } from "node:path";
 import { promisify } from "node:util";
@@ -56,16 +57,46 @@ const doctorSchema = z.object({
 });
 export type DoctorReport = z.infer<typeof doctorSchema>;
 
+const DOCTOR_TIMEOUT_MS = 5 * 60_000;
+let inflight: Promise<DoctorReport> | undefined;
+
+let readiness: ReaReadiness | undefined;
+export const reaReadiness = (): ReaReadiness | undefined => readiness;
+
+/**
+ * Runs `rea doctor` once at server start, so REA's one-time helper build after
+ * `npm install` happens before the first job rather than inside it.
+ */
+export async function warmUpRea(env: ReaEnvOptions): Promise<ReaReadiness> {
+  const started = Date.now();
+  readiness = { state: "warming", since: new Date(started).toISOString() };
+  try {
+    await runDoctor(env);
+    readiness = { state: "ready", ms: Date.now() - started };
+  } catch (err) {
+    readiness = { state: "failed", error: err instanceof Error ? err.message : String(err) };
+  }
+  return readiness;
+}
+
 /**
  * Runs the pinned `rea doctor` for the providers Binlight can use. It exits 1
  * whenever anything at all is unhealthy (IDA, client registrations...), so the
- * exit code is ignored and the per-provider checks are read instead.
+ * exit code is ignored and the per-provider checks are read instead. Calls
+ * made while one is running share it, so the first-run build happens once.
  */
-export async function runDoctor(env: ReaEnvOptions): Promise<DoctorReport> {
+export function runDoctor(env: ReaEnvOptions): Promise<DoctorReport> {
+  inflight ??= doctorOnce(env).finally(() => (inflight = undefined));
+  return inflight;
+}
+
+async function doctorOnce(env: ReaEnvOptions): Promise<DoctorReport> {
   const args = [installedRea().entry, "doctor", "--provider", "ghidra", "--provider", "hopper"];
   const { stdout, stderr } = await run(process.execPath, [...args, "--format", "json"], {
     env: buildReaEnv(env),
-    timeout: 60_000,
+    // The first run after `npm install` compiles REA's Swift helpers (35 s on an
+    // M-series Mac); allow for slower machines.
+    timeout: DOCTOR_TIMEOUT_MS,
     maxBuffer: 16 * 1024 * 1024,
   }).catch((err: { stdout?: string; stderr?: string; message: string }) => {
     if (err.stdout) return { stdout: err.stdout, stderr: err.stderr ?? "" };

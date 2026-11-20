@@ -58,22 +58,26 @@ export const goBuildInfo: Rule = {
       });
 
       const main = info.module.main;
-      const unversioned = main.version === "(devel)" || main.version === "";
+      const unversioned = !main || main.version === "(devel)" || main.version === "";
       findings.push({
         id: id("go:module"),
         rule: "go-build-info",
         kind: "go-main-module",
         ...target,
-        statement: unversioned
-          ? `Main module ${main.path}, built without a release version ("${main.version || "none"}").`
-          : `Main module ${main.path} at version ${main.version}.`,
+        statement: !main
+          ? `Built from package ${info.module.path} with no main module (as Go's own tools are), so it has no module version.`
+          : unversioned
+            ? `Main module ${main.path}, built without a release version ("${main.version || "none"}").`
+            : `Main module ${main.path} at version ${main.version}.`,
         evidence: [ref(step, { field: `${FIELD}.module.main` })],
         confidence: "observed",
         caveats: [],
-        data: { path: main.path, version: main.version },
+        data: main
+          ? { path: main.path, version: main.version }
+          : { path: info.module.path, version: null },
       });
 
-      if (main.version.endsWith("+dirty")) {
+      if (main?.version.endsWith("+dirty")) {
         findings.push({
           id: id("go:dirty"),
           rule: "go-build-info",

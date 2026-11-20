@@ -92,7 +92,7 @@ export async function preflight(
     issues.push({
       severity: "blocker",
       code: "unsupported_format",
-      message: `${native.path} is ${what}. Phase 0 analyses native executables (Mach-O, ELF, PE).`,
+      message: `${native.path} is ${what}. Binlight analyses native executables (Mach-O, ELF, PE), not scripts or other files.`,
     });
     native = undefined;
   }

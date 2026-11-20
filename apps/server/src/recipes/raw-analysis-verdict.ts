@@ -17,11 +17,11 @@ export function rawAnalysisVerdict(findings: Finding[]): VerdictBody {
       findings: [toolchain.id, module.id],
     });
     const path = String(module.data?.["path"] ?? "");
-    const version = String(module.data?.["version"] ?? "");
+    const version = module.data?.["version"] ? ` ${String(module.data["version"])}` : "";
     const goVersion = String(toolchain.data?.["goVersion"] ?? "").replace(/^go/, "");
     const count = deps ? (deps.data?.["dependencies"] as unknown[] | undefined)?.length : undefined;
     answer.push(
-      `A Go ${goVersion} build of ${path} ${version}${count !== undefined ? ` with ${count} module ${count === 1 ? "dependency" : "dependencies"}` : ""}`,
+      `A Go ${goVersion} build of ${path}${version}${count === undefined ? "" : count === 0 ? " with no module dependencies" : ` with ${count} module ${count === 1 ? "dependency" : "dependencies"}`}`,
     );
   } else if (none) {
     claims.push({ text: none.statement, findings: [none.id] });

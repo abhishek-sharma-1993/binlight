@@ -63,3 +63,17 @@ export interface PreflightReport {
   /** False when a blocker means nothing can be analysed. */
   canAnalyse: boolean;
 }
+
+/**
+ * Whether REA is ready for a first job (from /api/health). "warming" while
+ * REA's one-time helper build after `npm install` runs at server start.
+ */
+export type ReaReadiness =
+  | { state: "warming"; since: string }
+  | { state: "ready"; ms: number }
+  | { state: "failed"; error: string };
+
+export interface Health {
+  ok: true;
+  rea?: ReaReadiness;
+}

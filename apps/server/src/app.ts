@@ -1,5 +1,5 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
-import type { JobEvent } from "@binlight/shared";
+import type { Health, JobEvent, ReaReadiness } from "@binlight/shared";
 import { exportReport, reportFileName } from "./export/index.js";
 import { JobRequestError, type JobManager } from "./jobs/manager.js";
 import { recipeInfo, RECIPES, type Recipe } from "./recipes/index.js";
@@ -15,6 +15,8 @@ export interface AppDeps {
   /** Where uploaded binaries are stored. */
   uploadRoot?: string;
   maxUploadBytes?: number;
+  /** REA's start-up state, shown by the page while its first-run build runs. */
+  reaReadiness?: () => ReaReadiness | undefined;
 }
 
 const MAX_BODY_BYTES = 64 * 1024;
@@ -89,7 +91,11 @@ export function createApp(deps: AppDeps): Server {
       const parts = url.pathname.split("/").filter(Boolean);
       const method = req.method ?? "GET";
 
-      if (method === "GET" && url.pathname === "/api/health") return send(res, 200, { ok: true });
+      if (method === "GET" && url.pathname === "/api/health") {
+        const rea = deps.reaReadiness?.();
+        const health: Health = { ok: true, ...(rea && { rea }) };
+        return send(res, 200, health);
+      }
 
       if (method === "GET" && url.pathname === "/api/recipes") {
         return send(res, 200, (deps.recipes ?? RECIPES).map(recipeInfo));

@@ -311,6 +311,7 @@ export class JobManager {
     const id = (base: string) => stepId(base, t, n);
     const target = job.targets[t] as string;
 
+    const needsDisassembler = stepsFor(recipe, t).some((rs) => rs.deep);
     const pre = await this.step(state, id("preflight"), async () => {
       const r = await this.deps.preflight(target);
       job.preflights[t] = r;
@@ -325,9 +326,12 @@ export class JobManager {
       }
       const what = `${r.target.format} ${r.analysisArchitecture ?? ""}`.trim();
       return {
-        summary: r.deep
-          ? `${what}; deep analysis via ${r.deep.route}`
-          : `${what}; no deep-analysis route on this machine`,
+        // Routes only matter to recipes that use a disassembler.
+        summary: !needsDisassembler
+          ? what
+          : r.deep
+            ? `${what}; deep analysis via ${r.deep.route}`
+            : `${what}; no deep-analysis route on this machine`,
         result: r,
       };
     });

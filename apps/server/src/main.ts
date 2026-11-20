@@ -2,7 +2,8 @@ import { createApp } from "./app.js";
 import { EvidenceCache } from "./cache/evidence.js";
 import { HistoryFile } from "./history/history.js";
 import { JobManager } from "./jobs/manager.js";
-import { preflight } from "./preflight/index.js";
+import { preflight, reaReadiness, warmUpRea } from "./preflight/index.js";
+import { reaEnvOptionsFromProcess } from "./rea/env.js";
 import { formatReaLog } from "./rea/log.js";
 import { openReaSession } from "./runner/index.js";
 import { AiService, MacKeychain, SettingsFile } from "./settings/index.js";
@@ -29,7 +30,16 @@ const jobs = new JobManager({
     }),
 });
 
-createApp({ jobs, ai }).listen(port, "127.0.0.1", () => {
+createApp({ jobs, ai, reaReadiness }).listen(port, "127.0.0.1", () => {
   console.log(`binlight server on http://127.0.0.1:${port}`);
   void ai.status().then((s) => console.log(`AI: ${s.mode} (${s.model}); key: ${s.key.source}`));
+  // The first run after `npm install` builds REA's helpers (about 30 s): do it now.
+  console.log("REA: getting ready (the first run after install takes about 30 s)…");
+  void warmUpRea(reaEnvOptionsFromProcess()).then((r) =>
+    console.log(
+      r.state === "ready"
+        ? `REA: ready in ${(r.ms / 1000).toFixed(1)} s`
+        : `REA: not ready: ${r.state === "failed" ? r.error : r.state}`,
+    ),
+  );
 });

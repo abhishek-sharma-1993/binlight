@@ -30,7 +30,7 @@ export function whatsInsideVerdict(findings: Finding[]): VerdictBody {
     const goVersion = String(toolchain.data?.["goVersion"] ?? "").replace(/^go/, "");
     const count = (deps?.data?.["dependencies"] as unknown[] | undefined)?.length;
     answer.push(
-      `A Go ${goVersion} build of ${String(module.data?.["path"] ?? "")} ${String(module.data?.["version"] ?? "")}${count !== undefined ? ` with ${count} module ${count === 1 ? "dependency" : "dependencies"}` : ""}`,
+      `A Go ${goVersion} build of ${String(module.data?.["path"] ?? "")}${module.data?.["version"] ? ` ${String(module.data["version"])}` : ""}${count === undefined ? "" : count === 0 ? " with no module dependencies" : ` with ${count} module ${count === 1 ? "dependency" : "dependencies"}`}`,
     );
     const status = support?.data?.["status"];
     if (status === "supported") answer.push("that Go release is still supported");

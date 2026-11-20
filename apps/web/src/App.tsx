@@ -4,6 +4,7 @@ import { AiPanel } from "./AiPanel.js";
 import { JobList } from "./JobList.js";
 import { JobView } from "./JobView.js";
 import { NewJobForm } from "./NewJobForm.js";
+import { ServerStatus } from "./ServerStatus.js";
 
 /** The selected job lives in the URL (?job=…), so a reload reconnects to it. */
 function jobFromUrl(): string | undefined {
@@ -38,6 +39,7 @@ export function App() {
         <span className="muted">Phase 1 preview</span>
       </header>
       <aside>
+        <ServerStatus />
         <NewJobForm
           aiOn={ai?.mode === "claude" && ai.key.source !== "none"}
           onCreated={(id) => {

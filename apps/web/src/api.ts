@@ -1,5 +1,6 @@
 import type {
   AiSettings,
+  Health,
   Job,
   JobEvent,
   RecipeInfo,
@@ -33,6 +34,10 @@ async function json<T>(res: Response): Promise<T> {
     throw new ApiError(res.status, error ?? `HTTP ${res.status}`);
   }
   return body as T;
+}
+
+export async function getHealth(): Promise<Health> {
+  return json(await fetch("/api/health"));
 }
 
 export async function listRecipes(): Promise<RecipeInfo[]> {

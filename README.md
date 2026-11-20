@@ -5,7 +5,25 @@ Drop in an app, ask a plain question, watch the investigation, get a verdict
 backed by REA evidence. Independent project; not affiliated with REA, Ghidra or
 Anthropic.
 
-Status: phase 0 (foundations). See `docs/phase-0-plan.md`.
+Status: phase 1 (v1 MVP) in progress. See `docs/phase-1-plan.md`.
+
+## Quick start
+
+On a Mac with Node.js 22+ and Xcode Command Line Tools (`xcode-select --install`):
+
+```bash
+git clone https://github.com/abhishek-sharma-1993/binlight.git
+cd binlight
+npm install
+npm run dev:server   # terminal 1
+npm run dev:web      # terminal 2
+```
+
+Open http://127.0.0.1:5173, keep **What's inside?** selected, type a path such
+as `/opt/homebrew/bin/kubectl` and press **Analyse**. You get a verdict in
+seconds. The first start after install builds REA's helpers once (30–90 s); the
+page says so while it happens. "What's inside?" needs no Docker or Ghidra;
+those are only for **Raw analysis**.
 
 ## Layout
 
@@ -20,9 +38,13 @@ Status: phase 0 (foundations). See `docs/phase-0-plan.md`.
 ## Prerequisites
 
 - Node.js 22+ (developed on 26)
+- macOS: Xcode Command Line Tools. REA compiles a small Swift helper with
+  `swiftc` the first time it runs.
 - REA is installed by `npm install`: `rea-agents` is pinned exactly in
   `apps/server/package.json`, and Binlight refuses to run any other version.
-- Ghidra 12.1.x + JDK 21 for deep analysis (see `docs/lessons-learned.md`)
+- Deep analysis (the **Raw analysis** recipe) only: Docker Desktop and the
+  runner image (`npm run runner:build`), or a native Ghidra 12.1.x + JDK 21
+  (see `docs/lessons-learned.md`)
 
 ## Run
 

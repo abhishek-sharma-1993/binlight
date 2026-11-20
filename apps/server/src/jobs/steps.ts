@@ -90,7 +90,7 @@ export function goOutcome(value: ToolOutput<"inspect_go_binary">): StepOutcome {
   }
   const main = info.module.main;
   return {
-    summary: `${info.go_version} · ${main.path} ${main.version} · ${n(info.module.dependencies.length)} dependencies`,
+    summary: `${info.go_version} · ${main ? `${main.path} ${main.version}` : info.module.path} · ${n(info.module.dependencies.length)} dependencies`,
     counts: { dependencies: info.module.dependencies.length },
     evidenceId: value.evidence_id,
     result: value,

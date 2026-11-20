@@ -208,6 +208,24 @@ describe("What's inside? rules", () => {
     expect(ids).not.toContain("rust:dependencies");
   });
 
+  it("reads Go's own tools, which have no main module (Homebrew's go binary)", () => {
+    const info = {
+      ...goInfo("go1.27.3"),
+      module: { ...goInfo("go1.27.3").module, path: "cmd/go", main: null, dependencies: [] },
+    };
+    const out = run([go(info), rust(null)]);
+    const byId = new Map(out.findings.map((f) => [f.id, f]));
+    expect(out.rules.find((r) => r.id === "go-build-info")?.status).toBe("ran");
+    expect(byId.get("go:module")?.statement).toBe(
+      "Built from package cmd/go with no main module (as Go's own tools are), so it has no module version.",
+    );
+    const body = whatsInsideVerdict(out.findings);
+    expect(body.answer).toBe(
+      "A Go 1.27.3 build of cmd/go with no module dependencies; that Go release is still supported.",
+    );
+    expect(validateVerdict(body, out.findings)).toEqual({ ok: true });
+  });
+
   it("does not run the Mach-O rules when those steps did not run", () => {
     const out = run([go(goInfo("go1.27.3")), rust(null)]);
     expect(out.rules.find((r) => r.id === "signing")?.status).toBe("not-run");
