@@ -433,6 +433,11 @@ ul.claims {
   margin: 0 0 8px;
   padding-left: 18px;
 }
+/* Go function names and paths are long unbroken strings. */
+ul.claims li,
+li.finding p {
+  overflow-wrap: anywhere;
+}
 a.cite {
   color: var(--accent);
   text-decoration: none;

@@ -8,6 +8,8 @@ export interface StepOutcome {
   summary: string;
   counts?: Record<string, number>;
   evidenceId?: string;
+  /** For a many-call step: how many evidence records its result holds. */
+  evidenceCount?: number;
   /** Full REA result, served on request (never inlined in events). */
   result?: unknown;
   /** Set when the outcome was rebuilt from the evidence cache. */
@@ -163,4 +165,48 @@ export function signatureOutcome(value: ToolOutput<"inspect_signature">): StepOu
     evidenceId: value.evidence_id,
     result: value,
   };
+}
+
+/** One REA evidence record as a many-call step keeps it (bulky facets dropped). */
+export interface EvidenceRecord {
+  evidence_id: string;
+  operation?: string;
+  parameters?: unknown;
+  subject?: unknown;
+  provider?: unknown;
+  confidence?: string;
+  limitations?: string[];
+  normalized_result?: unknown;
+}
+
+/** A many-call step's result: what its `run` returned, plus every record it saw. */
+export interface MultiCallResult<T = unknown> {
+  operation: string;
+  multiCall: true;
+  data: T;
+  records: EvidenceRecord[];
+}
+
+export function isMultiCall(v: unknown): v is MultiCallResult {
+  return typeof v === "object" && v !== null && (v as { multiCall?: unknown }).multiCall === true;
+}
+
+/** Keeps the parts of a REA response a report or rule needs. */
+export function keepRecord(value: unknown): EvidenceRecord | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const v = value as Record<string, unknown>;
+  if (typeof v["evidence_id"] !== "string") return undefined;
+  const keep = [
+    "evidence_id",
+    "operation",
+    "parameters",
+    "subject",
+    "provider",
+    "confidence",
+    "limitations",
+    "normalized_result",
+  ];
+  return Object.fromEntries(
+    keep.filter((k) => k in v).map((k) => [k, v[k]]),
+  ) as unknown as EvidenceRecord;
 }

@@ -1,0 +1,281 @@
+{
+  "target": "/opt/homebrew/bin/kubectl",
+  "sha256": "93a122791905cb9833e3258026efa6747eb6fc35d2dacec55afcfceee188170a",
+  "reaVersion": "6.7.0",
+  "answer": "Code refers to 3 of the 34 hosts written into it, including index.docker.io, protobuf.dev, www.w3.org; the rest appear in text such as help messages and docs; it makes HTTP requests, opens network connections, uses TLS (HTTPS) connections, serves HTTP, listens for incoming connections, opens WebSocket connections; no embedded keys match the strict patterns.",
+  "findings": [
+    {
+      "id": "dest:1.2.3.4",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"1.2.3.4\" (an IP address) appears 4 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:access.redhat.com",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"access.redhat.com\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:cloud.google.com",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"cloud.google.com\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:datatracker.ietf.org",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"datatracker.ietf.org\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:ed25519.cr.yp.to",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"ed25519.cr.yp.to\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:en.wikipedia.org",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"en.wikipedia.org\" appears 2 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:example.com",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"example.com\" (a placeholder or example address) appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:examples.k8s.io",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"examples.k8s.io\" appears 26 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:git.k8s.io",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"git.k8s.io\" appears 90 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:github.com",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"github.com\" appears 520 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:go.dev",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"go.dev\" appears 3 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:go.k8s.io",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"go.k8s.io\" appears 2 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:golang.org",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"golang.org\" appears 5 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:htmlpreview.github.io",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"htmlpreview.github.io\" appears 16 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:index.docker.io",
+      "kind": "destination-used",
+      "confidence": "observed",
+      "statement": "\"index.docker.io\" is used by code: k8s.io/kubectl/pkg/cmd/create.NewSecretDockerRegistryOptions (create/create_secret_docker.go:122)."
+    },
+    {
+      "id": "dest:issue.k8s.io",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"issue.k8s.io\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:issues.k8s.io",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"issues.k8s.io\" appears 8 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:jsonpatch.com",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"jsonpatch.com\" appears 3 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:k8s.io",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"k8s.io\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:kep.k8s.io",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"kep.k8s.io\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:krew.sigs.k8s.io",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"krew.sigs.k8s.io\" appears 10 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:kubernetes-csi.github.io",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"kubernetes-csi.github.io\" appears 2 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:kubernetes.io",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"kubernetes.io\" appears 266 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:man7.org",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"man7.org\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:pkg.go.dev",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"pkg.go.dev\" appears 6 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:pr.k8s.io",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"pr.k8s.io\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:protobuf.dev",
+      "kind": "destination-used",
+      "confidence": "observed",
+      "statement": "\"protobuf.dev\" is used by code: google.golang.org/protobuf/reflect/protoregistry.init.func1 (protoregistry/registry.go:56)."
+    },
+    {
+      "id": "dest:tools.ietf.org",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"tools.ietf.org\" appears 4 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:www.apache.org",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"www.apache.org\" appears 2 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:www.iana.org",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"www.iana.org\" appears 2 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:www.oxeye.io",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"www.oxeye.io\" appears 2 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:www.rfc-editor.org",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"www.rfc-editor.org\" appears 3 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:www.secg.org",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"www.secg.org\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:www.w3.org",
+      "kind": "destination-used",
+      "confidence": "observed",
+      "statement": "\"www.w3.org\" (a namespace name, not normally fetched) is used by code: encoding/xml.(*printer).createAttrPrefix (xml/marshal.go:348), encoding/xml.(*Decoder).Token (xml/xml.go:357), encoding/xml.(*Decoder).translate (xml/xml.go:357), encoding/xml.(*Decoder).popElement (xml/xml.go:357)."
+    },
+    {
+      "id": "dest:summary",
+      "kind": "destinations-summary",
+      "confidence": "observed",
+      "statement": "34 hosts appear in http(s):// URLs written into the binary; code refers to 3 of them."
+    },
+    {
+      "id": "net:956ea6503acd",
+      "kind": "network-capability",
+      "confidence": "observed",
+      "statement": "It makes HTTP requests: net/http.(*Client).Do and net/http.(*Transport).RoundTrip are linked in."
+    },
+    {
+      "id": "net:21f81159efe5",
+      "kind": "network-capability",
+      "confidence": "observed",
+      "statement": "It opens network connections: net.(*Dialer).DialContext is linked in."
+    },
+    {
+      "id": "net:f15d7fe43525",
+      "kind": "network-capability",
+      "confidence": "observed",
+      "statement": "It uses TLS (HTTPS) connections: crypto/tls.(*Conn).Handshake is linked in."
+    },
+    {
+      "id": "net:b59d7d6e1538",
+      "kind": "network-capability",
+      "confidence": "observed",
+      "statement": "It serves HTTP: net/http.(*Server).Serve is linked in."
+    },
+    {
+      "id": "net:4b9c883ffe76",
+      "kind": "network-capability",
+      "confidence": "observed",
+      "statement": "It listens for incoming connections: net.(*ListenConfig).Listen is linked in."
+    },
+    {
+      "id": "net:43d7af80cc7f",
+      "kind": "network-capability",
+      "confidence": "observed",
+      "statement": "It opens WebSocket connections: github.com/gorilla/websocket.(*Dialer).DialContext is linked in."
+    },
+    {
+      "id": "net:summary",
+      "kind": "network-capability-summary",
+      "confidence": "observed",
+      "statement": "6 of the network capabilities Binlight looks for are linked in."
+    },
+    {
+      "id": "secrets:summary",
+      "kind": "credential-values-summary",
+      "confidence": "observed",
+      "statement": "No credential-shaped values match the strict patterns in the binary's bytes."
+    }
+  ],
+  "suppressed": [],
+  "rules": [
+    {
+      "id": "destinations",
+      "status": "ran"
+    },
+    {
+      "id": "network-capability",
+      "status": "ran"
+    },
+    {
+      "id": "credential-bytes",
+      "status": "ran"
+    }
+  ]
+}

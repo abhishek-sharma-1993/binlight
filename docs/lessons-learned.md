@@ -245,6 +245,20 @@ argument`) _after_ Ghidra's analysis succeeds, and every later call re-runs
 - Walking back to the nearest referenced byte costs about 16 ms per `xrefs`
   call (92,529 calls on kubectl) and can land on the previous literal.
 
+## "Does it phone home?" in practice (20 Nov 2026)
+
+- Many-call steps must be cached under their own key: three steps with the
+  same main tool (`search_bytes`) overwrote each other until the step id went
+  into the cache variant. A many-call result is not a REA response, so the
+  cache must not re-check it against the tool's schema.
+- Glued hostnames: cutting the last label to the longest TLD prefix is wrong
+  when the text was cut short, not glued (`htmlpreview.github` → `.gi`,
+  Gibraltar). Prefer the longer host the same binary contains.
+- `www.w3.org` is "used by code" in every Go binary that links
+  `encoding/xml`: it is a namespace name, not a destination.
+- Live tests that each start REA/Ghidra must run one file at a time
+  (`fileParallelism: false`); in parallel one contract run failed.
+
 ## Reading findings from strings
 
 - **Go packs string literals end to end with no separators.** URLs are glued to

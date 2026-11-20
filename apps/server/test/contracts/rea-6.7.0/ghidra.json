@@ -40,6 +40,124 @@
         {}
       ]
     },
+    "search_bytes": {
+      "type": "object",
+      "properties": {
+        "pattern": {
+          "type": "string",
+          "pattern": "^([0-9a-fA-F]{2}|\\?\\?)(\\s*([0-9a-fA-F]{2}|\\?\\?))*$",
+          "description": "Literal text or regular expression used to filter matching results."
+        },
+        "mask": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{2}(\\s*[0-9a-fA-F]{2})*$"
+        },
+        "document": {
+          "description": "The active target's provider document name; use open_binary to switch targets",
+          "type": "string"
+        },
+        "start": {
+          "type": "string",
+          "description": "A provider-normalized address; default memory uses 0x-prefixed hexadecimal"
+        },
+        "end": {
+          "type": "string",
+          "description": "A provider-normalized address; default memory uses 0x-prefixed hexadecimal"
+        },
+        "limit": {
+          "default": 100,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "cursor": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "pattern"
+      ],
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "examples": [
+        {
+          "pattern": "48 8B ?? ?? 89",
+          "limit": 100
+        }
+      ]
+    },
+    "read_bytes": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string",
+          "description": "A provider-normalized address; default memory uses 0x-prefixed hexadecimal"
+        },
+        "length": {
+          "default": 256,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "document": {
+          "description": "The active target's provider document name; use open_binary to switch targets",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "examples": [
+        {
+          "address": "0x1000",
+          "length": 16
+        }
+      ]
+    },
+    "resolve_containing_procedure": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string",
+          "description": "A provider-normalized address; default memory uses 0x-prefixed hexadecimal"
+        },
+        "document": {
+          "description": "The active target's provider document name; use open_binary to switch targets",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "examples": [
+        {
+          "address": "0x1000"
+        }
+      ]
+    },
+    "xrefs": {
+      "type": "object",
+      "properties": {
+        "document": {
+          "description": "The active target's provider document name; use open_binary to switch targets",
+          "type": "string"
+        },
+        "address": {
+          "type": "string",
+          "description": "A provider-normalized address; default memory uses 0x-prefixed hexadecimal"
+        }
+      },
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "examples": [
+        {}
+      ]
+    },
     "binary_overview": {
       "type": "object",
       "properties": {},
@@ -1210,6 +1328,955 @@
           "Cancelling an active Ghidra request terminates its ephemeral database and discards session annotations. The selected target remains open; the next provider query imports the original artifact again.",
           "Default-space addresses use lowercase 0x-prefixed hexadecimal; other address spaces use <percent-encoded-space>:0x<hex>.",
           "External functions and local thunks are distinct; procedure metadata identifies both and preserves a thunk target when Ghidra resolves one."
+        ],
+        "relationship_coverage": null,
+        "locations": [],
+        "evidence_links": []
+      }
+    },
+    {
+      "tool": "search_bytes",
+      "args": {
+        "pattern": "68 74 74 70 73 3a 2f 2f 65 78 61 6d 70 6c 65 2e 69 6e 76 61 6c 69 64"
+      },
+      "shape": {
+        "$": "object",
+        "analysis_profile": "object",
+        "analysis_profile.digest": "string",
+        "analysis_profile.parameters": "object",
+        "analysis_profile.parameters.analyzer_preset": "string",
+        "analysis_profile.parameters.annotation_policy": "string",
+        "analysis_profile.parameters.architecture": "string",
+        "analysis_profile.parameters.available_architectures": "array",
+        "analysis_profile.parameters.available_architectures[]": "string",
+        "analysis_profile.parameters.call_relationship_coverage": "string",
+        "analysis_profile.parameters.compiler_spec_id": "string",
+        "analysis_profile.parameters.decompiler_jump_loads": "boolean",
+        "analysis_profile.parameters.function_body_evidence": "string",
+        "analysis_profile.parameters.function_boundary_observations": "string",
+        "analysis_profile.parameters.function_dossier_coverage": "string",
+        "analysis_profile.parameters.function_references": "string",
+        "analysis_profile.parameters.import_mode": "string",
+        "analysis_profile.parameters.instruction_flow_evidence": "string",
+        "analysis_profile.parameters.instruction_references": "string",
+        "analysis_profile.parameters.jump_table_evidence": "string",
+        "analysis_profile.parameters.language_id": "string",
+        "analysis_profile.parameters.load_image_observations": "string",
+        "analysis_profile.parameters.loader": "string",
+        "analysis_profile.parameters.location_resolution": "string",
+        "analysis_profile.parameters.no_return_repair": "string",
+        "analysis_profile.parameters.procedure_file_offset_resolution": "string",
+        "analysis_profile.parameters.process_launch": "string",
+        "analysis_profile.parameters.string_inventory_evidence": "string",
+        "analysis_profile.parameters.target_format": "string",
+        "analysis_profile.parameters.target_kind": "string",
+        "analysis_profile.provider": "object",
+        "analysis_profile.provider.id": "string",
+        "analysis_profile.provider.name": "string",
+        "analysis_profile.provider.version": "string",
+        "authority": "string",
+        "confidence": "string",
+        "environment": "null",
+        "evidence_id": "string",
+        "evidence_links": "array",
+        "limitations": "array",
+        "limitations[]": "string",
+        "locations": "array",
+        "normalized_result": "object",
+        "normalized_result.complete": "boolean",
+        "normalized_result.matches": "array",
+        "normalized_result.matches[]": "object",
+        "normalized_result.matches[].address": "string",
+        "normalized_result.matches[].file_offset": "number",
+        "normalized_result.matches[].procedure": "null",
+        "normalized_result.matches[].segment": "string",
+        "normalized_result.next_cursor": "null",
+        "normalized_result.searched": "object",
+        "normalized_result.searched.blocks": "array",
+        "normalized_result.searched.blocks[]": "object",
+        "normalized_result.searched.blocks[].bytes": "number",
+        "normalized_result.searched.blocks[].end": "string",
+        "normalized_result.searched.blocks[].segment": "string",
+        "normalized_result.searched.blocks[].start": "string",
+        "normalized_result.searched.bytes": "number",
+        "normalized_result.searched.skipped_not_loaded": "array",
+        "normalized_result.searched.skipped_not_loaded[]": "object",
+        "normalized_result.searched.skipped_not_loaded[].bytes": "number",
+        "normalized_result.searched.skipped_not_loaded[].end": "string",
+        "normalized_result.searched.skipped_not_loaded[].segment": "string",
+        "normalized_result.searched.skipped_not_loaded[].start": "string",
+        "normalized_result.searched.skipped_uninitialized": "array",
+        "normalized_result.searched.skipped_uninitialized[]": "object",
+        "normalized_result.searched.skipped_uninitialized[].bytes": "number",
+        "normalized_result.searched.skipped_uninitialized[].end": "string",
+        "normalized_result.searched.skipped_uninitialized[].segment": "string",
+        "normalized_result.searched.skipped_uninitialized[].start": "string",
+        "operation": "string",
+        "parameters": "object",
+        "parameters.limit": "number",
+        "parameters.pattern": "string",
+        "predicate_type": "string",
+        "provider": "object",
+        "provider.id": "string",
+        "provider.name": "string",
+        "provider.version": "string",
+        "raw_result": "object",
+        "raw_result.complete": "boolean",
+        "raw_result.matches": "array",
+        "raw_result.matches[]": "object",
+        "raw_result.matches[].address": "string",
+        "raw_result.matches[].file_offset": "number",
+        "raw_result.matches[].procedure": "null",
+        "raw_result.matches[].segment": "string",
+        "raw_result.next_cursor": "null",
+        "raw_result.searched": "object",
+        "raw_result.searched.blocks": "array",
+        "raw_result.searched.blocks[]": "object",
+        "raw_result.searched.blocks[].bytes": "number",
+        "raw_result.searched.blocks[].end": "string",
+        "raw_result.searched.blocks[].segment": "string",
+        "raw_result.searched.blocks[].start": "string",
+        "raw_result.searched.bytes": "number",
+        "raw_result.searched.skipped_not_loaded": "array",
+        "raw_result.searched.skipped_not_loaded[]": "object",
+        "raw_result.searched.skipped_not_loaded[].bytes": "number",
+        "raw_result.searched.skipped_not_loaded[].end": "string",
+        "raw_result.searched.skipped_not_loaded[].segment": "string",
+        "raw_result.searched.skipped_not_loaded[].start": "string",
+        "raw_result.searched.skipped_uninitialized": "array",
+        "raw_result.searched.skipped_uninitialized[]": "object",
+        "raw_result.searched.skipped_uninitialized[].bytes": "number",
+        "raw_result.searched.skipped_uninitialized[].end": "string",
+        "raw_result.searched.skipped_uninitialized[].segment": "string",
+        "raw_result.searched.skipped_uninitialized[].start": "string",
+        "relationship_coverage": "null",
+        "subject": "object",
+        "subject.architecture": "string",
+        "subject.digest": "object",
+        "subject.digest.sha256": "string",
+        "subject.format": "string",
+        "subject.local_path": "string",
+        "subject.name": "string"
+      },
+      "sample": {
+        "evidence_id": "ev_fa0b735d26354b2def6ed082617345a14adbcb29ee85e8bda0bbea287f5b80b9",
+        "subject": {
+          "name": "hello-go",
+          "digest": {
+            "sha256": "ccc7b51f764f14a50059510204a1b7f1c46ea4a6e77fc2b31e0dc82561647ad2"
+          },
+          "local_path": "$FIXTURE",
+          "format": "mach-o",
+          "architecture": "arm64"
+        },
+        "provider": {
+          "id": "ghidra",
+          "name": "Ghidra",
+          "version": "12.1.4"
+        },
+        "analysis_profile": {
+          "provider": {
+            "id": "ghidra",
+            "name": "Ghidra",
+            "version": "12.1.4"
+          },
+          "parameters": {
+            "target_kind": "executable",
+            "target_format": "mach-o",
+            "architecture": "arm64",
+            "available_architectures": [
+              "arm64"
+            ],
+            "import_mode": "ephemeral-source-immutable",
+            "annotation_policy": "atomic-function-entry-metadata-v1",
+            "load_image_observations": "source-mappings-entry-context-v2",
+            "function_body_evidence": "complete-inclusive-ranges-v1",
+            "function_references": "complete-body-and-entry-reference-manager-v2",
+            "call_relationship_coverage": "function-body-call-coverage-v5",
+            "function_dossier_coverage": "observed-facets-and-call-relationships-v1",
+            "string_inventory_evidence": "defined-data-coverage-v1",
+            "location_resolution": "explicit-address-exact-entry-symbol-first-v3",
+            "procedure_file_offset_resolution": "address-first-unique-target-source-mapping-v2",
+            "instruction_flow_evidence": "decoded-return-pcode-v1",
+            "instruction_references": "exact-address-incoming-without-synthetic-entry-v2",
+            "function_boundary_observations": "ghidra-function-boundary-limitations-v4",
+            "no_return_repair": "returning-imports-decoded-return-v2",
+            "process_launch": "inspected-jvm-launch-support-v1",
+            "jump_table_evidence": "typed-case-default-blocks-v1",
+            "decompiler_jump_loads": true,
+            "loader": "auto-from-header",
+            "language_id": "auto-from-header",
+            "compiler_spec_id": "auto-default",
+            "analyzer_preset": "ghidra-default"
+          },
+          "digest": "3fc72c9b4b78498fb992b938f8f3389dc670244a293c1d40abf5e1d10162ed3b"
+        },
+        "predicate_type": "rea.analysis",
+        "operation": "search_bytes",
+        "parameters": {
+          "pattern": "68 74 74 70 73 3a 2f 2f 65 78 61 6d 70 6c 65 2e 69 6e 76 61 6c 69 64",
+          "limit": 100
+        },
+        "raw_result": {
+          "matches": [
+            {
+              "address": "0x1000b4690",
+              "segment": "__rodata",
+              "file_offset": 738960,
+              "procedure": null
+            }
+          ],
+          "searched": {
+            "blocks": [
+              {
+                "segment": "__TEXT",
+                "start": "0x100000000",
+                "end": "0x100000fff",
+                "bytes": 4096
+              },
+              {
+                "segment": "__text",
+                "start": "0x100001000",
+                "end": "0x1000ac9ff",
+                "bytes": 702976
+              },
+              {
+                "segment": "__symbol_stub1",
+                "start": "0x1000aca00",
+                "end": "0x1000accbf",
+                "bytes": 704
+              },
+              {
+                "segment": "__rodata",
+                "start": "0x1000accc0",
+                "end": "0x1000b8207",
+                "bytes": 46408
+              },
+              {
+                "segment": "__gopclntab",
+                "start": "0x1000b8208",
+                "end": "0x100167fff",
+                "bytes": 720376
+              }
+            ],
+            "bytes": 1889554,
+            "skipped_uninitialized": [
+              {
+                "segment": "__bss",
+                "start": "0x1001a4140",
+                "end": "0x1001cadb7",
+                "bytes": 158840
+              },
+              {
+                "segment": "__DATA",
+                "start": "0x1001cadb8",
+                "end": "0x1001cadbf",
+                "bytes": 8
+              },
+              {
+                "segment": "__noptrbss",
+                "start": "0x1001cadc0",
+                "end": "0x1001cee17",
+                "bytes": 16472
+              }
+            ],
+            "skipped_not_loaded": [
+              {
+                "segment": "__zdebug_abbrev",
+                "start": "__DWARF:0x1001d0000",
+                "end": "__DWARF:0x1001d015d",
+                "bytes": 350
+              },
+              {
+                "segment": "__zdebug_line",
+                "start": "__DWARF:0x1001d015e",
+                "end": "__DWARF:0x1001f6bbc",
+                "bytes": 158303
+              },
+              {
+                "segment": "__zdebug_frame",
+                "start": "__DWARF:0x1001f6bbd",
+                "end": "__DWARF:0x1001fe837",
+                "bytes": 31867
+              },
+              {
+                "segment": "__debug_gdb_scri",
+                "start": "__DWARF:0x1001fe838",
+                "end": "__DWARF:0x1001fe84f",
+                "bytes": 24
+              },
+              {
+                "segment": "__zdebug_info",
+                "start": "__DWARF:0x1001fe850",
+                "end": "__DWARF:0x10025bc02",
+                "bytes": 381875
+              }
+            ]
+          },
+          "complete": true,
+          "next_cursor": null
+        },
+        "normalized_result": {
+          "matches": [
+            {
+              "address": "0x1000b4690",
+              "segment": "__rodata",
+              "file_offset": 738960,
+              "procedure": null
+            }
+          ],
+          "searched": {
+            "blocks": [
+              {
+                "segment": "__TEXT",
+                "start": "0x100000000",
+                "end": "0x100000fff",
+                "bytes": 4096
+              },
+              {
+                "segment": "__text",
+                "start": "0x100001000",
+                "end": "0x1000ac9ff",
+                "bytes": 702976
+              },
+              {
+                "segment": "__symbol_stub1",
+                "start": "0x1000aca00",
+                "end": "0x1000accbf",
+                "bytes": 704
+              },
+              {
+                "segment": "__rodata",
+                "start": "0x1000accc0",
+                "end": "0x1000b8207",
+                "bytes": 46408
+              },
+              {
+                "segment": "__gopclntab",
+                "start": "0x1000b8208",
+                "end": "0x100167fff",
+                "bytes": 720376
+              }
+            ],
+            "bytes": 1889554,
+            "skipped_uninitialized": [
+              {
+                "segment": "__bss",
+                "start": "0x1001a4140",
+                "end": "0x1001cadb7",
+                "bytes": 158840
+              },
+              {
+                "segment": "__DATA",
+                "start": "0x1001cadb8",
+                "end": "0x1001cadbf",
+                "bytes": 8
+              },
+              {
+                "segment": "__noptrbss",
+                "start": "0x1001cadc0",
+                "end": "0x1001cee17",
+                "bytes": 16472
+              }
+            ],
+            "skipped_not_loaded": [
+              {
+                "segment": "__zdebug_abbrev",
+                "start": "__DWARF:0x1001d0000",
+                "end": "__DWARF:0x1001d015d",
+                "bytes": 350
+              },
+              {
+                "segment": "__zdebug_line",
+                "start": "__DWARF:0x1001d015e",
+                "end": "__DWARF:0x1001f6bbc",
+                "bytes": 158303
+              },
+              {
+                "segment": "__zdebug_frame",
+                "start": "__DWARF:0x1001f6bbd",
+                "end": "__DWARF:0x1001fe837",
+                "bytes": 31867
+              },
+              {
+                "segment": "__debug_gdb_scri",
+                "start": "__DWARF:0x1001fe838",
+                "end": "__DWARF:0x1001fe84f",
+                "bytes": 24
+              },
+              {
+                "segment": "__zdebug_info",
+                "start": "__DWARF:0x1001fe850",
+                "end": "__DWARF:0x10025bc02",
+                "bytes": 381875
+              }
+            ]
+          },
+          "complete": true,
+          "next_cursor": null
+        },
+        "confidence": "observed",
+        "authority": "shipped-artifact",
+        "environment": null,
+        "limitations": [
+          "The session serves operations only after Ghidra reports default auto-analysis complete; incomplete analysis does not expose partial results.",
+          "The imported Program and temporary project are ephemeral and deleted on close. Annotation operations edit session database metadata; original executable bytes are never written.",
+          "Cancelling an active Ghidra request terminates its ephemeral database and discards session annotations. The selected target remains open; the next provider query imports the original artifact again.",
+          "Default-space addresses use lowercase 0x-prefixed hexadecimal; other address spaces use <percent-encoded-space>:0x<hex>.",
+          "Searches initialized loader-adjusted memory independently per block, in provider address order. Bounds and page coverage ends are inclusive. Uninitialized blocks are listed separately. Overlapping matches are included; patterns never cross block boundaries. A cursor resumes the same target, profile and query. Cancellation discards the active search and returns no successful partial page."
+        ],
+        "relationship_coverage": null,
+        "locations": [],
+        "evidence_links": []
+      }
+    },
+    {
+      "tool": "read_bytes",
+      "args": {
+        "address": "0x1000b4690",
+        "length": 64
+      },
+      "shape": {
+        "$": "object",
+        "analysis_profile": "object",
+        "analysis_profile.digest": "string",
+        "analysis_profile.parameters": "object",
+        "analysis_profile.parameters.analyzer_preset": "string",
+        "analysis_profile.parameters.annotation_policy": "string",
+        "analysis_profile.parameters.architecture": "string",
+        "analysis_profile.parameters.available_architectures": "array",
+        "analysis_profile.parameters.available_architectures[]": "string",
+        "analysis_profile.parameters.call_relationship_coverage": "string",
+        "analysis_profile.parameters.compiler_spec_id": "string",
+        "analysis_profile.parameters.decompiler_jump_loads": "boolean",
+        "analysis_profile.parameters.function_body_evidence": "string",
+        "analysis_profile.parameters.function_boundary_observations": "string",
+        "analysis_profile.parameters.function_dossier_coverage": "string",
+        "analysis_profile.parameters.function_references": "string",
+        "analysis_profile.parameters.import_mode": "string",
+        "analysis_profile.parameters.instruction_flow_evidence": "string",
+        "analysis_profile.parameters.instruction_references": "string",
+        "analysis_profile.parameters.jump_table_evidence": "string",
+        "analysis_profile.parameters.language_id": "string",
+        "analysis_profile.parameters.load_image_observations": "string",
+        "analysis_profile.parameters.loader": "string",
+        "analysis_profile.parameters.location_resolution": "string",
+        "analysis_profile.parameters.no_return_repair": "string",
+        "analysis_profile.parameters.procedure_file_offset_resolution": "string",
+        "analysis_profile.parameters.process_launch": "string",
+        "analysis_profile.parameters.string_inventory_evidence": "string",
+        "analysis_profile.parameters.target_format": "string",
+        "analysis_profile.parameters.target_kind": "string",
+        "analysis_profile.provider": "object",
+        "analysis_profile.provider.id": "string",
+        "analysis_profile.provider.name": "string",
+        "analysis_profile.provider.version": "string",
+        "authority": "string",
+        "confidence": "string",
+        "environment": "null",
+        "evidence_id": "string",
+        "evidence_links": "array",
+        "limitations": "array",
+        "limitations[]": "string",
+        "locations": "array",
+        "normalized_result": "object",
+        "normalized_result.address": "string",
+        "normalized_result.bytes_hex": "string",
+        "normalized_result.complete": "boolean",
+        "normalized_result.requested_bytes": "number",
+        "normalized_result.returned_bytes": "number",
+        "operation": "string",
+        "parameters": "object",
+        "parameters.address": "string",
+        "parameters.length": "number",
+        "predicate_type": "string",
+        "provider": "object",
+        "provider.id": "string",
+        "provider.name": "string",
+        "provider.version": "string",
+        "raw_result": "object",
+        "raw_result.address": "string",
+        "raw_result.bytes_hex": "string",
+        "raw_result.complete": "boolean",
+        "raw_result.requested_bytes": "number",
+        "raw_result.returned_bytes": "number",
+        "relationship_coverage": "null",
+        "subject": "object",
+        "subject.architecture": "string",
+        "subject.digest": "object",
+        "subject.digest.sha256": "string",
+        "subject.format": "string",
+        "subject.local_path": "string",
+        "subject.name": "string"
+      },
+      "sample": {
+        "evidence_id": "ev_ea4b796c714e1ecdb6e6061dc86db891f3a539bf7f68ccffc84376fb9f3d02c9",
+        "subject": {
+          "name": "hello-go",
+          "digest": {
+            "sha256": "ccc7b51f764f14a50059510204a1b7f1c46ea4a6e77fc2b31e0dc82561647ad2"
+          },
+          "local_path": "$FIXTURE",
+          "format": "mach-o",
+          "architecture": "arm64"
+        },
+        "provider": {
+          "id": "ghidra",
+          "name": "Ghidra",
+          "version": "12.1.4"
+        },
+        "analysis_profile": {
+          "provider": {
+            "id": "ghidra",
+            "name": "Ghidra",
+            "version": "12.1.4"
+          },
+          "parameters": {
+            "target_kind": "executable",
+            "target_format": "mach-o",
+            "architecture": "arm64",
+            "available_architectures": [
+              "arm64"
+            ],
+            "import_mode": "ephemeral-source-immutable",
+            "annotation_policy": "atomic-function-entry-metadata-v1",
+            "load_image_observations": "source-mappings-entry-context-v2",
+            "function_body_evidence": "complete-inclusive-ranges-v1",
+            "function_references": "complete-body-and-entry-reference-manager-v2",
+            "call_relationship_coverage": "function-body-call-coverage-v5",
+            "function_dossier_coverage": "observed-facets-and-call-relationships-v1",
+            "string_inventory_evidence": "defined-data-coverage-v1",
+            "location_resolution": "explicit-address-exact-entry-symbol-first-v3",
+            "procedure_file_offset_resolution": "address-first-unique-target-source-mapping-v2",
+            "instruction_flow_evidence": "decoded-return-pcode-v1",
+            "instruction_references": "exact-address-incoming-without-synthetic-entry-v2",
+            "function_boundary_observations": "ghidra-function-boundary-limitations-v4",
+            "no_return_repair": "returning-imports-decoded-return-v2",
+            "process_launch": "inspected-jvm-launch-support-v1",
+            "jump_table_evidence": "typed-case-default-blocks-v1",
+            "decompiler_jump_loads": true,
+            "loader": "auto-from-header",
+            "language_id": "auto-from-header",
+            "compiler_spec_id": "auto-default",
+            "analyzer_preset": "ghidra-default"
+          },
+          "digest": "3fc72c9b4b78498fb992b938f8f3389dc670244a293c1d40abf5e1d10162ed3b"
+        },
+        "predicate_type": "rea.analysis",
+        "operation": "read_bytes",
+        "parameters": {
+          "address": "0x1000b4690",
+          "length": 64
+        },
+        "raw_result": {
+          "address": "0x1000b4690",
+          "requested_bytes": 64,
+          "returned_bytes": 64,
+          "bytes_hex": "68747470733a2f2f6578616d706c652e696e76616c69642f62696e6c696768742d636f6e74726163746e65742f75726c3a20696e76616c696420636f6e74726f",
+          "complete": true
+        },
+        "normalized_result": {
+          "address": "0x1000b4690",
+          "requested_bytes": 64,
+          "returned_bytes": 64,
+          "bytes_hex": "68747470733a2f2f6578616d706c652e696e76616c69642f62696e6c696768742d636f6e74726163746e65742f75726c3a20696e76616c696420636f6e74726f",
+          "complete": true
+        },
+        "confidence": "observed",
+        "authority": "shipped-artifact",
+        "environment": null,
+        "limitations": [
+          "The session serves operations only after Ghidra reports default auto-analysis complete; incomplete analysis does not expose partial results.",
+          "The imported Program and temporary project are ephemeral and deleted on close. Annotation operations edit session database metadata; original executable bytes are never written.",
+          "Cancelling an active Ghidra request terminates its ephemeral database and discards session annotations. The selected target remains open; the next provider query imports the original artifact again.",
+          "Default-space addresses use lowercase 0x-prefixed hexadecimal; other address spaces use <percent-encoded-space>:0x<hex>.",
+          "Bytes reflect Ghidra's initialized memory, including loader fixups. Reads stop at an unmapped or uninitialized byte and report completeness explicitly."
+        ],
+        "relationship_coverage": null,
+        "locations": [],
+        "evidence_links": []
+      }
+    },
+    {
+      "tool": "xrefs",
+      "args": {
+        "address": "0x1000b4690"
+      },
+      "shape": {
+        "$": "object",
+        "analysis_profile": "object",
+        "analysis_profile.digest": "string",
+        "analysis_profile.parameters": "object",
+        "analysis_profile.parameters.analyzer_preset": "string",
+        "analysis_profile.parameters.annotation_policy": "string",
+        "analysis_profile.parameters.architecture": "string",
+        "analysis_profile.parameters.available_architectures": "array",
+        "analysis_profile.parameters.available_architectures[]": "string",
+        "analysis_profile.parameters.call_relationship_coverage": "string",
+        "analysis_profile.parameters.compiler_spec_id": "string",
+        "analysis_profile.parameters.decompiler_jump_loads": "boolean",
+        "analysis_profile.parameters.function_body_evidence": "string",
+        "analysis_profile.parameters.function_boundary_observations": "string",
+        "analysis_profile.parameters.function_dossier_coverage": "string",
+        "analysis_profile.parameters.function_references": "string",
+        "analysis_profile.parameters.import_mode": "string",
+        "analysis_profile.parameters.instruction_flow_evidence": "string",
+        "analysis_profile.parameters.instruction_references": "string",
+        "analysis_profile.parameters.jump_table_evidence": "string",
+        "analysis_profile.parameters.language_id": "string",
+        "analysis_profile.parameters.load_image_observations": "string",
+        "analysis_profile.parameters.loader": "string",
+        "analysis_profile.parameters.location_resolution": "string",
+        "analysis_profile.parameters.no_return_repair": "string",
+        "analysis_profile.parameters.procedure_file_offset_resolution": "string",
+        "analysis_profile.parameters.process_launch": "string",
+        "analysis_profile.parameters.string_inventory_evidence": "string",
+        "analysis_profile.parameters.target_format": "string",
+        "analysis_profile.parameters.target_kind": "string",
+        "analysis_profile.provider": "object",
+        "analysis_profile.provider.id": "string",
+        "analysis_profile.provider.name": "string",
+        "analysis_profile.provider.version": "string",
+        "authority": "string",
+        "confidence": "string",
+        "environment": "null",
+        "evidence_id": "string",
+        "evidence_links": "array",
+        "limitations": "array",
+        "limitations[]": "string",
+        "locations": "array",
+        "normalized_result": "array",
+        "normalized_result[]": "string",
+        "operation": "string",
+        "parameters": "object",
+        "parameters.address": "string",
+        "predicate_type": "string",
+        "provider": "object",
+        "provider.id": "string",
+        "provider.name": "string",
+        "provider.version": "string",
+        "raw_result": "array",
+        "raw_result[]": "string",
+        "relationship_coverage": "null",
+        "subject": "object",
+        "subject.architecture": "string",
+        "subject.digest": "object",
+        "subject.digest.sha256": "string",
+        "subject.format": "string",
+        "subject.local_path": "string",
+        "subject.name": "string"
+      },
+      "sample": {
+        "evidence_id": "ev_012820dcd78b6f219d7632e94681d53bb03fb105e27cba98c034a3a0d96704a0",
+        "subject": {
+          "name": "hello-go",
+          "digest": {
+            "sha256": "ccc7b51f764f14a50059510204a1b7f1c46ea4a6e77fc2b31e0dc82561647ad2"
+          },
+          "local_path": "$FIXTURE",
+          "format": "mach-o",
+          "architecture": "arm64"
+        },
+        "provider": {
+          "id": "ghidra",
+          "name": "Ghidra",
+          "version": "12.1.4"
+        },
+        "analysis_profile": {
+          "provider": {
+            "id": "ghidra",
+            "name": "Ghidra",
+            "version": "12.1.4"
+          },
+          "parameters": {
+            "target_kind": "executable",
+            "target_format": "mach-o",
+            "architecture": "arm64",
+            "available_architectures": [
+              "arm64"
+            ],
+            "import_mode": "ephemeral-source-immutable",
+            "annotation_policy": "atomic-function-entry-metadata-v1",
+            "load_image_observations": "source-mappings-entry-context-v2",
+            "function_body_evidence": "complete-inclusive-ranges-v1",
+            "function_references": "complete-body-and-entry-reference-manager-v2",
+            "call_relationship_coverage": "function-body-call-coverage-v5",
+            "function_dossier_coverage": "observed-facets-and-call-relationships-v1",
+            "string_inventory_evidence": "defined-data-coverage-v1",
+            "location_resolution": "explicit-address-exact-entry-symbol-first-v3",
+            "procedure_file_offset_resolution": "address-first-unique-target-source-mapping-v2",
+            "instruction_flow_evidence": "decoded-return-pcode-v1",
+            "instruction_references": "exact-address-incoming-without-synthetic-entry-v2",
+            "function_boundary_observations": "ghidra-function-boundary-limitations-v4",
+            "no_return_repair": "returning-imports-decoded-return-v2",
+            "process_launch": "inspected-jvm-launch-support-v1",
+            "jump_table_evidence": "typed-case-default-blocks-v1",
+            "decompiler_jump_loads": true,
+            "loader": "auto-from-header",
+            "language_id": "auto-from-header",
+            "compiler_spec_id": "auto-default",
+            "analyzer_preset": "ghidra-default"
+          },
+          "digest": "3fc72c9b4b78498fb992b938f8f3389dc670244a293c1d40abf5e1d10162ed3b"
+        },
+        "predicate_type": "rea.analysis",
+        "operation": "xrefs",
+        "parameters": {
+          "address": "0x1000b4690"
+        },
+        "raw_result": [
+          "0x1000ac92c"
+        ],
+        "normalized_result": [
+          "0x1000ac92c"
+        ],
+        "confidence": "observed",
+        "authority": "shipped-artifact",
+        "environment": null,
+        "limitations": [
+          "The session serves operations only after Ghidra reports default auto-analysis complete; incomplete analysis does not expose partial results.",
+          "The imported Program and temporary project are ephemeral and deleted on close. Annotation operations edit session database metadata; original executable bytes are never written.",
+          "Cancelling an active Ghidra request terminates its ephemeral database and discards session annotations. The selected target remains open; the next provider query imports the original artifact again.",
+          "Default-space addresses use lowercase 0x-prefixed hexadecimal; other address spaces use <percent-encoded-space>:0x<hex>.",
+          "The direct address list projects exact Ghidra references to one address but does not expose their kinds; procedure_references and analyze_function preserve available kind metadata."
+        ],
+        "relationship_coverage": null,
+        "locations": [],
+        "evidence_links": []
+      }
+    },
+    {
+      "tool": "resolve_containing_procedure",
+      "args": {
+        "address": "0x1000ac92c"
+      },
+      "shape": {
+        "$": "object",
+        "analysis_profile": "object",
+        "analysis_profile.digest": "string",
+        "analysis_profile.parameters": "object",
+        "analysis_profile.parameters.analyzer_preset": "string",
+        "analysis_profile.parameters.annotation_policy": "string",
+        "analysis_profile.parameters.architecture": "string",
+        "analysis_profile.parameters.available_architectures": "array",
+        "analysis_profile.parameters.available_architectures[]": "string",
+        "analysis_profile.parameters.call_relationship_coverage": "string",
+        "analysis_profile.parameters.compiler_spec_id": "string",
+        "analysis_profile.parameters.decompiler_jump_loads": "boolean",
+        "analysis_profile.parameters.function_body_evidence": "string",
+        "analysis_profile.parameters.function_boundary_observations": "string",
+        "analysis_profile.parameters.function_dossier_coverage": "string",
+        "analysis_profile.parameters.function_references": "string",
+        "analysis_profile.parameters.import_mode": "string",
+        "analysis_profile.parameters.instruction_flow_evidence": "string",
+        "analysis_profile.parameters.instruction_references": "string",
+        "analysis_profile.parameters.jump_table_evidence": "string",
+        "analysis_profile.parameters.language_id": "string",
+        "analysis_profile.parameters.load_image_observations": "string",
+        "analysis_profile.parameters.loader": "string",
+        "analysis_profile.parameters.location_resolution": "string",
+        "analysis_profile.parameters.no_return_repair": "string",
+        "analysis_profile.parameters.procedure_file_offset_resolution": "string",
+        "analysis_profile.parameters.process_launch": "string",
+        "analysis_profile.parameters.string_inventory_evidence": "string",
+        "analysis_profile.parameters.target_format": "string",
+        "analysis_profile.parameters.target_kind": "string",
+        "analysis_profile.provider": "object",
+        "analysis_profile.provider.id": "string",
+        "analysis_profile.provider.name": "string",
+        "analysis_profile.provider.version": "string",
+        "authority": "string",
+        "confidence": "string",
+        "environment": "null",
+        "evidence_id": "string",
+        "evidence_links": "array",
+        "limitations": "array",
+        "limitations[]": "string",
+        "locations": "array",
+        "normalized_result": "object",
+        "normalized_result.found": "boolean",
+        "normalized_result.procedure": "object",
+        "normalized_result.procedure.address": "string",
+        "normalized_result.procedure.body": "object",
+        "normalized_result.procedure.body.available": "boolean",
+        "normalized_result.procedure.body.contains_entry": "boolean",
+        "normalized_result.procedure.body.non_contiguous": "boolean",
+        "normalized_result.procedure.body.provenance": "string",
+        "normalized_result.procedure.body.ranges": "array",
+        "normalized_result.procedure.body.ranges[]": "object",
+        "normalized_result.procedure.body.ranges[].end": "string",
+        "normalized_result.procedure.body.ranges[].start": "string",
+        "normalized_result.procedure.body.span_bytes": "number",
+        "normalized_result.procedure.body.total_bytes": "number",
+        "normalized_result.procedure.classification": "object",
+        "normalized_result.procedure.classification.external": "boolean",
+        "normalized_result.procedure.classification.provenance": "string",
+        "normalized_result.procedure.classification.thunk": "boolean",
+        "normalized_result.procedure.classification.thunk_target": "null",
+        "normalized_result.procedure.name": "string",
+        "normalized_result.query_address": "string",
+        "operation": "string",
+        "parameters": "object",
+        "parameters.address": "string",
+        "predicate_type": "string",
+        "provider": "object",
+        "provider.id": "string",
+        "provider.name": "string",
+        "provider.version": "string",
+        "raw_result": "object",
+        "raw_result.found": "boolean",
+        "raw_result.procedure": "object",
+        "raw_result.procedure.address": "string",
+        "raw_result.procedure.body": "object",
+        "raw_result.procedure.body.available": "boolean",
+        "raw_result.procedure.body.contains_entry": "boolean",
+        "raw_result.procedure.body.non_contiguous": "boolean",
+        "raw_result.procedure.body.provenance": "string",
+        "raw_result.procedure.body.ranges": "array",
+        "raw_result.procedure.body.ranges[]": "object",
+        "raw_result.procedure.body.ranges[].end": "string",
+        "raw_result.procedure.body.ranges[].start": "string",
+        "raw_result.procedure.body.span_bytes": "number",
+        "raw_result.procedure.body.total_bytes": "number",
+        "raw_result.procedure.classification": "object",
+        "raw_result.procedure.classification.external": "boolean",
+        "raw_result.procedure.classification.provenance": "string",
+        "raw_result.procedure.classification.thunk": "boolean",
+        "raw_result.procedure.classification.thunk_target": "null",
+        "raw_result.procedure.name": "string",
+        "raw_result.query_address": "string",
+        "relationship_coverage": "null",
+        "subject": "object",
+        "subject.architecture": "string",
+        "subject.digest": "object",
+        "subject.digest.sha256": "string",
+        "subject.format": "string",
+        "subject.local_path": "string",
+        "subject.name": "string"
+      },
+      "sample": {
+        "evidence_id": "ev_5ace58c1fffe84b254270334aacc8eb9391b8725aa6160b8ff0b876fa21d2d46",
+        "subject": {
+          "name": "hello-go",
+          "digest": {
+            "sha256": "ccc7b51f764f14a50059510204a1b7f1c46ea4a6e77fc2b31e0dc82561647ad2"
+          },
+          "local_path": "$FIXTURE",
+          "format": "mach-o",
+          "architecture": "arm64"
+        },
+        "provider": {
+          "id": "ghidra",
+          "name": "Ghidra",
+          "version": "12.1.4"
+        },
+        "analysis_profile": {
+          "provider": {
+            "id": "ghidra",
+            "name": "Ghidra",
+            "version": "12.1.4"
+          },
+          "parameters": {
+            "target_kind": "executable",
+            "target_format": "mach-o",
+            "architecture": "arm64",
+            "available_architectures": [
+              "arm64"
+            ],
+            "import_mode": "ephemeral-source-immutable",
+            "annotation_policy": "atomic-function-entry-metadata-v1",
+            "load_image_observations": "source-mappings-entry-context-v2",
+            "function_body_evidence": "complete-inclusive-ranges-v1",
+            "function_references": "complete-body-and-entry-reference-manager-v2",
+            "call_relationship_coverage": "function-body-call-coverage-v5",
+            "function_dossier_coverage": "observed-facets-and-call-relationships-v1",
+            "string_inventory_evidence": "defined-data-coverage-v1",
+            "location_resolution": "explicit-address-exact-entry-symbol-first-v3",
+            "procedure_file_offset_resolution": "address-first-unique-target-source-mapping-v2",
+            "instruction_flow_evidence": "decoded-return-pcode-v1",
+            "instruction_references": "exact-address-incoming-without-synthetic-entry-v2",
+            "function_boundary_observations": "ghidra-function-boundary-limitations-v4",
+            "no_return_repair": "returning-imports-decoded-return-v2",
+            "process_launch": "inspected-jvm-launch-support-v1",
+            "jump_table_evidence": "typed-case-default-blocks-v1",
+            "decompiler_jump_loads": true,
+            "loader": "auto-from-header",
+            "language_id": "auto-from-header",
+            "compiler_spec_id": "auto-default",
+            "analyzer_preset": "ghidra-default"
+          },
+          "digest": "3fc72c9b4b78498fb992b938f8f3389dc670244a293c1d40abf5e1d10162ed3b"
+        },
+        "predicate_type": "rea.analysis",
+        "operation": "resolve_containing_procedure",
+        "parameters": {
+          "address": "0x1000ac92c"
+        },
+        "raw_result": {
+          "query_address": "0x1000ac92c",
+          "found": true,
+          "procedure": {
+            "address": "0x1000ac910",
+            "name": "main.main",
+            "classification": {
+              "external": false,
+              "thunk": false,
+              "thunk_target": null,
+              "provenance": "ghidra-function-manager"
+            },
+            "body": {
+              "available": true,
+              "provenance": "ghidra-function-body-address-set",
+              "ranges": [
+                {
+                  "start": "0x1000ac910",
+                  "end": "0x1000ac9b7"
+                }
+              ],
+              "total_bytes": 168,
+              "span_bytes": 168,
+              "non_contiguous": false,
+              "contains_entry": true
+            }
+          }
+        },
+        "normalized_result": {
+          "query_address": "0x1000ac92c",
+          "found": true,
+          "procedure": {
+            "address": "0x1000ac910",
+            "name": "main.main",
+            "classification": {
+              "external": false,
+              "thunk": false,
+              "thunk_target": null,
+              "provenance": "ghidra-function-manager"
+            },
+            "body": {
+              "available": true,
+              "provenance": "ghidra-function-body-address-set",
+              "ranges": [
+                {
+                  "start": "0x1000ac910",
+                  "end": "0x1000ac9b7"
+                }
+              ],
+              "total_bytes": 168,
+              "span_bytes": 168,
+              "non_contiguous": false,
+              "contains_entry": true
+            }
+          }
+        },
+        "confidence": "observed",
+        "authority": "shipped-artifact",
+        "environment": null,
+        "limitations": [
+          "The session serves operations only after Ghidra reports default auto-analysis complete; incomplete analysis does not expose partial results.",
+          "The imported Program and temporary project are ephemeral and deleted on close. Annotation operations edit session database metadata; original executable bytes are never written.",
+          "Cancelling an active Ghidra request terminates its ephemeral database and discards session annotations. The selected target remains open; the next provider query imports the original artifact again.",
+          "Default-space addresses use lowercase 0x-prefixed hexadecimal; other address spaces use <percent-encoded-space>:0x<hex>.",
+          "An exact external entry resolves to its observed function identity even when its body is empty. This does not establish mapped executable bytes or containment of nearby external addresses."
         ],
         "relationship_coverage": null,
         "locations": [],

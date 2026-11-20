@@ -171,7 +171,7 @@ confidence (observed | inferred), caveats}`. Each evidence reference is an
       So v1 says "used in <function>" where observed and "mentioned" otherwise.
       Ghidra names almost no Go functions in release builds (decision 8)._
 
-- [ ] **11. Recipe.** Findings: - hard-coded destinations by **hostname** (paths swallow the next glued
+- [x] **11. Recipe.** Findings: - hard-coded destinations by **hostname** (paths swallow the next glued
       literal), each with snippet, offset and, where the spike allows, the
       referencing function; - network capability from procedure names (Go `net/http`, `net.Dial`,
       `crypto/tls`; Rust equivalents), via `search_procedures`; - credential **values** only by strict patterns, always truncated;
@@ -181,6 +181,22 @@ confidence (observed | inferred), caveats}`. Each evidence reference is an
       registry) and scheme-less mentions (`ollama.com` ×10) can't be seen as
       hard-coded URLs. Acceptance: hand-checked expected findings for kubectl
       and Ollama kept as golden files.
+      _Done 20 Nov: recipe `phone-home`. Steps that make many REA calls
+      (new in the engine, each call's evidence kept and citable): URLs by
+      `search_bytes` → `read_bytes` → `xrefs` (+ one data hop) →
+      `resolve_containing_procedure`, with Go names from Go's own function
+      table (decision 8), checked against Ghidra's entry and REA's bytes;
+      network capability from Go function names found in `__gopclntab`;
+      keys by byte search with REA confirming each match. Hostnames cut back
+      to a known TLD, or to the longer host the binary also has
+      (`issues.k8s` → `issues.k8s.io`); namespace hosts (`www.w3.org`)
+      marked. Golden files hand-checked in `test/golden/phone-home`: Ollama
+      8 of 39 hosts used by code (`ollama.com` in `WhoamiHandler`,
+      `api.openai.com` in `NewCodexDesktop`, …), kubectl 3 of 34
+      (`index.docker.io` in `create_secret_docker.go:122`). First run:
+      analysis (18 / 8 min) plus 1–5 min of tracing; repeats from cache in
+      seconds. Network capability is Go-only for now; Rust and C binaries get
+      destinations and keys only._
 
 ### D. Recipe 3: What changed? (decompiler)
 

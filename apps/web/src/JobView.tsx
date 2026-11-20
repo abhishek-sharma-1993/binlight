@@ -178,6 +178,12 @@ function StepRow({ jobId, step, now }: { jobId: string; step: JobStep; now: numb
             Evidence <code>{step.evidenceId}</code>
           </p>
         )}
+        {step.evidenceCount !== undefined && (
+          <p className="muted small">
+            {step.evidenceCount.toLocaleString("en-US")} REA evidence{" "}
+            {step.evidenceCount === 1 ? "record" : "records"}, one per call (see the raw result)
+          </p>
+        )}
         {step.hasResult && <ResultViewer jobId={jobId} step={step} />}
       </div>
     </li>

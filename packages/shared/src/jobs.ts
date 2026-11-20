@@ -61,6 +61,8 @@ export interface JobStep {
   counts?: Record<string, number>;
   /** REA evidence id for the step's result. */
   evidenceId?: string;
+  /** A step that made many REA calls: how many evidence records it holds. */
+  evidenceCount?: number;
   /** Why the step was skipped. */
   reason?: string;
   error?: StepError;

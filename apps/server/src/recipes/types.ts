@@ -2,6 +2,17 @@ import type { Finding, RecipeInfo, TargetFormat, VerdictBody } from "@binlight/s
 import type { StepOutcome } from "../jobs/steps.js";
 import type { Rule } from "../rules/types.js";
 
+/** What a many-call step gets: schema-checked REA calls on the open binary. */
+export interface StepContext {
+  call(tool: string, args: Record<string, unknown>): Promise<unknown>;
+  /** The target path as REA sees it. */
+  target: string;
+  /** The analysed file on this machine (e.g. for reading Go's function table). */
+  hostPath: string;
+  /** A line for the job's REA log. */
+  log(line: string): void;
+}
+
 /** One REA call a recipe makes against one target. */
 export interface RecipeStep {
   /** Unique within the recipe; also the step id in single-target jobs. */
@@ -23,6 +34,15 @@ export interface RecipeStep {
   opens?: boolean;
   /** File formats it applies to; on others it is skipped with that reason. Default: all. */
   formats?: TargetFormat[];
+  /**
+   * For a step that needs many REA calls (e.g. one per URL): runs them through
+   * `ctx.call`. Every evidence record those calls return is kept in the
+   * step's result, so findings can cite any of them. `tool` then names the
+   * step's main tool, for display and the cache. `args` is not used.
+   */
+  run?: (ctx: StepContext) => Promise<unknown>;
+  /** For a `run` step: bump when its logic changes, so cached results aren't reused. */
+  version?: number;
   /** Arguments, given the target path as REA sees it. Default: none. */
   args?: (target: string) => Record<string, unknown>;
   /** Turns the (schema-checked) REA result into the feed line and counts. */

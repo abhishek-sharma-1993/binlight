@@ -4,7 +4,8 @@ import { join } from "node:path";
 import type { JobStep } from "@binlight/shared";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { EvidenceCache } from "../cache/evidence.js";
-import { goOutcome, listOutcome, overviewOutcome } from "./steps.js";
+import { goOutcome, listOutcome, overviewOutcome, type MultiCallResult } from "./steps.js";
+import { refTo } from "../rules/types.js";
 import type { ToolOutput } from "../rea/schemas.js";
 import { RECIPES, validateRecipe, type Recipe } from "../recipes/index.js";
 import { deps, dockerRoute, fakeSession, goodResults, report, type FakeRea } from "./fakes.js";
@@ -188,6 +189,143 @@ describe("JobManager with recipes", () => {
       "inspect_go_binary",
       "close_binary",
     ]);
+  });
+
+  it("runs a many-call step, keeps every record, and lets rules cite any of them", async () => {
+    const fake = fakeSession(dockerRoute);
+    const multi: Recipe = {
+      ...light,
+      id: "multi-test",
+      steps: [
+        {
+          id: "trace",
+          label: "Trace",
+          why: "w",
+          tool: "list_strings",
+          deep: true,
+          run: async (ctx) => {
+            const overview = await ctx.call("binary_overview", {});
+            const strings = await ctx.call("list_strings", {});
+            return { calls: [overview, strings].length, hostPath: ctx.hostPath };
+          },
+          outcome: (r) => {
+            const m = r as MultiCallResult<{ calls: number }>;
+            return {
+              summary: `${m.data.calls} calls`,
+              evidenceCount: m.records.length,
+              result: r,
+            };
+          },
+        },
+      ],
+      rules: [
+        {
+          id: "cites-second",
+          title: "Cites the second call",
+          needs: ["trace"],
+          run: ({ targets }) => {
+            const step = targets[0]?.steps.get("trace");
+            if (!step) return { findings: [] };
+            const id = (step.result as MultiCallResult).records[1]?.evidence_id ?? "";
+            return {
+              findings: [
+                {
+                  id: "f",
+                  rule: "cites-second",
+                  kind: "k",
+                  statement: "s",
+                  evidence: [refTo(step, id)],
+                  confidence: "observed",
+                  caveats: [],
+                },
+              ],
+            };
+          },
+        },
+        {
+          id: "cites-unknown",
+          title: "Cites an id the job never produced",
+          needs: ["trace"],
+          run: () => ({
+            findings: [
+              {
+                id: "g",
+                rule: "cites-unknown",
+                kind: "k",
+                statement: "s",
+                evidence: [{ evidenceId: "ev_nope", step: "trace" }],
+                confidence: "observed",
+                caveats: [],
+              },
+            ],
+          }),
+        },
+      ],
+    };
+    const jobs = new JobManager({ ...deps(fake), recipes: [multi] });
+    const job = await jobs.settled(
+      jobs.create({ recipe: "multi-test", targets: ["/apps/tool"] }).id,
+    );
+    const s = byId(job?.steps);
+    expect(s["trace"]).toMatchObject({ status: "done", summary: "2 calls", evidenceCount: 2 });
+    expect(fake.calls).toEqual(["open_binary", "binary_overview", "list_strings", "close_binary"]);
+    expect(job?.findings?.map((f) => f.id)).toEqual(["f"]);
+    expect(job?.findings?.[0]?.evidence[0]?.evidenceId).toBe(
+      (goodResults["list_strings"] as { evidence_id: string }).evidence_id,
+    );
+    expect(job?.rules?.find((r) => r.id === "cites-unknown")).toMatchObject({ status: "failed" });
+    expect(((await jobs.result(job?.id ?? "", "trace")) as MultiCallResult).data).toEqual({
+      calls: 2,
+      hostPath: "/apps/tool",
+    });
+  });
+
+  it("caches many-call steps separately, even with the same tool, and reads them back", async () => {
+    const root = mkdtempSync(join(tmpdir(), "binlight-multi-cache-"));
+    try {
+      const step = (id: string, tool: string): Recipe["steps"][number] => ({
+        id,
+        label: id,
+        why: "w",
+        tool: "search_bytes",
+        deep: true,
+        run: async (ctx) => ({ id, value: await ctx.call(tool, {}) }),
+        outcome: (r) => ({ summary: id, result: r }),
+      });
+      const recipe: Recipe = {
+        ...light,
+        id: "multi-cache",
+        steps: [step("a", "binary_overview"), step("b", "list_strings")],
+      };
+      const make = () =>
+        new JobManager({
+          ...deps(fakeSession(dockerRoute), report({ analysisSha256: "c".repeat(64) })),
+          recipes: [recipe],
+          cache: new EvidenceCache(root),
+        });
+      const first = make();
+      const j1 = await first.settled(
+        first.create({ recipe: "multi-cache", targets: ["/apps/tool"] }).id,
+      );
+      const second = make();
+      const j2 = await second.settled(
+        second.create({ recipe: "multi-cache", targets: ["/apps/tool"] }).id,
+      );
+      expect(j2?.steps.filter((s) => s.cached).map((s) => s.id)).toEqual(["a", "b"]);
+      for (const [jobs, job] of [
+        [first, j1],
+        [second, j2],
+      ] as const) {
+        expect(((await jobs.result(job?.id ?? "", "a")) as MultiCallResult).data).toMatchObject({
+          id: "a",
+        });
+        expect(((await jobs.result(job?.id ?? "", "b")) as MultiCallResult).data).toMatchObject({
+          id: "b",
+        });
+      }
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 
   it("keeps going with the second target when the first can't be analysed", async () => {

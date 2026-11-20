@@ -2,7 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { parseResult } from "../jobs/steps.js";
+import { isMultiCall, parseResult } from "../jobs/steps.js";
 
 /** What a cached result depends on: the analysed bytes, REA, and the deep provider. */
 export interface CacheKey {
@@ -67,7 +67,8 @@ export class EvidenceCache {
       return {
         hit: true,
         entry: {
-          result: parseResult(tool, entry.result),
+          // A many-call step's records were each checked when REA returned them.
+          result: isMultiCall(entry.result) ? entry.result : parseResult(tool, entry.result),
           cachedAt: entry.cachedAt,
           jobId: entry.jobId,
         },

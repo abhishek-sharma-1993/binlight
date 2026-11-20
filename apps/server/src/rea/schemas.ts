@@ -92,6 +92,37 @@ export const toolSchemas = {
         .nullable(),
     }),
   ),
+  // "Does it phone home?" (Ghidra only). Shapes from REA 6.7.0 / Ghidra 12.1.4.
+  search_bytes: evidence(
+    z.object({
+      matches: z.array(
+        z.object({
+          address: z.string(),
+          segment: z.string().nullish(),
+          file_offset: z.number().nullish(),
+          procedure: z.unknown(),
+        }),
+      ),
+      next_cursor: z.string().nullish(),
+    }),
+  ),
+  read_bytes: evidence(
+    z.object({
+      address: z.string(),
+      returned_bytes: z.number(),
+      bytes_hex: z.string(),
+      complete: z.boolean(),
+    }),
+  ),
+  xrefs: evidence(z.array(z.string())),
+  resolve_containing_procedure: evidence(
+    z.object({
+      query_address: z.string(),
+      found: z.boolean(),
+      // null when the address is outside segments or not in a procedure.
+      procedure: z.object({ address: z.string(), name: z.string() }).nullish(),
+    }),
+  ),
   inspect_rust_binary: evidence(
     z.object({
       format: z.string(),

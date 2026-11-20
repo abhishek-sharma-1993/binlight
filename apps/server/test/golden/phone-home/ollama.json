@@ -1,0 +1,310 @@
+{
+  "target": "/opt/homebrew/bin/ollama",
+  "sha256": "7c768f80422fa11abdfe614c3340e29a041cf5631eb3212797e1d207b1d63d00",
+  "reaVersion": "6.7.0",
+  "answer": "Code refers to 8 of the 39 hosts written into it, including ollama.com, api.openai.com, chatgpt.com; the rest appear in text such as help messages and docs; it makes HTTP requests, opens network connections, uses TLS (HTTPS) connections, serves HTTP, listens for incoming connections; no embedded keys match the strict patterns.",
+  "findings": [
+    {
+      "id": "dest:127.0.0.1",
+      "kind": "destination-used",
+      "confidence": "observed",
+      "statement": "\"127.0.0.1\" (this machine (loopback)) is used by code: github.com/ollama/ollama/cmd/launch.printOpenclawReady (launch/openclaw.go:337), github.com/ollama/ollama/cmd/launch.(*ClaudeDesktop).ConfigureAutodiscoveryWithAutoMode (launch/claude_desktop.go:94), github.com/ollama/ollama/cmd/launch.ensureClaudeDesktopGateway (launch/claude_desktop.go:443), github.com/ollama/ollama/llm.(*llamaServerRunner).getServerStatus (llm/llama_server.go:1242), github.com/ollama/ollama/mlxrunner.(*Client).Score (mlxrunner/client_score.go:24), and 13 more functions."
+    },
+    {
+      "id": "dest:api.openai.com",
+      "kind": "destination-used",
+      "confidence": "observed",
+      "statement": "\"api.openai.com\" is used by code: github.com/ollama/ollama/internal/proxy.NewCodexDesktop (proxy/codex_desktop.go:108), github.com/ollama/ollama/server.newCodexDesktopProxy (server/codex_proxy.go:32)."
+    },
+    {
+      "id": "dest:chatgpt.com",
+      "kind": "destination-used",
+      "confidence": "observed",
+      "statement": "\"chatgpt.com\" is used by code: github.com/ollama/ollama/server.newCodexDesktopProxy (server/codex_proxy.go:32)."
+    },
+    {
+      "id": "dest:claude.ai",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"claude.ai\" appears 2 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:claude.com",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"claude.com\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:code.claude.com",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"code.claude.com\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:code.kimi.com",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"code.kimi.com\" appears 2 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:code.visualstudio.com",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"code.visualstudio.com\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:curl.se",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"curl.se\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:dev.meta.ai",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"dev.meta.ai\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:developers.openai.com",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"developers.openai.com\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:docs.factory.ai",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"docs.factory.ai\" appears 2 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:docs.github.com",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"docs.github.com\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:docs.openclaw.ai",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"docs.openclaw.ai\" appears 2 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:earth.google.com",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"earth.google.com\" appears 3 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:git-scm.com",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"git-scm.com\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:github.com",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"github.com\" appears 7 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:go.dev",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"go.dev\" appears 3 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:hermes-agent.nousresearch.com",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"hermes-agent.nousresearch.com\" appears 3 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:huggingface.co",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"huggingface.co\" appears 2 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:learn.microsoft.com",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"learn.microsoft.com\" appears 2 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:moonshotai.github.io",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"moonshotai.github.io\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:nodejs.org",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"nodejs.org\" appears 6 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:ns.adobe.com",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"ns.adobe.com\" (a namespace name, not normally fetched) appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:ollama.com",
+      "kind": "destination-used",
+      "confidence": "observed",
+      "statement": "\"ollama.com\" is used by code: github.com/ollama/ollama/server.(*Server).WhoamiHandler (server/routes.go:2693), github.com/ollama/ollama/server.(*Server).SignoutHandler (server/routes.go:2756), github.com/ollama/ollama/cmd.PushHandler (cmd/cmd.go:1180), github.com/ollama/ollama/server.init.0 (server/cloud_proxy.go:70), github.com/ollama/ollama/server.proxyCloudRequestWithPath (server/cloud_proxy.go:186), and 9 more functions."
+    },
+    {
+      "id": "dest:omp.sh",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"omp.sh\" appears 2 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:opencode.ai",
+      "kind": "destination-used",
+      "confidence": "observed",
+      "statement": "\"opencode.ai\" is used by code: github.com/ollama/ollama/cmd/launch.buildInlineConfig (launch/opencode.go:294)."
+    },
+    {
+      "id": "dest:pkg.go.dev",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"pkg.go.dev\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:protobuf.dev",
+      "kind": "destination-used",
+      "confidence": "observed",
+      "statement": "\"protobuf.dev\" is used by code: google.golang.org/protobuf/reflect/protoregistry.init.func1 (protoregistry/registry.go:56)."
+    },
+    {
+      "id": "dest:qwen-code-assets.oss-cn-hangzhou.aliyuncs.com",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"qwen-code-assets.oss-cn-hangzhou.aliyuncs.com\" appears 2 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:qwen.ai",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"qwen.ai\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:registry.npmjs.org",
+      "kind": "destination-used",
+      "confidence": "observed",
+      "statement": "\"registry.npmjs.org\" is used by code: github.com/ollama/ollama/cmd/launch.npmLatestPackageVersion (launch/pi.go:495)."
+    },
+    {
+      "id": "dest:schemas.microsoft.com",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"schemas.microsoft.com\" (a namespace name, not normally fetched) appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:www.collada.org",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"www.collada.org\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:www.garmin.com",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"www.garmin.com\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:www.gnu.org",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"www.gnu.org\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:www.opengis.net",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"www.opengis.net\" (a namespace name, not normally fetched) appears 4 times in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:www.topografix.com",
+      "kind": "destination-mentioned",
+      "confidence": "observed",
+      "statement": "\"www.topografix.com\" appears once in text, with no code referring to it directly."
+    },
+    {
+      "id": "dest:www.w3.org",
+      "kind": "destination-used",
+      "confidence": "observed",
+      "statement": "\"www.w3.org\" (a namespace name, not normally fetched) is used by code: encoding/xml.(*printer).createAttrPrefix (xml/marshal.go:348), encoding/xml.(*Decoder).Token (xml/xml.go:353), encoding/xml.(*Decoder).popElement (xml/xml.go:357)."
+    },
+    {
+      "id": "dest:summary",
+      "kind": "destinations-summary",
+      "confidence": "observed",
+      "statement": "39 hosts appear in http(s):// URLs written into the binary; code refers to 8 of them."
+    },
+    {
+      "id": "net:956ea6503acd",
+      "kind": "network-capability",
+      "confidence": "observed",
+      "statement": "It makes HTTP requests: net/http.(*Client).Do and net/http.(*Transport).RoundTrip are linked in."
+    },
+    {
+      "id": "net:21f81159efe5",
+      "kind": "network-capability",
+      "confidence": "observed",
+      "statement": "It opens network connections: net.(*Dialer).DialContext is linked in."
+    },
+    {
+      "id": "net:f15d7fe43525",
+      "kind": "network-capability",
+      "confidence": "observed",
+      "statement": "It uses TLS (HTTPS) connections: crypto/tls.(*Conn).Handshake is linked in."
+    },
+    {
+      "id": "net:b59d7d6e1538",
+      "kind": "network-capability",
+      "confidence": "observed",
+      "statement": "It serves HTTP: net/http.(*Server).Serve is linked in."
+    },
+    {
+      "id": "net:4b9c883ffe76",
+      "kind": "network-capability",
+      "confidence": "observed",
+      "statement": "It listens for incoming connections: net.(*ListenConfig).Listen is linked in."
+    },
+    {
+      "id": "net:summary",
+      "kind": "network-capability-summary",
+      "confidence": "observed",
+      "statement": "5 of the network capabilities Binlight looks for are linked in."
+    },
+    {
+      "id": "secrets:summary",
+      "kind": "credential-values-summary",
+      "confidence": "observed",
+      "statement": "No credential-shaped values match the strict patterns in the binary's bytes (1 known false alarm ignored)."
+    }
+  ],
+  "suppressed": [
+    {
+      "text": "sk-ecdsa-sha…",
+      "reason": "An OpenSSH security-key algorithm name, not a key."
+    }
+  ],
+  "rules": [
+    {
+      "id": "destinations",
+      "status": "ran"
+    },
+    {
+      "id": "network-capability",
+      "status": "ran"
+    },
+    {
+      "id": "credential-bytes",
+      "status": "ran"
+    }
+  ]
+}

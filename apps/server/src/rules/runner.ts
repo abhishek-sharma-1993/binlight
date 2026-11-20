@@ -19,7 +19,10 @@ export function runRules(
 ): RulesOutcome {
   const known = new Set(
     ctx.targets.flatMap((t) =>
-      [...t.steps.values()].flatMap((s) => (s.evidenceId ? [s.evidenceId] : [])),
+      [...t.steps.values()].flatMap((s) => [
+        ...(s.evidenceId ? [s.evidenceId] : []),
+        ...(s.evidenceIds ?? []),
+      ]),
     ),
   );
   const outcome: RulesOutcome = { findings: [], suppressed: [], rules: [] };

@@ -105,6 +105,7 @@ describe("server", () => {
           expect.objectContaining({ id: "macho", tool: "inspect_macho", deep: false }),
         ]),
       }),
+      expect.objectContaining({ id: "phone-home", targets: 1, needsDeep: true }),
       expect.objectContaining({
         id: "raw-analysis",
         targets: 1,

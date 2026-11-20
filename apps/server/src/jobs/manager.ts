@@ -32,7 +32,16 @@ import {
   type AiWriter,
 } from "../verdict/index.js";
 import type { StepResult, TargetInput } from "../rules/types.js";
-import { parseResult, StepFailure, toStepError, type StepOutcome } from "./steps.js";
+import {
+  isMultiCall,
+  keepRecord,
+  parseResult,
+  StepFailure,
+  toStepError,
+  type EvidenceRecord,
+  type MultiCallResult,
+  type StepOutcome,
+} from "./steps.js";
 
 /** What a job needs from a REA session (a real ReaSession, or a fake in tests). */
 export interface JobSession {
@@ -361,7 +370,9 @@ export class JobManager {
       if (!runnable(rs)) continue;
       const key = this.cacheKey(report, rs);
       if (!key) continue;
-      const ref = { key, tool: rs.tool, variant: argsVariant(rs.args?.("") ?? {}) };
+      // A many-call step's logic is its "arguments": bump `version` when it changes.
+      const variantOf = rs.run ? { run: rs.id, version: rs.version ?? 1 } : (rs.args?.("") ?? {});
+      const ref = { key, tool: rs.tool, variant: argsVariant(variantOf) };
       state.cacheRefs.set(id(rs.id), ref);
       if (job.fresh || !this.deps.cache) continue;
       const read = await this.deps.cache.get(ref.key, ref.tool, ref.variant);
@@ -482,14 +493,28 @@ export class JobManager {
         sid,
         async () => {
           if (hit) return hit;
-          const args = rs.args?.(session?.target ?? "") ?? {};
-          const result = await this.call(
-            state,
-            sid,
-            rs.tool,
-            rs.deep ? this.timeouts.deep : this.timeouts.light,
-            args,
-          );
+          const timeout = rs.deep ? this.timeouts.deep : this.timeouts.light;
+          let result: unknown;
+          if (rs.run) {
+            const records: EvidenceRecord[] = [];
+            const data = await rs.run({
+              call: async (tool, args) => {
+                const value = await this.call(state, sid, tool, timeout, args);
+                const record = keepRecord(value);
+                if (record) records.push(record);
+                return value;
+              },
+              target: session?.target ?? "",
+              hostPath: report.analysisPath as string,
+              log: (line) =>
+                this.emit(state, { type: "log", line: `${sid}: ${line}`.slice(0, MAX_LOG_LINE) }),
+            });
+            const multi: MultiCallResult = { operation: rs.tool, multiCall: true, data, records };
+            result = multi;
+          } else {
+            const args = rs.args?.(session?.target ?? "") ?? {};
+            result = await this.call(state, sid, rs.tool, timeout, args);
+          }
           const outcome = rs.outcome(result);
           await this.save(state, sid, outcome);
           return outcome;
@@ -553,6 +578,9 @@ export class JobManager {
           step: sid,
           result,
           ...(step.evidenceId && { evidenceId: step.evidenceId }),
+          ...(isMultiCall(result) && {
+            evidenceIds: new Set(result.records.map((r) => r.evidence_id)),
+          }),
         });
       }
       targets.push({
@@ -732,6 +760,7 @@ export class JobManager {
       step.summary = outcome.summary;
       if (outcome.counts) step.counts = outcome.counts;
       if (outcome.evidenceId) step.evidenceId = outcome.evidenceId;
+      if (outcome.evidenceCount !== undefined) step.evidenceCount = outcome.evidenceCount;
       if (outcome.cachedAt) {
         step.cached = true;
         step.cachedAt = outcome.cachedAt;

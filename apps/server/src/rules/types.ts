@@ -14,6 +14,8 @@ export interface StepResult {
   result: unknown;
   /** REA evidence id of the result, when it has one. */
   evidenceId?: string;
+  /** Every evidence id a many-call step's result holds. */
+  evidenceIds?: Set<string>;
 }
 
 /** One target's inputs: its preflight and the recipe steps that succeeded. */
@@ -54,4 +56,16 @@ export interface Rule {
 export function ref(step: StepResult, locator?: EvidenceRef["locator"]): EvidenceRef {
   if (!step.evidenceId) throw new Error(`Step ${step.step} has no evidence id to cite.`);
   return { evidenceId: step.evidenceId, step: step.step, ...(locator && { locator }) };
+}
+
+/** Evidence reference to one record of a many-call step. */
+export function refTo(
+  step: StepResult,
+  evidenceId: string,
+  locator?: EvidenceRef["locator"],
+): EvidenceRef {
+  if (!step.evidenceIds?.has(evidenceId)) {
+    throw new Error(`Step ${step.step} holds no evidence record ${evidenceId}.`);
+  }
+  return { evidenceId, step: step.step, ...(locator && { locator }) };
 }

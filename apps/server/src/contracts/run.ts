@@ -28,10 +28,20 @@ const RUST_FIXTURE = "$RUST_FIXTURE";
 const CALL_TIMEOUT_MS = 20 * 60_000;
 const SAMPLE_ITEMS = 5;
 
-type Args = (target: string) => Record<string, unknown>;
+type Args = (target: string, earlier: Map<string, unknown>) => Record<string, unknown>;
+
+const hexOf = (text: string) =>
+  [...Buffer.from(text, "latin1")].map((b) => b.toString(16).padStart(2, "0")).join(" ");
+const nr = (v: unknown) => (v as { normalized_result?: unknown } | undefined)?.normalized_result;
+/** The fixture's URL literal, as search_bytes found it. */
+const urlAddress = (earlier: Map<string, unknown>) =>
+  (nr(earlier.get("search_bytes")) as { matches?: { address: string }[] } | undefined)?.matches?.[0]
+    ?.address ?? "0x0";
+const firstXref = (earlier: Map<string, unknown>) =>
+  (nr(earlier.get("xrefs")) as string[] | undefined)?.[0] ?? "0x0";
 
 /** The tools Binlight calls, in session order: one open, many reads, one close. */
-const STEPS: { tool: string; args: Args; hostOnly?: boolean }[] = [
+const STEPS: { tool: string; args: Args; hostOnly?: boolean; ghidraOnly?: boolean }[] = [
   { tool: "inspect_go_binary", args: (t) => ({ path: t }) },
   { tool: "inspect_rust_binary", args: (t) => ({ path: t }) },
   { tool: "open_binary", args: (t) => ({ path: t }) },
@@ -41,6 +51,24 @@ const STEPS: { tool: string; args: Args; hostOnly?: boolean }[] = [
   { tool: "binary_overview", args: () => ({}) },
   { tool: "list_strings", args: () => ({}) },
   { tool: "list_procedures", args: () => ({}) },
+  // "Does it phone home?": from the fixture's URL to the function that uses it.
+  // search_bytes is Ghidra only (Hopper: capability_unavailable).
+  {
+    tool: "search_bytes",
+    args: () => ({ pattern: hexOf("https://example.invalid") }),
+    ghidraOnly: true,
+  },
+  {
+    tool: "read_bytes",
+    args: (_t, e) => ({ address: urlAddress(e), length: 64 }),
+    ghidraOnly: true,
+  },
+  { tool: "xrefs", args: (_t, e) => ({ address: urlAddress(e) }), ghidraOnly: true },
+  {
+    tool: "resolve_containing_procedure",
+    args: (_t, e) => ({ address: firstXref(e) }),
+    ghidraOnly: true,
+  },
   { tool: "close_binary", args: () => ({}) },
 ];
 
@@ -179,7 +207,9 @@ export async function recordContracts(
   provider?: string,
   options: { onHost?: boolean; rustFixture?: string } = {},
 ): Promise<ContractRun> {
-  const wanted = STEPS.filter((s) => !s.hostOnly || options.onHost);
+  const wanted = STEPS.filter(
+    (s) => (!s.hostOnly || options.onHost) && (!s.ghidraOnly || provider === "ghidra"),
+  );
   const schemaIssues: string[] = [];
   const tools = await rea.listTools();
   const used = new Set([...wanted, ...ERROR_CASES].map((s) => s.tool));
@@ -188,11 +218,13 @@ export async function recordContracts(
   );
 
   const steps: StepRecord[] = [];
+  const earlier = new Map<string, unknown>();
   let chosenProvider: string | undefined;
   for (const step of wanted) {
-    const args = step.args(target);
+    const args = step.args(target, earlier);
     if (step.tool === "open_binary" && provider) args["provider_id"] = provider;
     const { structured } = await rea.callTool(step.tool, args, { timeoutMs: CALL_TIMEOUT_MS });
+    earlier.set(step.tool, structured);
     schemaIssues.push(...schemaProblems(step.tool, structured));
     if (step.tool === "list_strings") {
       chosenProvider = (structured as { provider?: { id?: string } }).provider?.id;
@@ -228,7 +260,7 @@ export async function recordContracts(
 
   const errors: ErrorRecord[] = [];
   for (const c of ERROR_CASES) {
-    const err = await rea.callTool(c.tool, c.args(target)).then(
+    const err = await rea.callTool(c.tool, c.args(target, new Map())).then(
       () => undefined,
       (e: unknown) => e,
     );

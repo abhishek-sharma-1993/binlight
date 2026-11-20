@@ -75,7 +75,13 @@ export async function buildExcerpts(
 ): Promise<EvidenceExcerpt[]> {
   const excerpts: EvidenceExcerpt[] = [];
   for (const [evidenceId, { step, locators }] of citedEvidence(job.findings ?? [])) {
-    const record = (await result(step)) as Record<string, unknown> | undefined;
+    const stored = (await result(step)) as Record<string, unknown> | undefined;
+    // A many-call step keeps one record per REA call.
+    const record = Array.isArray(stored?.["records"])
+      ? (stored["records"] as Record<string, unknown>[]).find(
+          (r) => r["evidence_id"] === evidenceId,
+        )
+      : stored;
     if (!record || record["evidence_id"] !== evidenceId) {
       excerpts.push({
         evidenceId,
